@@ -15,12 +15,12 @@ Goals
 Concept Overview
 ================
 
-![High Level Data Flow](_documentations/images/binding-overview-data-flow.png)
+![High Level Data Flow](_documentation/images/binding-overview-data-flow.png)
 
 Binding In Details
 ==================
 
-![Data Flow inside the Binding Library](_documentations/images/binding-detailed-data-flow.png)
+![Data Flow inside the Binding Library](_documentation/images/binding-detailed-data-flow.png)
 
 
 
