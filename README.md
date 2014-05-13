@@ -52,5 +52,45 @@ Binding In Details
 # Example of Usage
 ```java
 import com.truecaller.ui.binding.*;
-import static com.truecaller.ui.binding.Validations.Anything; 
+
+import static com.truecaller.ui.binding.Validations.anything; 
+import static com.truecaller.ui.binding.Formatting.default;
+import static com.truecaller.ui.binding.Storage.property;
+import static com.truecaller.ui.binding.Storage.pojo;
+import static com.truecaller.ui.binding.Listeners.onTextChange;
+
+public class LoginFragment extends Fragment implements BindingManager.Callback {
+
+  private final BindingManager mBinder = BindingManager.getInstance(this);
+  private final User mUser = new User();
+
+  @Override
+  public void onActivityCreated(Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
+    
+    // read line:
+    // bind property "get/set Text" of view with id R.id.txtLogin to property of Pojo storage object
+    // validation pass anything, convert all to String, and listen for text changes
+    mBinder.view(withId(R.id.tv_Login)) /* Note: reference on fragment we got during instance creation. */
+      .bind(property("text"))
+      .storage(pojo(mUser).property("login"))
+      .validate(anything())     /* optional: applied automatically */
+      .formatting(default())    /* optional: applied automatically */
+      .listen(onTextChange());  /* optional: by default we listen 'focus loss' */
+      
+    // normal way of usage, binded 'Text'-to-'Password'
+    mBinder.textview(withId(R.id.tv_Password)).storage(pojo(mUser).property("password")));
+
+    // initialization done, force Views update
+    mBinding.updateViews();     /* optional: we listen on visibility change */
+  }
+  
+  public static class User{
+    private String mLogin;
+    private String mPassword;
+  
+    public String getLogin(){ return mLogin; }
+    public String getPassword(){ return mPassword; }
+  }
+}
 ``` 
