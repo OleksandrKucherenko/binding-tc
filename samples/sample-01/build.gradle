@@ -1,5 +1,11 @@
 // Application: Sample-01
-import org.apache.tools.ant.taskdefs.condition.Os;
+
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+import javax.xml.parsers.DocumentBuilderFactory
+
+// CONFIGURATION based on: http://tools.android.com/tech-docs/new-build-system/user-guide
 
 apply plugin: 'android'
 apply plugin: 'android-test'
@@ -138,7 +144,7 @@ android {
     }
 
     dexOptions {
-        incremental true
+        incremental false
         javaMaxHeapSize "4g"
     }
 
@@ -148,6 +154,39 @@ android {
     //        variant.processResources.manifestFile = android.sourceSets["androidTest"].manifest.srcFile
     //        logger.info(">>>>>> Unit Tests new manifest: " + variant.processResources.manifestFile)
     //    }
+
+    // customize output file name
+    applicationVariants.all { variant ->
+        def String ANDROID_NAME_SPACE = "http://schemas.android.com/apk/res/android"
+
+        // alternative:
+        //      def manifestPath = android.sourceSets["main"].manifest.srcFile
+        def manifestPath = variant.processResources.manifestFile
+
+        def builderFactory = DocumentBuilderFactory.newInstance()
+        builderFactory.setNamespaceAware(true)
+
+        // extract manifest values
+        if (null != manifestPath && new File(manifestPath.toString()).exists()) {
+            def manifestXml = builderFactory.newDocumentBuilder().parse(manifestPath).documentElement
+            def packageName = manifestXml.getAttribute("package")
+            def versionCode = manifestXml.getAttributeNS(ANDROID_NAME_SPACE, "versionCode")
+            def versionName = manifestXml.getAttributeNS(ANDROID_NAME_SPACE, "versionName")
+            def gitRevision = rootProject.hasProperty("GIT_REVISION") ? rootProject.properties["GIT_REVISION"] : "0"
+            def versionType = variant.name
+
+            // modify file name
+            def file = variant.outputFile
+            def version = versionName + "." + versionCode + "." + gitRevision
+            def newFilename = packageName + "-" + version + "-" + versionType + ".apk"
+            variant.outputFile = new File(file.parent, newFilename)
+
+            // dump into logs final filename
+            def log = "Application variant output file name: '" + newFilename + "'"
+            rootProject.logger.lifecycle(log)
+        }
+    }
+
 }
 
 androidTest {
@@ -163,8 +202,17 @@ idea {
     }
 }
 
+/* ---------------------------------------------------------------------------------------------  */
+/* CUSTOM TASKS                                                                                   */
+/* ---------------------------------------------------------------------------------------------  */
+
+task openResults(dependsOn: ["openLintResults", "openTestResults"]) {
+}
+
 // Task opens robolectric report file in default web-browser
-task openTestResults(type: Exec) {
+task openTestResults(type: Exec, dependsOn: ["test"]) {
+    logger.lifecycle(":openTestResults")
+
     // todo: force open of HTML file
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
         // path is relative to current project path:
@@ -172,9 +220,24 @@ task openTestResults(type: Exec) {
         def path = """.\\build\\test-report\\index.html"""
         commandLine 'cmd.exe', '/C', path
 
-        logger.lifecycle(">>>>>>>>>>>>>>> SHOW RESULTS")
-        logger.info(">>>>> OPENING TEST RESULTS <<<<<")
     } else {
         // this build server, or Mac OS, or Linux - ignore this call
     }
 }
+
+// Task opens LINT utility report file in default web browser
+task openLintResults(type: Exec, dependsOn: ["lint"]) {
+    logger.lifecycle(":openLintResults")
+
+    // todo: force open of HTML file
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        // path is relative to current project path:
+        //      C:\\Android\\Projects\\_helpers_\\binding-tc\\samples\\sample-01
+        def path = """.\\build\\lint-results.html"""
+        commandLine 'cmd.exe', '/C', path
+
+    } else {
+        // this build server, or Mac OS, or Linux - ignore this call
+    }
+}
+

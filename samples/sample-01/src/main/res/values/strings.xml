@@ -5,11 +5,14 @@
     <string name="action_settings">Settings</string>
 
     <string name="labelLogin">Login:</string>
+    <string name="hintLogin">Username or email</string>
     <string name="labelPassword">Password:</string>
     <string name="labelGroup">Select Group:</string>
     <string name="labelRememberLogin">Remember Login</string>
     <string name="labelRememberPassword">Remember Password</string>
     <string name="labelChooseGroup">Select Group</string>
     <string name="labelLastOpened">Continue where you left off</string>
+
+    <string name="btnProceed">Proceed</string>
 
 </resources>
