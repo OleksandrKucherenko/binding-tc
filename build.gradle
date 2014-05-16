@@ -20,8 +20,9 @@ allprojects {
 
 // Android Environment Global Settings
 // alternative: http://www.egeek.me/2013/12/07/gradle-auto-detect-android-sdk-and-build-tools-versions/
+
 ext.compileSdkVersion = 19
-ext.buildToolsVersion = "19.1"
+ext.buildToolsVersion = "19.0.3" /* 19.1 is available already but Travis do not support it yet */
 
 ext.minSdkVersion = 10
 ext.targetSdkVersion = 18 /* Robolectric does not work with API 19 yet */
