@@ -1,15 +1,11 @@
 # binding-tc
 
-~Second Name: Android Easy Binding (AEB)~
-
-[![Build Status](https://secure.travis-ci.org/OleksandrKucherenko/binding-tc.png?branch=master)](https://travis-ci.org/OleksandrKucherenko/binding-tc)
-
+*Second Name:* Android Easy Binding (AEB)
 Android View properties binding to the Business Objects (POJO). 
-
 
 # State
 
-Active development, 2014-05-15
+[![Build Status](https://secure.travis-ci.org/OleksandrKucherenko/binding-tc.png?branch=master)](https://travis-ci.org/OleksandrKucherenko/binding-tc) Active development, started at: 2014-05-15
 
 # Goals
 * High performance, 
