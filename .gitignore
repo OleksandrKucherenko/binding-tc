@@ -22,7 +22,6 @@ generated
 # Android Studio
 .idea/
 build/
-gradle/
 **/build
 .gradle
 /*/local.properties
