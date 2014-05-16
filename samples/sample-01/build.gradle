@@ -22,8 +22,9 @@ dependencies {
     /* RELEASE and DEBUG COMPILATION */
     /* ----------------------------- */
     compile 'com.android.support:appcompat-v7:+'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':library')
+
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 
     /* -------------------------- */
     /* UNIT TESTING configuration */
@@ -192,6 +193,8 @@ android {
 androidTest {
     include '**/*Test.class'
     exclude '**/espresso/**/*.class'
+
+    maxHeapSize = "4g"
 }
 
 apply plugin: 'idea'
