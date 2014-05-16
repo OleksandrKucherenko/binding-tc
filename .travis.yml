@@ -10,4 +10,4 @@ before_script:
     - chmod +x gradlew
 
 script:
-    - ./gradlew test --info
+    - ./gradlew test --info --no-color
