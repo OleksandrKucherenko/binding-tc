@@ -1,6 +1,11 @@
 # binding-tc
 
+~Second Name: Android Easy Binding (AEB)~
+
+[![Build Status](https://secure.travis-ci.org/OleksandrKucherenko/binding-tc.png?branch=master)](https://travis-ci.org/OleksandrKucherenko/binding-tc)
+
 Android View properties binding to the Business Objects (POJO). 
+
 
 # State
 
