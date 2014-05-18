@@ -11,6 +11,9 @@
 # Java class files
 *.class
 
+# Local configs
+local.properties
+
 # generated files
 gen
 bin

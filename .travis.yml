@@ -21,4 +21,4 @@ before_script:
 
 script:
     - ./gradlew test --info --no-color
-    - ./gradlew connectedAndroidTest
+    # - ./gradlew connectedAndroidTest --info --no-color
