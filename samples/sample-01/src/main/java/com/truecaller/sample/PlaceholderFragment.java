@@ -17,7 +17,7 @@ import static com.truecaller.ui.binding.Views.withId;
  */
 public class PlaceholderFragment extends Fragment implements BindingManager.Callback {
 
-    private final BindingManager bind  = new BindingManager(this);
+    private final BindingManager mBm = new BindingManager(this).register(this);
     private final User           mUser = new User();
 
     public PlaceholderFragment() {
@@ -25,18 +25,17 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Call
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        final View view = inflater.inflate(R.layout.fragment_main, container, false);
 
-
-        bind.onRoot(rootView, withId(R.id.et_login))
+        mBm.onRoot(view, withId(R.id.et_login))
                 .bind(property("text"))
                 .storage(pojo(mUser, property("login")));
 
-        bind.view(withId(R.id.et_password))
+        mBm.view(withId(R.id.et_password))
                 .bind(property("text"))
                 .storage(pojo(mUser, property("password")));
 
 
-        return rootView;
+        return view;
     }
 }

@@ -12,19 +12,19 @@ public final class Objects {
         throw new AssertionError();
     }
 
-    public static <T> Matcher<T> pojo(final Object instance, Matcher<?> matcher) {
+    public static <T> Matcher<T> pojo(final T instance, Matcher<?> matcher) {
         return null;
     }
 
-    public static <T> Matcher<T> map(final Map<String, T> instance) {
+    public static <T> Matcher<T> map(final Map<String, T> instance, Matcher<?> matcher) {
         return null;
     }
 
-    public static <T> Matcher<T> index(final List<T> instance) {
+    public static <T> Matcher<T> index(final List<T> instance, Matcher<?> matcher) {
         return null;
     }
 
-    public static <T> Matcher<?> index(final T[] instance) {
+    public static <T> Matcher<T> index(final T[] instance, Matcher<?> matcher) {
         return null;
     }
 }
