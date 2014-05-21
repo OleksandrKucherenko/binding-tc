@@ -4,31 +4,34 @@ apply plugin: 'android-library'
 
 
 dependencies {
-    compile fileTree(dir: 'libs', includes: ['*.jar'])
-    compile 'com.android.support:support-v4:+'
+  compile fileTree(dir: 'libs', includes: ['*.jar'])
+  compile 'com.android.support:support-v4:+'
+  compile 'org.hamcrest:hamcrest-core:+',
+          'org.hamcrest:hamcrest-integration:+',
+          'org.hamcrest:hamcrest-library:+'
 }
 
 android {
-    compileSdkVersion rootProject.compileSdkVersion
-    buildToolsVersion rootProject.buildToolsVersion
+  compileSdkVersion rootProject.compileSdkVersion
+  buildToolsVersion rootProject.buildToolsVersion
 
-    // Android Manifest generation options
-    defaultConfig {
-        minSdkVersion rootProject.minSdkVersion /* 10 */
-        targetSdkVersion rootProject.targetSdkVersion /* 18 */
+  // Android Manifest generation options
+  defaultConfig {
+    minSdkVersion rootProject.minSdkVersion /* 10 */
+    targetSdkVersion rootProject.targetSdkVersion /* 18 */
 
-        versionCode 1
-        versionName "1.0"
+    versionCode 1
+    versionName "1.0"
+  }
+
+  buildTypes {
+    release {
+      runProguard false
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
     }
+  }
 
-    buildTypes {
-        release {
-            runProguard false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
-    }
-
-    sourceSets {
-        androidTest.setRoot('src/test')
-    }
+  sourceSets {
+    androidTest.setRoot('src/test')
+  }
 }
