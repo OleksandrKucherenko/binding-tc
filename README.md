@@ -20,9 +20,9 @@ Active development, started at: 2014-05-15
 
 For development used latest Android Studio with gradle build scripts. For TDD used two frameworks: Robolectric and Espresso.
 
-| Robolectric Tests Executor | Espresso Tests Executor |
-|----------------------------|-------------------------|
-| ![Android Studio Robolectric Tests Configuration](_documentation/images/android-studio-configuration-robolectric-tests.png =320x) | ![Android Studio Espresso Tests Configuration](_documentation/images/android-studio-configuration-espresso-tests.png =320x) |
+| *Robolectric Tests Executor* | *Espresso Tests Executor* |
+|------------------------------|---------------------------|
+| ![Android Studio Robolectric Tests Configuration](_documentation/images/android-studio-configuration-robolectric-tests.png) | ![Android Studio Espresso Tests Configuration](_documentation/images/android-studio-configuration-espresso-tests.png) |
 
 #Binding In Details
 
