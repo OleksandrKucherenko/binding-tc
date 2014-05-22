@@ -43,41 +43,35 @@ Typical Business Object declared in POJO way:
 Fragment binding:
 
 ```java
-import com.truecaller.ui.binding.*;
+import com.truecaller.ui.binding.BindingManager;
 
-import static com.truecaller.ui.binding.Validations.anything; 
-import static com.truecaller.ui.binding.Validations.anyOf;
-import static com.truecaller.ui.binding.Formatting.default;
-import static com.truecaller.ui.binding.Storage.property;
-import static com.truecaller.ui.binding.Storage.pojo;
-import static com.truecaller.ui.binding.Listeners.onTextChange;
-import static com.truecaller.ui.binding.Listeners.onFocusChange;
+import static com.truecaller.ui.binding.Objects.pojo;
+import static com.truecaller.ui.binding.Objects.property;
+import static com.truecaller.ui.binding.Views.matches;
+import static com.truecaller.ui.binding.Views.root;
+import static com.truecaller.ui.binding.Views.view;
+import static com.truecaller.ui.binding.Views.withId;
 
-public class LoginFragment extends Fragment implements BindingManager.Callback {
+public class PlaceholderFragment extends Fragment implements BindingManager.Callback {
 
-  private final BindingManager mBinder = BindingManager.getInstance(this);
-  private final User mUser = new User();
+	private final BindingManager mBm = new BindingManager(this).register(this);
+	private final User mUser = new User();
 
-  @Override
-  public void onActivityCreated(Bundle savedInstanceState) {
-    super.onActivityCreated(savedInstanceState);
-    
-    // read line:
-    // bind property "get/set Text" of view with id R.id.txtLogin to property of Pojo storage object
-    // validation pass anything, convert all to String, and listen for text changes
-    mBinder.view(withId(R.id.tv_Login)) /* Note: reference on fragment we got during instance creation. */
-      .bind(property("text"))
-      .storage(pojo(mUser).property("login"))
-      .validate(anything())     /* optional: applied automatically */
-      .formatting(default())    /* optional: applied automatically */
-      .listen(anyOf(onFocusChange(), onTextChange()));  /* optional: by default we listen 'focus loss' */
-      
-    // normal way of usage, binded 'Text'-to-'Password' with listening of 'onTextChange'
-    mBinder.textview(withId(R.id.tv_Password)).storage(pojo(mUser).property("password")));
+	public PlaceholderFragment() {
+	}
 
-    // initialization done, force Views update
-    mBinding.updateViews();     /* optional: we listen on visibility change */
-  }
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		final View view = inflater.inflate(R.layout.fragment_main, container, false);
+
+		mBm.bind(view(matches(root(view), withId(R.id.et_login)), property("text")))
+						.storage(pojo(mUser, property("login")));
+
+		mBm.bind(view(withId(R.id.et_password), property("text")))
+						.storage(pojo(mUser, property("password")));
+
+		return view;
+	}
 }
 ``` 
  

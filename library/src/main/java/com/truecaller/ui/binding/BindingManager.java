@@ -3,6 +3,7 @@ package com.truecaller.ui.binding;
 import android.app.Activity;
 import android.app.Fragment;
 import android.view.View;
+import android.widget.BaseAdapter;
 
 import java.util.WeakHashMap;
 
@@ -16,89 +17,79 @@ import java.util.WeakHashMap;
  * </ul>
  */
 public class BindingManager {
-    /* ==============================[ CONSTANTS AND MEMBERS ]========================== */
+	/* ==============================[ CONSTANTS AND MEMBERS ]========================== */
 
-    /** Weak references on listeners. */
-    private final WeakHashMap<Callback, Callback> mListeners = new WeakHashMap<Callback, Callback>();
-    /** Reference on root element of binding. */
-    private final RootView mRoot;
+	/** Weak references on listeners. */
+	private final WeakHashMap<Callback, Callback> mListeners = new WeakHashMap<Callback, Callback>();
+	/** Reference on root element of binding. */
+	private final Activity mRootActivity;
 
-    /* ==============================[ CONSTRUCTORS ]========================== */
+	private final FragmentFacade mRootFragment;
 
-    public BindingManager(final Activity parent) {
-        mRoot = RootView.fromActivity(parent);
-    }
+	private final View mRootView;
 
-    public BindingManager(final Fragment parent) {
-        mRoot = RootView.fromFragment(parent);
-    }
+	private final BaseAdapter mRootAdapter;
 
-    public BindingManager(final android.support.v4.app.Fragment parent) {
-        mRoot = RootView.fromFragment(parent);
-    }
+  /* ==============================[ CONSTRUCTORS ]========================== */
 
-    public BindingManager(final View parent) {
-        mRoot = RootView.fromView(parent);
-    }
+	private BindingManager(final Activity activity, final FragmentFacade fragment, final View view, final BaseAdapter adapter) {
+		mRootActivity = activity;
+		mRootFragment = fragment;
+		mRootView = view;
+		mRootAdapter = adapter;
+	}
 
-    /* ==============================[ IMPLEMENTATION ]========================== */
+	public BindingManager(final Activity parent) {
+		this(parent, null, null, null);
+	}
 
-    public BindingManager register(final Callback listener) {
-        mListeners.put(listener, listener);
-        return this;
-    }
+	public BindingManager(final Fragment parent) {
+		this(null, new FragmentFacade(parent), null, null);
+	}
 
-    public BindingManager unregister(final Callback listener) {
-        mListeners.remove(listener);
-        return this;
-    }
+	public BindingManager(final android.support.v4.app.Fragment parent) {
+		this(null, new FragmentFacade(parent), null, null);
+	}
 
-    public Binder onRoot(final View view, Matcher<?> matches) {
-        return new Binder(RootView.fromView(view).find(matches));
-    }
+	public BindingManager(final View parent) {
+		this(null, null, parent, null);
+	}
 
-    public Binder view(final Matcher<?> matches) {
-        return new Binder(mRoot.find(matches));
-    }
+	public BindingManager(final BaseAdapter adapter) {
+		this(null, null, null, adapter);
+	}
 
-    /* ==============================[ HELPERS ]========================== */
+  /* ==============================[ IMPLEMENTATION ]========================== */
 
-    /* ==============================[ NESTED DECLARATIONS ]========================== */
+	public BindingManager register(final Callback listener) {
+		mListeners.put(listener, listener);
+		return this;
+	}
 
-    public static class RootView {
+	public BindingManager unregister(final Callback listener) {
+		mListeners.remove(listener);
+		return this;
+	}
 
-        private final View mView;
+	public Binder bind(final Matcher<?> matcher) {
+		return null;
+	}
 
-        private RootView(final View view) {
-            mView = view;
-        }
+	/* ==============================[ HELPERS ]========================== */
 
-        public static RootView fromActivity(final Activity parent) {
-            return new RootView(parent.getWindow().getDecorView().getRootView());
-        }
+	/* ==============================[ NESTED DECLARATIONS ]========================== */
 
-        public static RootView fromFragment(final android.support.v4.app.Fragment fragment) {
-            return new RootView(fragment.getView());
-        }
+	private static final class FragmentFacade {
+		public FragmentFacade(android.support.v4.app.Fragment fragment) {
 
-        public static RootView fromFragment(final Fragment fragment) {
-            return new RootView(fragment.getView());
-        }
+		}
 
-        public static RootView fromView(final View view) {
-            return new RootView(view);
-        }
+		public FragmentFacade(Fragment fragment) {
 
-        public View root() {
-            return mView;
-        }
+		}
+	}
 
-        public View find(final Matcher<?> matchers) {
-            return null;
-        }
-    }
+	public interface Callback {
 
-    public interface Callback {
-
-    }
+	}
 }

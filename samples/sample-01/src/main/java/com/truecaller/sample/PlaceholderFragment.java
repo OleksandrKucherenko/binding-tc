@@ -9,7 +9,10 @@ import android.view.ViewGroup;
 import com.truecaller.ui.binding.BindingManager;
 
 import static com.truecaller.ui.binding.Objects.pojo;
-import static com.truecaller.ui.binding.Storages.property;
+import static com.truecaller.ui.binding.Objects.property;
+import static com.truecaller.ui.binding.Views.matches;
+import static com.truecaller.ui.binding.Views.root;
+import static com.truecaller.ui.binding.Views.view;
 import static com.truecaller.ui.binding.Views.withId;
 
 /**
@@ -17,25 +20,22 @@ import static com.truecaller.ui.binding.Views.withId;
  */
 public class PlaceholderFragment extends Fragment implements BindingManager.Callback {
 
-    private final BindingManager mBm = new BindingManager(this).register(this);
-    private final User           mUser = new User();
+	private final BindingManager mBm = new BindingManager(this).register(this);
+	private final User mUser = new User();
 
-    public PlaceholderFragment() {
-    }
+	public PlaceholderFragment() {
+	}
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_main, container, false);
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		final View view = inflater.inflate(R.layout.fragment_main, container, false);
 
-        mBm.onRoot(view, withId(R.id.et_login))
-                .bind(property("text"))
-                .storage(pojo(mUser, property("login")));
+		mBm.bind(view(matches(root(view), withId(R.id.et_login)), property("text")))
+						.storage(pojo(mUser, property("login")));
 
-        mBm.view(withId(R.id.et_password))
-                .bind(property("text"))
-                .storage(pojo(mUser, property("password")));
+		mBm.bind(view(withId(R.id.et_password), property("text")))
+						.storage(pojo(mUser, property("password")));
 
-
-        return view;
-    }
+		return view;
+	}
 }
