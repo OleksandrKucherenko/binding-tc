@@ -5,91 +5,163 @@ import android.app.Fragment;
 import android.view.View;
 import android.widget.BaseAdapter;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.WeakHashMap;
 
 /**
- * Manager class responsible for controlling integration of the binding library into corresponding fragment or
- * activity. It controls aspects:<br/>
- * <ul>
- * <li>context instance extracting;</li>
- * <li>Binding defining and configuring;</li>
- * <li></li>
- * </ul>
+ * Manager class responsible for controlling integration of the binding library into corresponding fragment or activity.
+ * It controls aspects:<br/> <ul> <li>context instance extracting;</li> <li>Binding defining and configuring;</li>
+ * <li></li> </ul>
  */
 public class BindingManager {
-	/* ==============================[ CONSTANTS AND MEMBERS ]========================== */
+  /* [ CONSTANTS AND MEMBERS ] ==================================================================================== */
 
-	/** Weak references on listeners. */
-	private final WeakHashMap<Callback, Callback> mListeners = new WeakHashMap<Callback, Callback>();
-	/** Reference on root element of binding. */
-	private final Activity mRootActivity;
+  /** Weak references on listeners. */
+  private final WeakHashMap<LifecycleCallback, LifecycleCallback> mListeners = new WeakHashMap<LifecycleCallback,
+          LifecycleCallback>();
+  /** Reference on root element of binding. */
+  private final Activity mRootActivity;
 
-	private final FragmentFacade mRootFragment;
+  private final FragmentFacade mRootFragment;
 
-	private final View mRootView;
+  private final View mRootView;
 
-	private final BaseAdapter mRootAdapter;
+  private final BaseAdapter mRootAdapter;
+  /** Collection of all defined binding rules. */
+  private final List<Binder> mRules = new LinkedList<Binder>();
 
-  /* ==============================[ CONSTRUCTORS ]========================== */
+  /* [ CONSTRUCTORS ] ============================================================================================ */
 
-	private BindingManager(final Activity activity, final FragmentFacade fragment, final View view, final BaseAdapter adapter) {
-		mRootActivity = activity;
-		mRootFragment = fragment;
-		mRootView = view;
-		mRootAdapter = adapter;
-	}
+  private BindingManager(final Activity activity, final FragmentFacade fragment, final View view,
+                         final BaseAdapter adapter) {
+    mRootActivity = activity;
+    mRootFragment = fragment;
+    mRootView = view;
+    mRootAdapter = adapter;
+  }
 
-	public BindingManager(final Activity parent) {
-		this(parent, null, null, null);
-	}
+  public BindingManager(final Activity parent) {
+    this(parent, null, null, null);
+  }
 
-	public BindingManager(final Fragment parent) {
-		this(null, new FragmentFacade(parent), null, null);
-	}
+  public BindingManager(final Fragment parent) {
+    this(null, new FragmentFacade(parent), null, null);
+  }
 
-	public BindingManager(final android.support.v4.app.Fragment parent) {
-		this(null, new FragmentFacade(parent), null, null);
-	}
+  public BindingManager(final android.support.v4.app.Fragment parent) {
+    this(null, new FragmentFacade(parent), null, null);
+  }
 
-	public BindingManager(final View parent) {
-		this(null, null, parent, null);
-	}
+  public BindingManager(final View parent) {
+    this(null, null, parent, null);
+  }
 
-	public BindingManager(final BaseAdapter adapter) {
-		this(null, null, null, adapter);
-	}
+  public BindingManager(final BaseAdapter adapter) {
+    this(null, null, null, adapter);
+  }
 
-  /* ==============================[ IMPLEMENTATION ]========================== */
+  /* [ BINDING RULES DEFINING ] ================================================================================== */
 
-	public BindingManager register(final Callback listener) {
-		mListeners.put(listener, listener);
-		return this;
-	}
+  public List<Binder> getBindings() {
+    return mRules;
+  }
 
-	public BindingManager unregister(final Callback listener) {
-		mListeners.remove(listener);
-		return this;
-	}
+  public List<Binder> getBindingsByInstance(final Object instance) {
+    List<Binder> result = new LinkedList<Binder>();
 
-	public Binder bind(final Matcher<?> matcher) {
-		return null;
-	}
+    // TODO: do the search
 
-	/* ==============================[ HELPERS ]========================== */
+    return result;
+  }
 
-	/* ==============================[ NESTED DECLARATIONS ]========================== */
+  public Binder bind(final Matcher<?> matcher) {
+    return null;
+  }
 
-	private static final class FragmentFacade {
-		public FragmentFacade(android.support.v4.app.Fragment fragment) {
+  /* [ LIFECYCLE ] ============================================================================================== */
 
-		}
+  public BindingManager register(final LifecycleCallback listener) {
+    if (null != listener) {
+      mListeners.put(listener, listener);
+    }
 
-		public FragmentFacade(Fragment fragment) {
+    return this;
+  }
 
-		}
-	}
+  public BindingManager unregister(final LifecycleCallback listener) {
+    if (null != listener) {
+      mListeners.remove(listener);
+    }
 
-	public interface Callback {
+    return this;
+  }
 
-	}
+	/* [ PUSH AND POP ] ========================================================================================== */
+
+  /**
+   * Force model instance update by values from view's.
+   *
+   * @param instance the instance of model
+   */
+  public BindingManager pushByInstance(final Object instance) {
+    for (final Binder bind : getBindingsByInstance(instance)) {
+      push(bind);
+    }
+
+    return this;
+  }
+
+  /**
+   * Force model instance update by value from view.
+   *
+   * @param binder binding rule.
+   */
+  public BindingManager push(final Binder binder) {
+    // TODO: implement me
+    return this;
+  }
+
+  /**
+   * Force views updates that are bind to the provided model instance.
+   *
+   * @param instance the instance of model
+   */
+  public BindingManager popByInstance(final Object instance) {
+    for (final Binder bind : getBindingsByInstance(instance)) {
+      pop(bind);
+    }
+
+    return this;
+  }
+
+  /**
+   * Force views updates that are bind to the provided model instance.
+   *
+   * @param binder binding rule.
+   */
+  public BindingManager pop(final Binder binder) {
+    // TODO: implement me
+    return this;
+  }
+
+	/* [ NESTED DECLARATIONS ] ======================================================== */
+
+  private static final class FragmentFacade {
+    public FragmentFacade(android.support.v4.app.Fragment fragment) {
+
+    }
+
+    public FragmentFacade(Fragment fragment) {
+
+    }
+  }
+
+  /**
+   * Lifecycle extending callback. Implement it if you want to enhance original lifecycle by new state, during
+   * which binding operation is the most suitable.
+   */
+  public interface LifecycleCallback {
+    void onCreateBinding(final BindingManager bm);
+  }
 }
