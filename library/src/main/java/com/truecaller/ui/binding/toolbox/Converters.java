@@ -10,16 +10,30 @@ public final class Converters {
     throw new AssertionError();
   }
 
-  public static <T> Converter<T, T> direct() {
-    return new Converter<T, T>() {
+  public static <T, V extends T> Converter<T, V> direct() {
+    return new Converter<T, V>() {
       @Override
-      public T toOut(T value) {
+      public T toOut(V value) {
         return value;
       }
 
       @Override
-      public T toIn(T value) {
-        return value;
+      public V toIn(T value) {
+        return (V) value;
+      }
+    };
+  }
+
+  public static <T extends Number> Converter<String, T> asNumber() {
+    return new Converter<String, T>() {
+      @Override
+      public String toOut(final Number value) {
+        return value.toString();
+      }
+
+      @Override
+      public T toIn(final String value) {
+        return (T) Long.valueOf(value);
       }
     };
   }

@@ -7,6 +7,7 @@
     <string name="labelLogin">Login:</string>
     <string name="hintLogin">Username or email</string>
     <string name="labelPassword">Password:</string>
+    <string name="labelConfirmPassword">Confirm Password:</string>
     <string name="labelGroup">Select Group:</string>
     <string name="labelRememberLogin">Remember Login</string>
     <string name="labelRememberPassword">Remember Password</string>

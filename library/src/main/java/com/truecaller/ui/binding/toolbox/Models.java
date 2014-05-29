@@ -1,6 +1,6 @@
 package com.truecaller.ui.binding.toolbox;
 
-import com.truecaller.ui.binding.Matcher;
+import com.truecaller.ui.binding.Selector;
 import com.truecaller.ui.binding.reflection.Property;
 
 import java.util.List;
@@ -13,27 +13,73 @@ public final class Models {
     throw new AssertionError();
   }
 
-  public static <P extends Property, I> Matcher<P> pojo(final I instance, Matcher<P> matcher) {
+  /* [ DATA STRUCTURES ] ========================================================================================== */
+
+  public static <I, T> Selector<I, Property<T>> pojo(final I instance, Property<T> selector) {
     return null;
   }
 
-  public static <P extends Property, I> Matcher<P> map(final Map<String, I> instance, Matcher<P> matcher) {
+  public static <I, T> Selector<I, Property<T>> map(final Map<String, I> instance, Property<T> selector) {
     return null;
   }
 
-  public static <P extends Property, I> Matcher<P> index(final List<I> instance, Matcher<P> matcher) {
+  public static <I, T> Selector<I, Property<T>> index(final List<I> instance, Property<T> selector) {
     return null;
   }
 
-  public static <P extends Property, I> Matcher<P> index(final I[] instance, Matcher<P> matcher) {
+  public static <I, T> Selector<I, Property<T>> index(final I[] instance, Property<T> selector) {
     return null;
   }
 
-  public static <P extends Property> Matcher<P> property(final String name) {
+  /* [ GENERICS ] ================================================================================================= */
+
+  public static <T> Property<T> property(final String name) {
     return null;
   }
 
-  public static <P extends Property> Matcher<P> name(final String nameIn, final String nameOut) {
+  public static <T> Property<T> name(final String nameGet, final String nameSet) {
+    return null;
+  }
+
+  /* [ TYPED VERSIONS ] =========================================================================================== */
+
+  public static Property<String> string(final String name) {
+    return null;
+  }
+
+  public static Property<String> string(final String nameGet, final String nameSet) {
+    return null;
+  }
+
+  public static Property<Integer> integer(final String name) {
+    return null;
+  }
+
+  public static Property<Integer> integer(final String nameGet, final String nameSet) {
+    return null;
+  }
+
+  public static Property<Long> number(final String name) {
+    return null;
+  }
+
+  public static Property<Long> number(final String nameGet, final String nameSet) {
+    return null;
+  }
+
+  public static Property<Boolean> bool(final String name) {
+    return null;
+  }
+
+  public static Property<Boolean> bool(final String nameGet, final String nameSet) {
+    return null;
+  }
+
+  public static Property<Double> real(final String name) {
+    return null;
+  }
+
+  public static Property<Double> real(final String nameGet, final String nameSet) {
     return null;
   }
 }

@@ -5,9 +5,12 @@ import android.app.Fragment;
 import android.view.View;
 import android.widget.BaseAdapter;
 
+import com.truecaller.ui.binding.reflection.Property;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Manager class responsible for controlling integration of the binding library into corresponding fragment or activity.
@@ -29,9 +32,11 @@ public class BindingManager {
 
   private final BaseAdapter mRootAdapter;
   /** Collection of all defined binding rules. */
-  private final List<Binder> mRules = new LinkedList<Binder>();
+  private final List<Binder>  mRules         = new LinkedList<Binder>();
+  /** Freeze counter. */
+  private final AtomicInteger mFreezeCounter = new AtomicInteger(0);
 
-  /* [ CONSTRUCTORS ] ============================================================================================ */
+  /* [ CONSTRUCTORS ] ============================================================================================= */
 
   private BindingManager(final Activity activity, final FragmentFacade fragment, final View view,
                          final BaseAdapter adapter) {
@@ -61,25 +66,46 @@ public class BindingManager {
     this(null, null, null, adapter);
   }
 
-  /* [ BINDING RULES DEFINING ] ================================================================================== */
+  /* [ BINDING RULES DEFINING ] =================================================================================== */
 
   public List<Binder> getBindings() {
     return mRules;
   }
 
   public List<Binder> getBindingsByInstance(final Object instance) {
-    List<Binder> result = new LinkedList<Binder>();
+    final List<Binder> result = new LinkedList<Binder>();
 
     // TODO: do the search
 
     return result;
   }
 
-  public Binder bind(final Matcher<?> matcher) {
+  public List<Binder> getSuccessBindings() {
+    final List<Binder> result = new LinkedList<Binder>();
+
+    // TODO: do the search
+
+    return result;
+  }
+
+  public List<Binder> getFailedBindings() {
+    final List<Binder> result = new LinkedList<Binder>();
+
+    // TODO: do the search
+
+    return result;
+  }
+
+  public <Left, Right> Binder<Left, Right> bind() {
     return null;
   }
 
-  /* [ LIFECYCLE ] ============================================================================================== */
+  public <Left, Right> Binder<Left, Right> bind(final Selector<?, Property<Left>> view,
+                                                final Selector<?, Property<Right>> model) {
+    return null;
+  }
+
+  /* [ LIFECYCLE ] ================================================================================================ */
 
   public BindingManager register(final LifecycleCallback listener) {
     if (null != listener) {
@@ -97,7 +123,8 @@ public class BindingManager {
     return this;
   }
 
-	/* [ PUSH AND POP ] ========================================================================================== */
+	/* [ PUSH AND POP ]
+  ============================================================================================= */
 
   /**
    * Force model instance update by values from view's.
@@ -145,7 +172,25 @@ public class BindingManager {
     return this;
   }
 
-	/* [ NESTED DECLARATIONS ] ======================================================== */
+  /** Stop triggering of all data push/pop operations. */
+  public BindingManager freeze() {
+    mFreezeCounter.incrementAndGet();
+    return this;
+  }
+
+  /** Recover triggering of all data push/pop operations. */
+  public BindingManager unfreeze() {
+    if (0 >= mFreezeCounter.decrementAndGet()) {
+      // TODO: unfreeze triggering
+
+      mFreezeCounter.set(0);
+    }
+
+    return this;
+  }
+
+	/* [ NESTED DECLARATIONS ]
+	====================================================================================== */
 
   private static final class FragmentFacade {
     public FragmentFacade(android.support.v4.app.Fragment fragment) {
@@ -163,5 +208,7 @@ public class BindingManager {
    */
   public interface LifecycleCallback {
     void onCreateBinding(final BindingManager bm);
+
+    void onValidationResult(final BindingManager bm, final boolean success);
   }
 }

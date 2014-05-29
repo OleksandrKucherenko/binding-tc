@@ -2,43 +2,77 @@ package com.truecaller.ui.binding;
 
 import com.truecaller.ui.binding.reflection.Property;
 
+import org.hamcrest.CoreMatchers;
+
 /** Base class for all binding rules keeping. */
-public class Binder {
+public class Binder<Left, Right> {
+
+  private org.hamcrest.Matcher<Right>  mValidation;
+  private Selector<?, Property<Left>>  mView;
+  private Selector<?, Property<Right>> mStorage;
+  private Converter<Left, Right>       mFormatter;
+
+  /* ============================================================================================================== */
 
   public Binder() {
   }
 
-  public <T extends Property> Binder view(final Matcher<T> view) {
-    return this;
-  }
+  /* ============================================================================================================== */
 
-  public <T extends Property> Binder model(final Matcher<T> storage) {
-    return this;
-  }
-
-  public <Out, In> Binder formatter(final Converter<Out, In> converter) {
-    // TODO: store converter instance
+  public <T> Binder<Left, Right> view(final Selector<T, Property<Left>> view) {
+    mView = view;
 
     return this;
   }
 
-  public <T> Binder validator(final org.hamcrest.Matcher<T> validator) {
-    // TODO: store validation matcher
+  public <T> Binder<Left, Right> model(final Selector<T, Property<Right>> storage) {
+    mStorage = storage;
+
+    return this;
+  }
+
+  public Binder<Left, Right> format(final Converter<Left, Right> converter) {
+    mFormatter = converter;
+
+    return this;
+  }
+
+  public Binder<Left, Right> validate(final org.hamcrest.Matcher<Right> validator) {
+    mValidation = validator;
 
     return this;
   }
 
   /* ============================================================================================================== */
 
-  public <T> Binder listenOnView(final Listener<T> listener) {
-    // TODO: store for late binding when actually Property instances will be calculated
-
-    return this;
+  public Property<Left> resolveView() {
+    return null;
   }
 
-  public <T> Binder listenOnModel(final Listener<T> listener) {
-    // TODO: store for late binding when actually Property instances will be calculated
+  public Property<Right> resolveModel() {
+    return null;
+  }
 
-    return this;
+  public Converter<Left, Right> resolveFormatter() {
+    return mFormatter;
+  }
+
+  public org.hamcrest.Matcher<Right> resolveValidation() {
+    if (null == mValidation) {
+      // by default we validating only data type
+      return CoreMatchers.isA(getModelType());
+    }
+
+    return mValidation;
+  }
+
+  /* ============================================================================================================== */
+
+  protected final Class<Right> getModelType() {
+    return null;
+  }
+
+  protected final Class<Left> getViewType() {
+    return null;
   }
 }
