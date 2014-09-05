@@ -10,6 +10,7 @@ import org.robolectric.RobolectricTestRunner;
 import static org.junit.Assert.assertTrue;
 
 /** First robolectric test. */
+@Config(emulateSdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class LoginFillRobolectricTest {
 
