@@ -95,6 +95,12 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
   }
 }
 ``` 
+
+# Extended lifecycle
+
+![Android Activity/Fragments lifecycle](https://raw.githubusercontent.com/xxv/android-lifecycle/master/complete_android_fragment_lifecycle.png)
+
+AEB adding a new step into lifecycle ```onCreateBinding()``` it executed after the ```onAttachedToWindow()``` and before ```onCreateOptionsMenu()```.
  
 # Generic Concept Overview
 
