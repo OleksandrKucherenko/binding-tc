@@ -71,11 +71,11 @@ dependencies {
     //            '../_libs/fest/fest-android-1.0.8.jar')
     androidTestCompile 'com.squareup:fest-android:+'
 
-    /* Robolectric (v2.3-SNAPSHOT) */
+    /* Robolectric (v2.3) */
     // ALTERNATIVE:
     //    androidTestCompile files(
     //            '../_libs/robolectric-2.3-with-dependencies.jar')
-    androidTestCompile('org.robolectric:robolectric:2.3') {
+    androidTestCompile('org.robolectric:robolectric:+') {
         exclude module: 'classworlds'
         exclude module: 'maven-artifact'
         exclude module: 'maven-artifact-manager'
