@@ -15,10 +15,10 @@ import static org.junit.Assert.assertTrue;
 @RunWith(RobolectricTestRunner.class)
 public class LoginFillRobolectricTest {
 
-    @Test
-    public void test_00_CreateActivity() {
-        final Activity activity = Robolectric.buildActivity(MainActivity.class).get();
+  @Test
+  public void test_00_CreateActivity() {
+    final Activity activity = Robolectric.buildActivity(MainActivity.class).get();
 
-        assertTrue(null != activity);
-    }
+    assertTrue(null != activity);
+  }
 }

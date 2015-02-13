@@ -6,11 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
 
 import com.truecaller.ui.binding.Binder;
 import com.truecaller.ui.binding.BindingManager;
@@ -23,21 +19,24 @@ import static com.truecaller.ui.binding.toolbox.Models.bool;
 import static com.truecaller.ui.binding.toolbox.Models.integer;
 import static com.truecaller.ui.binding.toolbox.Models.pojo;
 import static com.truecaller.ui.binding.toolbox.Models.string;
-import static com.truecaller.ui.binding.toolbox.Views.adapterView;
-import static com.truecaller.ui.binding.toolbox.Views.checkedView;
+import static com.truecaller.ui.binding.toolbox.Views.checkBox;
+import static com.truecaller.ui.binding.toolbox.Views.editText;
+import static com.truecaller.ui.binding.toolbox.Views.radioButton;
 import static com.truecaller.ui.binding.toolbox.Views.radioGroup;
+import static com.truecaller.ui.binding.toolbox.Views.spinner;
 import static com.truecaller.ui.binding.toolbox.Views.textView;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.core.AllOf.allOf;
 import static org.hamcrest.core.IsNot.not;
-import static org.hamcrest.text.IsEmptyString.isEmptyString;
 
 /** Login fragment with simplest UI. */
 public class PlaceholderFragment extends Fragment implements BindingManager.LifecycleCallback {
 
   private final BindingManager mBinding = new BindingManager(this).register(this);
-  private final User           mUser    = new User();
+  private final User mUser = new User();
   private Button btnProceed;
 
   @Override
@@ -46,8 +45,8 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
 
     // create binding to Login
     final Binder bindLogin = Binders.texts(mBinding)
-            .view(textView(Views.<EditText>withId(R.id.et_login)))
-            .model(pojo(mUser, string("login")));
+        .view(textView(Views.<EditText>withId(R.id.et_login)))
+        .model(pojo(mUser, string("login")));
 
     // update view by model values
     mBinding.pop(bindLogin);
@@ -62,52 +61,51 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
 
   @Override
   public void onCreateBinding(final BindingManager bm) {
-
     // worst case scenario: verbose syntax for edit text
     // limit user input by NUMBERS for PIN style password, 4 digits in length
-    bm.<String, Integer>bind()
-            .view(textView(Views.<EditText>withId(R.id.et_password))
-                    .listenTo(Listeners.<EditText>none()))
-            .model(pojo(mUser, integer("password"))
-                    .listenTo(Listeners.<User>none()))
-            .format(Converters.<Integer>asNumber())
-            .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
+    Binders.numeric(bm)
+        .view(editText(R.id.et_password))
+        .onView(Listeners.<EditText>none())
+        .model(pojo(mUser, integer("password")))
+        .onModel(Listeners.<User>none())
+        .format(Converters.<Integer>asNumber())
+        .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
 
     // edit Text - validation password
     Binders.texts(bm)
-            .view(textView(Views.<EditText>withId(R.id.et_confirm_password)))
-            .model(pojo(mUser, string("confirmPassword")))
-            .validate(not(isEmptyString())); // ???
+        .view(editText(R.id.et_confirm_password))
+        .model(pojo(mUser, string("confirmPassword")))
+        .validate(is(not(emptyString()))); // ???
 
     // spinner
     Binders.numbers(bm)
-            .view(adapterView(Views.<Spinner>withId(R.id.sp_group)))
-            .model(pojo(mUser, integer("")));
+        .view(spinner(R.id.sp_group))
+        .model(pojo(mUser, integer("")));
 
     // master-details scenario: master checkbox
     Binders.bools(bm)
-            .view(checkedView(Views.<CheckBox>withId(R.id.cb_login)))
-            .model(pojo(mUser, bool("StoreLogin")));
+        .view(checkBox(R.id.cb_login))
+        .model(pojo(mUser, bool("StoreLogin")));
 
     // master-detail scenario: details checkbox
     Binders.bools(bm)
-            .view(checkedView(Views.<CheckBox>withId(R.id.cb_password)))
-            .model(pojo(mUser, bool("StorePassword")));
+        .view(checkBox(R.id.cb_password))
+        .model(pojo(mUser, bool("StorePassword")));
 
     // radio group
     Binders.numbers(bm)
-            .view(radioGroup(Views.<RadioGroup>withId(R.id.rg_options)))
-            .model(pojo(mUser, integer("")));
+        .view(radioGroup(R.id.rg_options))
+        .model(pojo(mUser, integer("")));
 
     // radio button
     Binders.bools(bm)
-            .view(checkedView(Views.<RadioButton>withId(R.id.rb_chooseGroup)))
-            .model(pojo(mUser, bool("")));
+        .view(radioButton(R.id.rb_chooseGroup))
+        .model(pojo(mUser, bool("")));
 
     // radio button
     Binders.bools(bm)
-            .view(checkedView(Views.<RadioButton>withId(R.id.rb_openLast)))
-            .model(pojo(mUser, bool("")));
+        .view(radioButton(R.id.rb_openLast))
+        .model(pojo(mUser, bool("")));
   }
 
   @Override

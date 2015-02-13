@@ -1,92 +1,157 @@
 // Library: binding-tc, Android Easy Binding (AEB)
 
+buildscript {
+    repositories {
+        jcenter()
+//        mavenLocal()
+//        mavenCentral()
+        /* ATTACH CUSTOME BUILDS OF GRADLE PLUGINS FROM '~/gradle/prlugins' folder */
+//        flatDir { dirs rootProject.projectDir.toString() + '/gradle/plugins' }
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:${gradlePluginVersion}"
+        /* https://github.com/kt3k/coveralls-gradle-plugin */
+        classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:${CoverallsVersion}"
+        /* https://github.com/bintray/gradle-bintray-plugin
+         * https://github.com/bintray/bintray-examples/blob/master/gradle-aar-example/build.gradle */
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:+'
+        /* Allows project artifacts to be deployed to a Maven repository, or installed to the local Maven cache. */
+        classpath 'com.github.dcendents:android-maven-plugin:+'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:+'
+    }
+}
+
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.kt3k.coveralls'
+apply plugin: 'com.github.ben-manes.versions'
 
 /* DEFINE REPOSITORY WITH LATEST ROBOLECTRIC VERSION */
 repositories {
-  mavenCentral()
-  maven {
-    url 'https://oss.sonatype.org/content/repositories/snapshots/'
-  }
+    mavenCentral()
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
 }
 
 dependencies {
-  /* =========================== */
-  /*         DEBUG/RELEASE       */
-  /* =========================== */
-  compile fileTree(dir: 'libs', includes: ['*.jar'])
-  compile "com.android.support:support-v4:${androidSupportLib}"
-  compile 'org.hamcrest:hamcrest-core:+',
-          'org.hamcrest:hamcrest-library:+'
+    /* =========================== */
+    /*         DEBUG/RELEASE       */
+    /* =========================== */
+    compile fileTree(dir: 'libs', includes: ['*.jar'])
+    compile "com.android.support:support-v4:${androidSupportLib}"
+    compile "com.android.support:appcompat-v7:${androidSupportLib}"
+    compile 'org.hamcrest:hamcrest-core:+'
 
-  /* =========================== */
-  /*         UNIT TESTING        */
-  /* =========================== */
+    /* =========================== */
+    /*         UNIT TESTING        */
+    /* =========================== */
+    if (useTesting) {
+        /* Android Tests -------------------------------------------------------------------------------------------- */
+        // unit tests libs. Rule: repeated Libs should be excluded.
+        androidTestCompile fileTree(dir: 'src/tests/libs', include: '*.jar')
 
-  // unit tests libs. Rule: repeated Libs should be excluded.
-  androidTestCompile fileTree(dir: 'src/tests/libs', include: '*.jar')
+        /* UNIT TESTS HAS DEPENDENCY ON SUPPORT LIB, SO INCLUDE IT MANUALLY FOR CONTROLLING THE VERSION OF IT */
+        androidTestCompile "com.android.support:support-v4:${androidSupportLib}"
 
-  /* UNIT TESTS HAS DEPENDENCY ON SUPPORT LIB, SO INCLUDE IT MANUALLY FOR CONTROLLING THE VERSION OF IT */
-  androidTestCompile "com.android.support:support-v4:${androidSupportLib}"
+        /* Hamcrest (v1.4) */
+        androidTestCompile 'org.hamcrest:hamcrest-integration:+',
+                'org.hamcrest:hamcrest-core:+',
+                'org.hamcrest:hamcrest-library:+'
 
-  /* Hamcrest (v1.3) */
-  androidTestCompile 'org.hamcrest:hamcrest-core:+'
-  androidTestCompile 'org.hamcrest:hamcrest-library:+'
-  androidTestCompile 'org.hamcrest:hamcrest-integration:+'
+        /* Mockito (v2.0.2-beta) */
+        androidTestCompile 'org.mockito:mockito-core:+',
+                'com.google.dexmaker:dexmaker-mockito:+'
 
-  /* Mockito (v1.9.5) */
-  androidTestCompile 'org.mockito:mockito-all:+'
+        /* jUnit (v4.12) */
+        androidTestCompile('junit:junit:4.12') { exclude group: 'org.hamcrest' }
 
-  /* jUnit (v4.12 beta 1) */
-  androidTestCompile('junit:junit:+') { exclude module: 'hamcrest-core' }
-
-  /* Robolectric (v2.3) */
-  androidTestCompile('org.robolectric:robolectric:+') {
-    exclude module: 'classworlds'
-    exclude module: 'maven-artifact'
-    exclude module: 'maven-artifact-manager'
-    exclude module: 'maven-error-diagnostics'
-    exclude module: 'maven-model'
-    exclude module: 'maven-plugin-registry'
-    exclude module: 'maven-profile'
-    exclude module: 'maven-project'
-    exclude module: 'maven-settings'
-    exclude module: 'nekohtml'
-    exclude module: 'plexus-container-default'
-    exclude module: 'plexus-interpolation'
-    exclude module: 'plexus-utils'
-    exclude module: 'wagon-file'
-    exclude module: 'wagon-http-lightweight'
-    exclude module: 'wagon-http-shared'
-    exclude module: 'wagon-provider-api'
-  }
+        /* JVM Tests ------------------------------------------------------------------------------------------------ */
+        testCompile 'org.hamcrest:hamcrest-integration:+',
+                'org.hamcrest:hamcrest-core:+',
+                'org.hamcrest:hamcrest-library:+'
+        testCompile 'org.mockito:mockito-core:+',
+                'com.google.dexmaker:dexmaker-mockito:+'
+        testCompile('junit:junit:4.12') { exclude group: 'org.hamcrest' }
+    }
 }
 
 android {
-  compileSdkVersion androidCompileSdkVersion
-  buildToolsVersion androidBuildToolsVersion
+    compileSdkVersion androidCompileSdkVersion
+    buildToolsVersion androidBuildToolsVersion
 
-  // Android Manifest generation options
-  defaultConfig {
-    minSdkVersion androidMinSdkVersion /* 10 */
-    targetSdkVersion androidTargetSdkVersion /* 19 */
+    // Android Manifest generation options
+    defaultConfig {
+        minSdkVersion androidMinSdkVersion
+        targetSdkVersion androidTargetSdkVersion
+        /*useJack true*/
 
-    versionCode 1
-    versionName "1.0"
-  }
+        versionCode 1
+        versionName "1.0"
 
-  buildTypes {
-    release {
-      runProguard false
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        if (useTesting) {
+            /* default unit testing runner */
+            testInstrumentationRunner "android.test.InstrumentationTestRunner"
+        }
     }
-  }
 
-  sourceSets {
-    androidTest.setRoot('src/tests')
-    androidTest {
-      // default path is '~/java'
-      java.srcDirs = ['src/tests/java']
+    /* be specific about JaCoCo version. */
+    jacoco {
+        version JaCoCoVersion
     }
-  }
+
+    buildTypes {
+        debug {
+            testCoverageEnabled useJacoco
+            shrinkResources false /* incompatible with useJack !!! */
+        }
+        release {
+            minifyEnabled false
+            shrinkResources false /* incompatible with useJack !!! */
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        test {
+            // include library sources into tests
+            java.srcDirs = ['src/test/java', 'src/main/java']
+        }
+
+        debug.setRoot('build-types/debug')
+        release.setRoot('build-types/release')
+    }
+
+    /* EXCLUDE SOME UNNEEDED FILES FROM PACKAGE */
+    packagingOptions {
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+        exclude '.readme'
+        exclude '.README'
+    }
+
+    /* Adjust library output naming */
+    libraryVariants.all { variant ->
+        variant.outputs.each { output ->
+            def outputFile = output.outputFile
+
+            if (outputFile != null && outputFile.name.endsWith('.aar')) {
+                def name = variant.buildType.name
+                def fileName = "${LIBRARY_ARTIFACT}-${version}-${name}.aar"
+                output.outputFile = new File(outputFile.parent, fileName)
+
+                // dump into logs final filename
+                def log = "Library variant.outputs output file name: '${fileName}'"
+                rootProject.logger.lifecycle(log)
+            }
+        }
+    }
 }

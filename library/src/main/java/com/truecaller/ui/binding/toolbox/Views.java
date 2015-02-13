@@ -4,8 +4,12 @@ import android.app.Activity;
 import android.support.v4.app.Fragment;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.truecaller.ui.binding.Selector;
@@ -21,8 +25,8 @@ public final class Views {
   /* [ VIEW SELECTOR ] ============================================================================================ */
 
   public static <V extends View, T> Selector<V, Property<T>> view(
-          final Selector<V, Property<V>> instance,
-          final Property<T> property) {
+      final Selector<V, Property<V>> instance,
+      final Property<T> property) {
     return null;
   }
 
@@ -54,8 +58,30 @@ public final class Views {
 
   /* [ TYPED VERSIONS ] =========================================================================================== */
 
+  public static Selector<EditText, Property<String>> editText(final int id) {
+    return textView(Views.<EditText>withId(id));
+  }
+
+  public static Selector<CheckBox, Property<Boolean>> checkBox(final int id) {
+    return checkedView(Views.<CheckBox>withId(id));
+  }
+
+  public static Selector<RadioGroup, Property<Integer>> radioGroup(final int id) {
+    return radioGroup(Views.<RadioGroup>withId(id));
+  }
+
+  public static Selector<RadioButton, Property<Boolean>> radioButton(final int id) {
+    return checkedView(Views.<RadioButton>withId(id));
+  }
+
+  public static Selector<Spinner, Property<Integer>> spinner(final int id) {
+    return adapterView(Views.<Spinner>withId(id));
+  }
+
+  /* [ EXTENDED VERSIONS ] ======================================================================================== */
+
   public static <T extends AdapterView<?>> Selector<T, Property<Integer>> adapterView(
-          final Selector<T, Property<T>> selector) {
+      final Selector<T, Property<T>> selector) {
     return view(selector, integer("getSelectedItemPosition", "setSelection"));
   }
 
@@ -68,7 +94,7 @@ public final class Views {
    * @return the selector of "text" property from TextView inheritor
    */
   public static <T extends TextView> Selector<T, Property<String>> textView(
-          final Selector<T, Property<T>> selector) {
+      final Selector<T, Property<T>> selector) {
     return view(selector, string("text"));
   }
 
@@ -80,14 +106,12 @@ public final class Views {
    * @return the selector
    */
   public static <T extends CompoundButton> Selector<T, Property<Boolean>> checkedView(
-          final Selector<T, Property<T>> selector) {
+      final Selector<T, Property<T>> selector) {
     return view(selector, bool("checked"));
   }
 
-  /* [ EXTENDED VERSIONS ] ======================================================================================== */
-
   public static <T extends RadioGroup> Selector<T, Property<Integer>> radioGroup(
-          final Selector<T, Property<T>> selector) {
+      final Selector<T, Property<T>> selector) {
     final Property<Integer> prop = property("checkedRadioButtonId");
 
     return view(selector, prop);

@@ -29,4 +29,8 @@ public final class Binders {
   public static Binder<Boolean, Boolean> bools(final BindingManager bm) {
     return bm.bind();
   }
+
+  public static Binder<String, Integer> numeric(final BindingManager bm) {
+    return bm.bind();
+  }
 }

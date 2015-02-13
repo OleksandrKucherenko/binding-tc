@@ -1,273 +1,346 @@
 // Application: Sample-01
 
+
 import org.apache.tools.ant.taskdefs.condition.Os
 
-import javax.xml.parsers.DocumentBuilderFactory
-
 buildscript {
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath 'org.robolectric:robolectric-gradle-plugin:0.11.+'
-  }
+    repositories {
+        jcenter()
+        mavenLocal()
+        mavenCentral()
+        /* ATTACH CUSTOM BUILDS OF GRADLE PLUGINS FROM '~/gradle/plugins' folder */
+//        flatDir { dirs rootProject.projectDir.toString() + '/gradle/plugins' }
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:${gradlePluginVersion}"
+        classpath 'com.github.jcandksolutions.gradle:android-unit-test:2.1.1'
+        //classpath 'org.robolectric:robolectric-gradle-plugin:+'
+        /* https://github.com/kt3k/coveralls-gradle-plugin */
+        classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:${CoverallsVersion}"
+        classpath 'com.github.ben-manes:gradle-versions-plugin:+'
+    }
 }
 
 // CONFIGURATION based on: http://tools.android.com/tech-docs/new-build-system/user-guide
 
 apply plugin: 'com.android.application'
+apply plugin: 'com.github.kt3k.coveralls'
+apply plugin: 'com.github.ben-manes.versions'
 
-if (useRobolectric) {
-  apply plugin: 'robolectric'
-}
-
-/* DEFINE REPOSITORY WITH LATEST ROBOLECTRIC VERSION */
-repositories {
-  mavenCentral()
-  maven {
-    url 'https://oss.sonatype.org/content/repositories/snapshots/'
-  }
+configurations.all {
+    /* Espresso v2.0 uses this module instead of jUnit v4.12... fix this !!! */
+    exclude group: 'junit', module: 'junit-dep'
 }
 
 dependencies {
-  /* ----------------------------- */
-  /* RELEASE and DEBUG COMPILATION */
-  /* ----------------------------- */
-  compile "com.android.support:appcompat-v7:${androidSupportLib}"
-  compile project(':library')
+    /* ----------------------------- */
+    /* RELEASE and DEBUG COMPILATION */
+    /* ----------------------------- */
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile "com.android.support:support-v4:${androidSupportLib}"
+    compile "com.android.support:appcompat-v7:${androidSupportLib}"
+    compile 'org.hamcrest:hamcrest-core:+',
+            'org.hamcrest:hamcrest-library:+'
 
-  compile fileTree(dir: 'libs', include: ['*.jar'])
+    if (useMultiDex) {
+        compile 'com.android.support:multidex:+'
+    }
 
-  /* -------------------------- */
-  /* UNIT TESTING configuration */
-  /* -------------------------- */
+    compile project(':library')
 
-  // custom libs of the sample
-  androidTestCompile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(dir: 'libs', include: ['*.jar'])
 
-  /* UNIT TESTS HAS DEPENDENCY ON SUPPORT LIB, SO INCLUDE IT MANUALLY FOR CONTROLLING THE VERSION OF IT */
-  androidTestCompile "com.android.support:support-v4:${androidSupportLib}"
+    /* -------------------------- */
+    /* UNIT TESTING configuration */
+    /* -------------------------- */
+    if (useTesting) {
+        // custom libs of the sample
+        androidTestCompile fileTree(dir: 'libs', include: ['*.jar'])
 
-  /* Espresso (v1.1) */
-  // ALTERNATIVE:
-  //   androidTestCompile files('../_libs/espresso/espresso-1.1-bundled.jar')
-  androidTestCompile files(
-          '../_libs/espresso/espresso-1.1.jar',
-          '../_libs/espresso/testrunner-1.1.jar',
-          '../_libs/espresso/testrunner-runtime-1.1.jar')
+        /* UNIT TESTS HAS DEPENDENCY ON SUPPORT LIB, SO INCLUDE IT MANUALLY FOR CONTROLLING THE VERSION OF IT */
+        androidTestCompile "com.android.support:support-v4:${androidSupportLib}"
 
-  /* Hamcrest (v1.3) */
-  // ALTERNATIVE:
-  //    androidTestCompile files(
-  //            '../_libs/hamcrest/hamcrest-core-1.3.jar',
-  //            '../_libs/hamcrest/hamcrest-library-1.3.jar',
-  //            '../_libs/hamcrest/hamcrest-integration-1.3.jar')
-  androidTestCompile 'org.hamcrest:hamcrest-core:+'
-  androidTestCompile 'org.hamcrest:hamcrest-library:+'
-  androidTestCompile 'org.hamcrest:hamcrest-integration:+'
+        if (useMultiDex) {
+            // https://code.google.com/p/android/issues/detail?id=82647
+            androidTestCompile('com.android.support:multidex-instrumentation:+') {
+                exclude group: 'com.android.support', module: 'multidex' // already in compile.
+            }
+        }
 
-  /* Dagger (v1.2.1) and Mockito (v1.9.5) */
-  // ALTERNATIVE:
-  //    androidTestCompile files('../_libs/mockito-all-1.9.5.jar')
-  //    androidTestCompile files('../_libs/dagger-1.2.1.jar')
-  // ORIGINAL:
-  //    androidTestCompile 'com.squareup.dagger:dagger:+'
-  //    androidTestCompile 'org.mockito:mockito-all:+'
+        /* Hamcrest (v1.4) */
+        androidTestCompile 'org.hamcrest:hamcrest-core:+',
+                'org.hamcrest:hamcrest-library:+',
+                'org.hamcrest:hamcrest-integration:+'
 
-  /* jUnit (v4.12-beta-1) */
-  // ALTERNATIVE:
-  //    androidTestCompile files('../_libs/junit-4.11.jar')
-  androidTestCompile('junit:junit:+') { exclude module: 'hamcrest-core' }
+        /* Dagger (v1.2.2) */
+        androidTestCompile 'com.squareup.dagger:dagger:+'
 
-  /* Fest Android (v1.0.8), fest util (v1.2.5), Fest core (v 2.0M10) */
-  // ALTERNATIVE:
-  //    androidTestCompile files(
-  //            '../_libs/fest/fest-assert-core-2.0M10.jar',
-  //            '../_libs/fest/fest-util-1.2.5.jar',
-  //            '../_libs/fest/fest-android-1.0.8.jar')
-  androidTestCompile 'com.squareup:fest-android:+'
+        /* Mockito (v2.0.2-beta) */
+        androidTestCompile('org.mockito:mockito-core:+') { exclude group: 'org.hamcrest' }
+        androidTestCompile 'com.google.dexmaker:dexmaker-mockito:+'
 
-  /* Robolectric (v2.3) */
-  // ALTERNATIVE:
-  //    androidTestCompile files(
-  //            '../_libs/robolectric-2.3-with-dependencies.jar')
-  androidTestCompile('org.robolectric:robolectric:+') {
-    exclude module: 'classworlds'
-    exclude module: 'maven-artifact'
-    exclude module: 'maven-artifact-manager'
-    exclude module: 'maven-error-diagnostics'
-    exclude module: 'maven-model'
-    exclude module: 'maven-plugin-registry'
-    exclude module: 'maven-profile'
-    exclude module: 'maven-project'
-    exclude module: 'maven-settings'
-    exclude module: 'nekohtml'
-    exclude module: 'plexus-container-default'
-    exclude module: 'plexus-interpolation'
-    exclude module: 'plexus-utils'
-    exclude module: 'wagon-file'
-    exclude module: 'wagon-http-lightweight'
-    exclude module: 'wagon-http-shared'
-    exclude module: 'wagon-provider-api'
-  }
+        /* Fest Android (v1.0.8), fest util (v1.2.5), Fest core (v 2.0M10) */
+        androidTestCompile 'com.squareup:fest-android:+@aar'
+//        androidTestCompile 'com.squareup.assertj:assertj-android:+'
+//        androidTestCompile 'com.squareup.assertj:assertj-android-support-v4:+'
+
+        /* jUnit (v4.12) */
+        androidTestCompile('junit:junit:4.12') { exclude group: 'org.hamcrest' }
+
+        // Espresso include 'junit:junit-dep' package which is a earlier version of the jUnit v4.12
+        if (useEspresso) {
+            /* Espresso (v2.0) */
+            androidTestCompile('com.android.support.test:testing-support-lib:+') {
+                exclude group: 'junit'
+                exclude group: 'org.hamcrest'
+            }
+            androidTestCompile('com.android.support.test.espresso:espresso-core:+') {
+                exclude group: 'org.hamcrest'
+            }
+            androidTestCompile 'com.android.support.test.espresso:espresso-contrib:+'
+            /*
+            [1] AndoidJUnitRunner Javadoc - http://goo.gl/Tct8R5
+            [2] AndroidJUnitRunner Docs - http://goo.gl/pSr8oB
+            [3] Android-Testing Github Samples - http://goo.gl/zNHuS9
+            [4] Espresso Setup Guide - http://goo.gl/WR9t36
+            [5] Espresso Documentation - http://goo.gl/jSI0xl
+            [6] Espresso-Core Javadoc - http://goo.gl/OyaHKn
+            [7] Espresso-Contrib Javadoc - http://goo.gl/gZgISI
+            [8] Espresso-Idling Javadoc - http://goo.gl/ZwVyn7﻿
+            */
+        } else {
+        }
+
+        if (useRobolectric) {
+            // Robolectric
+            testCompile 'junit:junit:4.12'
+            testCompile 'org.hamcrest:hamcrest-core:+'
+            testCompile 'org.hamcrest:hamcrest-library:+'
+            testCompile 'org.hamcrest:hamcrest-integration:+'
+
+            /* Robolectric (v2.4) */
+            testCompile('org.robolectric:robolectric:+') {
+                exclude module: 'classworlds'
+                exclude module: 'commons-logging'
+                exclude module: 'httpclient'
+                exclude module: 'maven-artifact'
+                exclude module: 'maven-artifact-manager'
+                exclude module: 'maven-error-diagnostics'
+                exclude module: 'maven-model'
+                exclude module: 'maven-project'
+                exclude module: 'maven-settings'
+                exclude module: 'plexus-container-default'
+                exclude module: 'plexus-interpolation'
+                exclude module: 'plexus-utils'
+                exclude module: 'wagon-file'
+                exclude module: 'wagon-http-lightweight'
+                exclude module: 'wagon-provider-api'
+                /* already included by other modules */
+                exclude group: 'com.android.support', module: 'support-v4'
+                exclude group: 'org.easytesting', module: 'fest-util'
+                exclude group: 'org.objenesis', module: 'objenesis'
+            }
+        }
+    }
 }
 
 android {
-  /* INHERIT SETTINGS FROM THE ROOT PROJECT */
-  compileSdkVersion androidCompileSdkVersion
-  buildToolsVersion androidBuildToolsVersion
+    /* INHERIT SETTINGS FROM THE ROOT PROJECT */
+    compileSdkVersion androidCompileSdkVersion
+    buildToolsVersion androidBuildToolsVersion
 
-  /* ATTACH TEST INSTRUMENTATION, DEFINE SDK VERSION, DEFINE APP VERSION */
-  defaultConfig {
-    minSdkVersion androidMinSdkVersion /* 10 */
-    targetSdkVersion androidTargetSdkVersion /* 19 */
+    /* ATTACH TEST INSTRUMENTATION, DEFINE SDK VERSION, DEFINE APP VERSION */
+    defaultConfig {
+        minSdkVersion androidMinSdkVersion
+        targetSdkVersion androidTargetSdkVersion
+        /*useJack true*/
 
-    versionCode 1
-    versionName "1.0"
+        multiDexEnabled useMultiDex
 
-    // attach espresso runner
-    testInstrumentationRunner "com.google.android.apps.common.testing.testrunner.GoogleInstrumentationTestRunner"
-  }
+        versionCode 1
+        versionName "1.0"
 
-  /* REDEFINE TESTS FOLDER */
-  sourceSets {
-    androidTest.setRoot('src/tests')
-    androidTest {
-      // UNCOMMENT for enabling 'custom manifest for unit tests' feature (part #1 of 2):
-      // manifest.srcFile 'src/tests/AndroidManifest.xml'
+        if (useTesting) {
+            // default is: testApplicationId 'com.artfulbits.benchmark.sample.tests'
+            def runner = "android.test.InstrumentationTestRunner"
+
+            if (useEspresso) {
+                /* attach espresso runner - v2.0 */
+                runner = "android.support.test.runner.AndroidJUnitRunner"
+            } else {
+                /* default unit testing runner */
+                if (useMultiDex) {
+                    runner = "android.support.multidex.MultiDexTestRunner"
+                }
+            }
+
+            testInstrumentationRunner "${runner}"
+        }
     }
-  }
 
-  /* signing keystores configuration */
-  signingConfigs {
-    // custom debug key, allows to test social networks
-    debug {
-      storeFile file("${rootProject.rootDir}/gradle/release/artfulbits.debug.keystore")
-      storePassword 'android'
-      keyAlias 'androiddebugkey'
-      keyPassword 'android'
+    /* REDEFINE TESTS FOLDER */
+    sourceSets {
+//        test.setRoot('src/test')
+        test {
+            /* exclude robolectric tests */
+            if (!useRobolectric) {
+                java.exclude '**/robolectric/**'
+            }
+        }
+
+//        androidTest.setRoot('src/androidTest')
+        androidTest {
+            // UNCOMMENT for enabling 'custom manifest for unit tests' feature (part #1 of 2):
+            // manifest.srcFile 'src/test/AndroidManifest.xml'
+
+            /* exclude Espresso tests if tools is not attached */
+            if (!useEspresso) {
+                java.exclude '**/espresso/**'
+            }
+        }
+
+        debug.setRoot('build-types/debug')
+        release.setRoot('build-types/release')
     }
-    // production key
-    release {
-      storeFile file("${rootProject.rootDir}/gradle/release/artfulbits.keystore")
 
-      keyAlias 'artfulbits'
-      storePassword 'kPJ6LIl6nZV3'
-      keyPassword 'j6m8gPYjL1e3'
+    /* signing keystores configuration */
+    signingConfigs {
+        // custom debug key, allows to test social networks
+        debug {
+            storeFile file("${rootProject.rootDir}/gradle/release/artfulbits.debug.keystore")
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        // production key
+        release {
+            storeFile file("${rootProject.rootDir}/gradle/release/artfulbits.keystore")
+
+            keyAlias 'artfulbits'
+            storePassword 'kPJ6LIl6nZV3'
+            keyPassword 'j6m8gPYjL1e3'
+        }
     }
-  }
 
-  /* CONFIGURE OBFUSCATION AND OPTIMIZATION, SIGNATURES */
-  buildTypes {
-    // release configuration
-    release {
-      signingConfig signingConfigs.release
+    /* CONFIGURE OBFUSCATION AND OPTIMIZATION, SIGNATURES */
+    buildTypes {
+        // release configuration
+        release {
+            signingConfig signingConfigs.release
 
-      runProguard = true
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled false
+            shrinkResources false /* !!! incompatible with useJack !!! */
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            /* http://toastdroid.com/2014/03/28/customizing-your-build-with-gradle/ */
+            buildConfigField "boolean", "USED_MULTIDEX", (useMultiDex ? "true" : "false")
+        }
+        // debug configuration with custom debug key
+        debug {
+            signingConfig signingConfigs.debug
+
+            minifyEnabled false
+            shrinkResources false
+            debuggable true
+            jniDebuggable true
+            testCoverageEnabled useJacoco
+
+            buildConfigField "boolean", "USED_MULTIDEX", (useMultiDex ? "true" : "false")
+        }
+        // release without obfuscation
+        noProguardRelease.initWith(buildTypes.release)
+        noProguardRelease {
+            minifyEnabled false
+            shrinkResources false
+        }
+        // release with enabled debug options
+        debuggableRelease.initWith(buildTypes.noProguardRelease)
+        debuggableRelease {
+            debuggable true
+            jniDebuggable true
+        }
     }
-    // debug configuration with custom debug key
-    debug {
-      signingConfig signingConfigs.debug
 
-      runProguard = false
-      debuggable true
-      jniDebugBuild true
-      //testCoverageEnabled = true
+    /* EXCLUDE SOME UNNEEDED FILES FROM PACKAGE */
+    packagingOptions {
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+        exclude '.readme'
+        exclude '.README'
     }
-    // release without obfuscation
-    noProguardRelease.initWith(buildTypes.release)
-    noProguardRelease {
-      runProguard = false
+
+    /* GIVE DEX MORE MEMORY */
+    dexOptions {
+        incremental true
+        javaMaxHeapSize "4g"
     }
-    // release with enabled debug options
-    debuggableRelease.initWith(buildTypes.noProguardRelease)
-    debuggableRelease {
-      debuggable true
-      jniDebugBuild true
+
+    /* Java compatibility - set to v1.7 */
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
     }
-  }
 
-  /* EXCLUDE SOME UNNEEDED FILES FROM PACKAGE */
-  packagingOptions {
-    exclude 'LICENSE.txt'
-    exclude 'META-INF/LICENSE'
-    exclude 'META-INF/LICENSE.txt'
-    exclude 'META-INF/license.txt'
-    exclude 'META-INF/NOTICE'
-    exclude 'META-INF/NOTICE.txt'
-    exclude 'META-INF/notice.txt'
-    exclude 'META-INF/DEPENDENCIES'
-    exclude 'META-INF/DEPENDENCIES.txt'
-    exclude 'META-INF/dependencies.txt'
-    exclude 'META-INF/LGPL2.1'
-    exclude '.readme'
-    exclude '.README'
-  }
+    /* CUSTOMIZE UNIT TESTS */
+    // UNCOMMENT for enabling 'custom manifest for unit tests' feature (part #2 of 2):
+    // force Unit Tests use our own AndroidManifest.xml instead of auto-generated
+    //    testVariants.all { variant ->
+    //        variant.processResources.manifestFile = android.sourceSets["androidTest"].manifest.srcFile
+    //        logger.info(">>>>>> Unit Tests new manifest: " + variant.processResources.manifestFile)
+    //    }
 
-  /* GIVE DEX MORE MEMORY */
-  dexOptions {
-    incremental true
-    javaMaxHeapSize "4g"
-  }
+    /* CUSTOMIZE OUTPUT FILE NAME */
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def String ANDROID_NAME_SPACE = "http://schemas.android.com/apk/res/android"
 
-  /* CUSTOMIZE UNIT TESTS */
-  // UNCOMMENT for enabling 'custom manifest for unit tests' feature (part #2 of 2):
-  // force Unit Tests use our own AndroidManifest.xml instead of auto-generated
-  //    testVariants.all { variant ->
-  //        variant.processResources.manifestFile = android.sourceSets["androidTest"].manifest.srcFile
-  //        logger.info(">>>>>> Unit Tests new manifest: " + variant.processResources.manifestFile)
-  //    }
+            // for Debug:
+            //        rootProject.logger.lifecycle('----------------------------------')
+            //        variant.properties.each { rootProject.logger.lifecycle("$it.key -> $it.value"); }
+            //        rootProject.logger.lifecycle('----------------------------------')
 
-  /* CUSTOMIZE OUTPUT FILE NAME */
-  applicationVariants.all { variant ->
-    def String ANDROID_NAME_SPACE = "http://schemas.android.com/apk/res/android"
+            def manifestPath = android.sourceSets["main"].manifest.srcFile
+            def builderFactory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+            builderFactory.setNamespaceAware(true)
 
-    // alternative:
-    //      def manifestPath = android.sourceSets["main"].manifest.srcFile
-    def manifestPath = variant.processResources.manifestFile
+            // extract manifest values if AndroidManifest.xml available
+            if (null != manifestPath && new File(manifestPath.toString()).exists()) {
+                def manifestXml = builderFactory.newDocumentBuilder().parse(manifestPath).documentElement
+                def packageName = manifestXml.getAttribute("package")
+                def versionCode = manifestXml.getAttributeNS(ANDROID_NAME_SPACE, "versionCode")
+                def versionName = manifestXml.getAttributeNS(ANDROID_NAME_SPACE, "versionName")
+                def gitRevision = project.hasProperty("GIT_REVISION") ? project.properties["GIT_REVISION"] : "0"
+                def versionType = output.name
 
-    def builderFactory = DocumentBuilderFactory.newInstance()
-    builderFactory.setNamespaceAware(true)
+                // modify file name
+                def file = output.outputFile
+                def version = versionName + "." + versionCode + "." + gitRevision
+                def newFilename = packageName + "-" + version + "-" + versionType + ".apk"
+                output.outputFile = new File(file.parent, newFilename)
 
-    // extract manifest values if AndroifManifest.xml available
-    if (null != manifestPath && new File(manifestPath.toString()).exists()) {
-      def manifestXml = builderFactory.newDocumentBuilder().parse(manifestPath).documentElement
-      def packageName = manifestXml.getAttribute("package")
-      def versionCode = manifestXml.getAttributeNS(ANDROID_NAME_SPACE, "versionCode")
-      def versionName = manifestXml.getAttributeNS(ANDROID_NAME_SPACE, "versionName")
-      def gitRevision = rootProject.hasProperty("GIT_REVISION") ? rootProject.properties["GIT_REVISION"] : "0"
-      def versionType = variant.name
-
-      // modify file name
-      def file = variant.outputFile
-      def version = versionName + "." + versionCode + "." + gitRevision
-      def newFilename = packageName + "-" + version + "-" + versionType + ".apk"
-      variant.outputFile = new File(file.parent, newFilename)
-
-      // dump into logs final filename
-      def log = "Application variant output file name: '" + newFilename + "'"
-      rootProject.logger.lifecycle(log)
+                // dump into logs final filename
+                def log = "Application variant.outputs output file name: '${newFilename}'"
+                rootProject.logger.lifecycle(log)
+            }
+        }
     }
-  }
-}
-
-if (useRobolectric) {
-  robolectric {
-    include '**/*Test.class'
-    exclude '**/espresso/**/*.class'
-
-    // reserve more memory
-    maxHeapSize = "4g"
-  }
 }
 
 apply plugin: 'idea'
 
 idea {
-  module {
-    testOutputDir = file('build/test-classes/debug')
-  }
+    module {
+        testOutputDir = file('build/test-classes/debug')
+    }
 }
 
 /* ---------------------------------------------------------------------------------------------  */
@@ -275,50 +348,64 @@ idea {
 /* ---------------------------------------------------------------------------------------------  */
 
 task openResults(dependsOn: ["openLintResults"]) {
-  description = 'open Tools results in current web browser'
-  group = 'Code Quality'
+    description = 'open Tools results in current web browser'
+    group = 'Code Quality'
 
-  logger.lifecycle(":openResults");
+    logger.lifecycle(":openResults");
 }
 
 if (useRobolectric) {
-  // Task opens robolectric report file in default web-browser
-  task openTestResults(type: Exec, dependsOn: ["test"]) {
-    description = 'open Robolectric results in current web browser'
-    group = 'Code Quality'
+    // Task opens robolectric report file in default web-browser
+    task openTestResults(type: Exec, dependsOn: ["test"]) {
+        description = 'open Robolectric results in current web browser'
+        group = 'Code Quality'
 
-    logger.lifecycle(":openTestResults")
+        logger.lifecycle(":openTestResults")
 
-    // done: force open of HTML file
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-      // path is relative to current project path:
-      //      {project}\\samples\\sample-01
-      def path = """.\\build\\test-report\\index.html"""
-      commandLine "cmd.exe", '/C', path
+        // done: force open of HTML file
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            // path is relative to current project path:
+            //      {project}\\samples\\sample-01
+            def path = """.\\build\\test-report\\index.html"""
+            commandLine "cmd.exe", '/C', path
 
-    } else {
-      // this build server, or Mac OS, or Linux - ignore this call
+        } else {
+            // this build server, or Mac OS, or Linux - ignore this call
+        }
     }
-  }
 
-  openResults.dependsOn openTestResults
+    openResults.dependsOn openTestResults
 }
 
 // Task opens LINT utility report file in default web browser
 task openLintResults(type: Exec, dependsOn: ["lint"]) {
-  description = 'open Android Lint results in current web browser'
-  group = 'Code Quality'
+    description = 'open Android Lint results in current web browser'
+    group = 'Code Quality'
 
-  logger.lifecycle(":openLintResults")
+    logger.lifecycle(":openLintResults")
 
-  // done: force open of HTML file
-  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-    // path is relative to current project path:
-    //      {project}\\samples\\sample-01
-    def path = """.\\build\\lint-results.html"""
-    commandLine "cmd.exe", '/C', path
+    // done: force open of HTML file
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        // path is relative to current project path:
+        //      {project}\\samples\\sample-01
+        def path = """.\\build\\lint-results.html"""
+        commandLine "cmd.exe", '/C', path
 
-  } else {
-    // this build server, or Mac OS, or Linux - ignore this call
-  }
+    } else {
+        // this build server, or Mac OS, or Linux - ignore this call
+    }
+}
+
+if (useMultiDex) {
+    afterEvaluate {
+        tasks.matching { it.name.startsWith('dex') }.each { dx ->
+            println 'Found Dex tasks: ' + dx.name
+
+            if (dx.additionalParameters == null) {
+                dx.additionalParameters = []
+            }
+
+            dx.additionalParameters += '--multi-dex' // enable multidex
+        }
+    }
 }

@@ -33,8 +33,10 @@ public class Selector<I, P extends Property> {
 
   /* [ INITIALIZATION HELPERS ] =================================================================================== */
 
-  public Selector<I, P> listenTo(final Listener<I> listener) {
+  public Selector<I, P> listenTo(final Listener<?> listener) {
     // TODO: store for late binding when actually Property instances will be calculated
+
+    //listener.attach(mProperty, mInstance);
 
     return this;
   }

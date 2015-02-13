@@ -22,48 +22,33 @@ public class BindingManager {
 
   /** Weak references on listeners. */
   private final WeakHashMap<LifecycleCallback, LifecycleCallback> mListeners = new WeakHashMap<LifecycleCallback,
-          LifecycleCallback>();
-  /** Reference on root element of binding. */
-  private final Activity mRootActivity;
-
-  private final FragmentFacade mRootFragment;
-
-  private final View mRootView;
-
-  private final BaseAdapter mRootAdapter;
+      LifecycleCallback>();
+  private final ViewFacade mRootFragment;
   /** Collection of all defined binding rules. */
-  private final List<Binder>  mRules         = new LinkedList<Binder>();
+  private final List<Binder> mRules = new LinkedList<Binder>();
   /** Freeze counter. */
   private final AtomicInteger mFreezeCounter = new AtomicInteger(0);
 
   /* [ CONSTRUCTORS ] ============================================================================================= */
 
-  private BindingManager(final Activity activity, final FragmentFacade fragment, final View view,
-                         final BaseAdapter adapter) {
-    mRootActivity = activity;
-    mRootFragment = fragment;
-    mRootView = view;
-    mRootAdapter = adapter;
-  }
-
   public BindingManager(final Activity parent) {
-    this(parent, null, null, null);
+    mRootFragment = new ViewFacade(parent);
   }
 
   public BindingManager(final Fragment parent) {
-    this(null, new FragmentFacade(parent), null, null);
+    mRootFragment = new ViewFacade(parent);
   }
 
   public BindingManager(final android.support.v4.app.Fragment parent) {
-    this(null, new FragmentFacade(parent), null, null);
+    mRootFragment = new ViewFacade(parent);
   }
 
   public BindingManager(final View parent) {
-    this(null, null, parent, null);
+    mRootFragment = new ViewFacade(parent);
   }
 
   public BindingManager(final BaseAdapter adapter) {
-    this(null, null, null, adapter);
+    mRootFragment = new ViewFacade(adapter);
   }
 
   /* [ BINDING RULES DEFINING ] =================================================================================== */
@@ -96,12 +81,12 @@ public class BindingManager {
     return result;
   }
 
-  public <Left, Right> Binder<Left, Right> bind() {
+  public <TLeft, TRight> Binder<TLeft, TRight> bind() {
     return null;
   }
 
-  public <Left, Right> Binder<Left, Right> bind(final Selector<?, Property<Left>> view,
-                                                final Selector<?, Property<Right>> model) {
+  public <TLeft, TRight> Binder<TLeft, TRight> bind(final Selector<?, Property<TLeft>> view,
+                                                    final Selector<?, Property<TRight>> model) {
     return null;
   }
 
@@ -123,8 +108,7 @@ public class BindingManager {
     return this;
   }
 
-	/* [ PUSH AND POP ]
-  ============================================================================================= */
+	/* [ PUSH AND POP ] ============================================================================================= */
 
   /**
    * Force model instance update by values from view's.
@@ -189,16 +173,59 @@ public class BindingManager {
     return this;
   }
 
-	/* [ NESTED DECLARATIONS ]
-	====================================================================================== */
+	/* [ NESTED DECLARATIONS ] ====================================================================================== */
 
-  private static final class FragmentFacade {
-    public FragmentFacade(android.support.v4.app.Fragment fragment) {
+  /** Consolidate API for all types of Views. */
+  private static final class ViewFacade {
+    /** Reference on root element of binding. */
+    private final Activity mRootActivity;
 
+    private final View mRootView;
+
+    private final BaseAdapter mRootAdapter;
+
+    private final android.support.v4.app.Fragment mSupportFragment;
+
+    private final Fragment mFragment;
+
+    public ViewFacade(android.support.v4.app.Fragment fragment) {
+      mRootActivity = null;
+      mSupportFragment = fragment;
+      mFragment = null;
+      mRootView = null;
+      mRootAdapter = null;
     }
 
-    public FragmentFacade(Fragment fragment) {
+    public ViewFacade(Fragment fragment) {
+      mRootActivity = null;
+      mSupportFragment = null;
+      mFragment = fragment;
+      mRootView = null;
+      mRootAdapter = null;
+    }
 
+    public ViewFacade(final View parent) {
+      mRootActivity = null;
+      mSupportFragment = null;
+      mFragment = null;
+      mRootView = parent;
+      mRootAdapter = null;
+    }
+
+    public ViewFacade(final Activity parent) {
+      mRootActivity = parent;
+      mSupportFragment = null;
+      mFragment = null;
+      mRootView = null;
+      mRootAdapter = null;
+    }
+
+    public ViewFacade(final BaseAdapter adapter) {
+      mRootActivity = null;
+      mSupportFragment = null;
+      mFragment = null;
+      mRootView = null;
+      mRootAdapter = adapter;
     }
   }
 
