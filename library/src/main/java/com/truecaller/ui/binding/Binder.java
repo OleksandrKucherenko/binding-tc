@@ -6,17 +6,33 @@ import org.hamcrest.CoreMatchers;
 
 /** Base class for all binding rules keeping. */
 public class Binder<TLeft, TRight> {
-
-  private org.hamcrest.Matcher<TRight> mValidation;
+  /** Reference on binding owner. */
+  private BindingManager mManager;
+  /** Reference on view instance. */
   private Selector<?, Property<TLeft>> mView;
+  /** Reference on storage instance. */
   private Selector<?, Property<TRight>> mStorage;
+  /** View changes listener. */
   private Listener<?> mOnView;
+  /** Data model changes listener. */
   private Listener<?> mOnModel;
+  /** Data type converter. */
   private Converter<TLeft, TRight> mFormatter;
+  /** Data validation. */
+  private org.hamcrest.Matcher<TRight> mValidation;
 
   /* ============================================================================================================== */
 
-  public Binder() {
+  /* package */ Binder() {
+  }
+
+  /* package */ Binder<TLeft, TRight> attachToManager(final BindingManager manager) {
+    mManager = manager;
+
+    // do self registration
+    mManager.getBindings().add(this);
+
+    return this;
   }
 
   /* ============================================================================================================== */

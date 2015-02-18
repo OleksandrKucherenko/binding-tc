@@ -4,8 +4,12 @@ import java.lang.reflect.Method;
 
 /** Class is responsible for accessing a specific abstract 'field' by using reflection. */
 public class Property<T> {
+  /** Array of possible prefixes. */
+  private static final String[] KNOWN_GETTERS = new String[]{"get", "has", "is", "exceeds", ""};
 
+  /** Property data type. */
   private final Class<T> mType;
+  /** Property name pattern. */
   private final String mName;
 
   protected Property(final Class<T> type, final String name) {
@@ -18,7 +22,17 @@ public class Property<T> {
   }
 
   private Method extractGetter(final Object instance) throws NoSuchMethodException {
-    return instance.getClass().getMethod(mName);
+    Method result = null;
+
+    for (String prefix : KNOWN_GETTERS) {
+      result = instance.getClass().getMethod(prefix + mName);
+
+      if (null != result) {
+        break;
+      }
+    }
+
+    return result;
   }
 
   private Method extractSetter(final Object instance) throws NoSuchMethodException {

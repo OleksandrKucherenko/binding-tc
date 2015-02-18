@@ -23,7 +23,8 @@ public class BindingManager {
   /** Weak references on listeners. */
   private final WeakHashMap<LifecycleCallback, LifecycleCallback> mListeners = new WeakHashMap<LifecycleCallback,
       LifecycleCallback>();
-  private final ViewFacade mRootFragment;
+  /** Facade For all types of the Views. */
+  private final ViewFacade mFacade;
   /** Collection of all defined binding rules. */
   private final List<Binder> mRules = new LinkedList<Binder>();
   /** Freeze counter. */
@@ -32,23 +33,23 @@ public class BindingManager {
   /* [ CONSTRUCTORS ] ============================================================================================= */
 
   public BindingManager(final Activity parent) {
-    mRootFragment = new ViewFacade(parent);
+    mFacade = new ViewFacade(parent);
   }
 
   public BindingManager(final Fragment parent) {
-    mRootFragment = new ViewFacade(parent);
+    mFacade = new ViewFacade(parent);
   }
 
   public BindingManager(final android.support.v4.app.Fragment parent) {
-    mRootFragment = new ViewFacade(parent);
+    mFacade = new ViewFacade(parent);
   }
 
   public BindingManager(final View parent) {
-    mRootFragment = new ViewFacade(parent);
+    mFacade = new ViewFacade(parent);
   }
 
   public BindingManager(final BaseAdapter adapter) {
-    mRootFragment = new ViewFacade(adapter);
+    mFacade = new ViewFacade(adapter);
   }
 
   /* [ BINDING RULES DEFINING ] =================================================================================== */
@@ -82,12 +83,19 @@ public class BindingManager {
   }
 
   public <TLeft, TRight> Binder<TLeft, TRight> bind() {
-    return null;
+    final Binder<TLeft, TRight> result = new Binder<>();
+
+    return result.attachToManager(this);
   }
 
   public <TLeft, TRight> Binder<TLeft, TRight> bind(final Selector<?, Property<TLeft>> view,
                                                     final Selector<?, Property<TRight>> model) {
-    return null;
+    final Binder<TLeft, TRight> result = new Binder<>();
+
+    return result
+        .view(view)
+        .model(model)
+        .attachToManager(this);
   }
 
   /* [ LIFECYCLE ] ================================================================================================ */

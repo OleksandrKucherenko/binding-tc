@@ -11,7 +11,9 @@ import com.truecaller.ui.binding.reflection.Property;
 public class Selector<I, P extends Property> {
   /* ============================================================================================================== */
 
+  /** Instance of the class which we use as source/destination of data. */
   private final I mInstance;
+  /** Property descriptor. */
   private final P mProperty;
 
   /* ============================================================================================================== */
