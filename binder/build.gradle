@@ -1,0 +1,436 @@
+// Library: binding-tc, Android Easy Binding (AEB)
+
+buildscript {
+  repositories {
+    jcenter()
+//        mavenLocal()
+//        mavenCentral()
+    /* ATTACH CUSTOME BUILDS OF GRADLE PLUGINS FROM '~/gradle/prlugins' folder */
+//        flatDir { dirs rootProject.projectDir.toString() + '/gradle/plugins' }
+  }
+  dependencies {
+    /* Android Build Plugin */
+    classpath "com.android.tools.build:gradle:${gradlePluginVersion}"
+    /* coveralls.io: https://github.com/kt3k/coveralls-gradle-plugin */
+    classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:${CoverallsVersion}"
+    /* bintray.com: https://github.com/bintray/gradle-bintray-plugin */
+    classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:+'
+    /* Allows project artifacts to be deployed to a Maven repository, or installed to the local Maven cache. */
+    classpath 'com.github.dcendents:android-maven-plugin:+'
+  }
+}
+
+// CONFIGURATION based on: http://tools.android.com/tech-docs/new-build-system/user-guide
+
+//region apply plugin: 'jacoco'
+if (useJacoco) {
+  // NOTE: very important to register JaCoCo plugin before the Android, otherwise XML
+  // coverage report will be impossible to generate. Will work only HTML reporting.
+
+  /* http://raptordigital.blogspot.se/2014/08/code-coverage-reports-using-robolectric.html */
+  apply plugin: 'jacoco'
+}
+//endregion
+apply plugin: 'com.android.library'
+apply from: "${rootProject.rootDir}/gradle/config/quality.gradle"
+
+/* DEFINE REPOSITORY WITH LATEST ROBOLECTRIC VERSION */
+repositories {
+  mavenCentral()
+  maven {
+    url 'https://oss.sonatype.org/content/repositories/snapshots/'
+  }
+  maven {
+    url "http://dl.bintray.com/kucherenko-alex/android"
+  }
+}
+
+dependencies {
+  /* [ DEBUG/RELEASE ] ============================================================================================ */
+  compile fileTree(dir: 'libs', includes: ['*.jar'])
+  /* Android support annotations and support classes. */
+  compile "com.android.support:support-annotations:${androidSupportLib}"
+  compile "com.android.support:support-v4:${androidSupportLib}"
+  compile "com.android.support:appcompat-v7:${androidSupportLib}"
+  compile 'org.hamcrest:hamcrest-core:+'
+
+  /* [ UNIT TESTING ] ============================================================================================= */
+  if (useTesting) {
+    /* Android Tests -------------------------------------------------------------------------------------------- */
+    // unit tests libs. Rule: repeated Libs should be excluded.
+    androidTestCompile fileTree(dir: 'src/tests/libs', include: '*.jar')
+
+    /* UNIT TESTS HAS DEPENDENCY ON SUPPORT LIB, SO INCLUDE IT MANUALLY FOR CONTROLLING THE VERSION OF IT */
+    androidTestCompile "com.android.support:support-v4:${androidSupportLib}"
+
+    /* Hamcrest (v1.4) */
+    androidTestCompile 'org.hamcrest:hamcrest-integration:+',
+        'org.hamcrest:hamcrest-core:+',
+        'org.hamcrest:hamcrest-library:+'
+
+    /* Mockito (v2.0.2-beta) */
+    androidTestCompile 'org.mockito:mockito-core:+',
+        'com.google.dexmaker:dexmaker-mockito:+'
+
+    /* Benchmarking lib. v1.0.1.141 */
+    androidTestCompile 'com.artfulbits:meter:+@aar'
+
+    /* jUnit (v4.12) */
+    androidTestCompile('junit:junit:4.12') { exclude group: 'org.hamcrest' }
+
+    /* JVM Tests ------------------------------------------------------------------------------------------------ */
+    testCompile 'org.hamcrest:hamcrest-integration:+',
+        'org.hamcrest:hamcrest-core:+',
+        'org.hamcrest:hamcrest-library:+'
+    testCompile 'org.mockito:mockito-core:+'
+    testCompile 'com.artfulbits:meter:+'
+    testCompile('junit:junit:4.12') { exclude group: 'org.hamcrest' }
+    //region testCompile('org.robolectric:robolectric:+')
+    /* Robolectric (v3.0) */
+    if (useRobolectric) {
+      testCompile('org.robolectric:robolectric:+') {
+        exclude module: 'classworlds'
+        exclude module: 'commons-logging'
+        exclude module: 'httpclient'
+        exclude module: 'maven-artifact'
+        exclude module: 'maven-artifact-manager'
+        exclude module: 'maven-error-diagnostics'
+        exclude module: 'maven-model'
+        exclude module: 'maven-project'
+        exclude module: 'maven-settings'
+        exclude module: 'plexus-container-default'
+        exclude module: 'plexus-interpolation'
+        exclude module: 'plexus-utils'
+        exclude module: 'wagon-file'
+        exclude module: 'wagon-http-lightweight'
+        exclude module: 'wagon-provider-api'
+        /* already included by other modules */
+        exclude group: 'com.android.support', module: 'support-v4'
+        exclude group: 'org.easytesting', module: 'fest-util'
+        exclude group: 'org.objenesis', module: 'objenesis'
+      }
+    }
+    //endregion
+  }
+}
+
+android {
+  compileSdkVersion androidCompileSdkVersion
+  buildToolsVersion androidBuildToolsVersion
+
+  // Android Manifest generation options
+  defaultConfig {
+    minSdkVersion androidMinSdkVersion
+    targetSdkVersion androidTargetSdkVersion
+    /*useJack true*/
+
+    versionCode 1
+    versionName "1.0"
+
+    if (useTesting) {
+      // default is: testApplicationId 'com.artfulbits.uniprefs.tests'
+      def runner = "android.test.InstrumentationTestRunner"
+
+      if (useEspresso) {
+        /* attach espresso runner - v2.0 */
+        runner = "android.support.test.runner.AndroidJUnitRunner"
+      } else {
+        /* default unit testing runner */
+        if (useMultiDex) {
+          runner = "android.support.multidex.MultiDexTestRunner"
+        }
+      }
+
+      testInstrumentationRunner "${runner}"
+    }
+  }
+
+  /* be specific about JaCoCo version. */
+  jacoco {
+    version JaCoCoVersion
+  }
+
+  buildTypes {
+    debug {
+      testCoverageEnabled useJacoco
+      debuggable true
+      jniDebuggable true
+      shrinkResources false /* incompatible with useJack !!! */
+    }
+    release {
+      testCoverageEnabled false
+      debuggable false
+      jniDebuggable false
+
+      minifyEnabled false
+      shrinkResources false /* incompatible with useJack !!! */
+      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+  }
+
+  sourceSets {
+    test {
+      // include library sources into tests
+      java.srcDirs android.sourceSets.main.java.srcDirs
+
+      resources.srcDir file('src/test/resources')
+    }
+    testDebug {
+      java.srcDirs "${project.buildDir}/generated/source/buildConfig/debug"
+      java.srcDirs "${project.buildDir}/generated/source/r/debug"
+    }
+    testRelease {
+      java.srcDirs "${project.buildDir}/generated/source/buildConfig/release"
+      java.srcDirs "${project.buildDir}/generated/source/r/release"
+    }
+
+    debug.setRoot('build-types/debug')
+    release.setRoot('build-types/release')
+  }
+
+  /* EXCLUDE SOME UNNEEDED FILES FROM PACKAGE */
+  packagingOptions {
+    exclude 'LICENSE.txt'
+    exclude 'META-INF/LICENSE'
+    exclude 'META-INF/LICENSE.txt'
+    exclude 'META-INF/license.txt'
+    exclude 'META-INF/NOTICE'
+    exclude 'META-INF/NOTICE.txt'
+    exclude 'META-INF/notice.txt'
+    exclude 'META-INF/DEPENDENCIES'
+    exclude 'META-INF/DEPENDENCIES.txt'
+    exclude 'META-INF/dependencies.txt'
+    exclude 'META-INF/LGPL2.1'
+    exclude '.readme'
+    exclude '.README'
+  }
+
+  /* Adjust library output naming */
+  libraryVariants.all { variant ->
+    // if NO FLAVORs than exclude it part from final output name
+    def flavor = (variant.productFlavors.size() == 0) ? "" :
+        "-" + variant.productFlavors[0].name
+
+    variant.outputs.each { output ->
+      def outputFile = output.outputFile
+      def name = variant.buildType.name
+      def fileName = "${LIBRARY_ARTIFACT}-${version}${flavor}-${name}.aar"
+      def jarOutput = "${LIBRARY_ARTIFACT}-${version}${flavor}-${name}.jar"
+
+      // modify output file name
+      if (outputFile != null && outputFile.name.endsWith('.aar')) {
+        output.outputFile = new File(outputFile.parent, fileName)
+
+        // dump into logs final filename
+        def log = "  output: '${fileName}'"
+        rootProject.logger.lifecycle(log)
+      }
+
+      // Create task that will also pack library into a Jar
+      def task = project.tasks.create "jar${variant.name.capitalize()}", Jar
+      task.description = "Create jar artifact ${jarOutput}"
+      task.group = 'Publishing'
+      task.dependsOn variant.javaCompile
+      task.from variant.javaCompile.destinationDir
+      task.destinationDir = project.file("${project.buildDir}/outputs/jar")
+      task.archiveName = jarOutput
+
+      // register task
+      artifacts.add('archives', task);
+    }
+  }
+
+  /* https://sites.google.com/a/android.com/tools/tech-docs/unit-testing-support */
+  testOptions {
+    unitTests.returnDefaultValues = true
+  }
+
+  lintOptions {
+    disable 'GradleDynamicVersion'
+  }
+}
+
+/* [ UNIT Test Results ] ============================================================================================ */
+
+afterEvaluate {
+  /* Adjust Mockable Android task  */
+  tasks.matching { it.name.startsWith('mockableAndroidJar') }.each { mock ->
+    // http://goo.gl/wXhBIF --> MockableJarGenerator.java
+    mock.finalizedBy patchMockableAndroidJar
+  }
+  /* Path classpath of the test tasks for using our patched version of the JAR */
+  tasks.matching { it.name.startsWith("test") }.each { t ->
+    def old = "mockable-android-${androidTargetSdkVersion}.jar"
+    def mock = "${project.buildDir}\\intermediates\\patched-mockable-android-${androidTargetSdkVersion}.jar"
+    try {
+      t.classpath = files(t.classpath.files, mock).filter { it.name != old }
+    } catch (final Throwable ignored) {
+      // ignore task
+    }
+  }
+}
+
+/* Create a copy of original mockable Jar */
+task copyMockableAndroidJar(type: Copy) {
+  description = 'Create backup copy of mockable-android-${api}.jar file'
+  group = 'Unit Testing'
+
+  // incremental build support
+  inputs.property "api", androidTargetSdkVersion
+  outputs.files "mockable-android-${androidTargetSdkVersion}-original.jar"
+
+  from "${project.buildDir}/intermediates/mockable-android-${androidTargetSdkVersion}.jar"
+  into "${project.buildDir}/intermediates/"
+
+  rename { String fileName ->
+    fileName.replace("mockable-android-${androidTargetSdkVersion}.jar",
+        "mockable-android-${androidTargetSdkVersion}-original.jar")
+  }
+}
+
+/* Exclude classes that we want to replace by own implementation  */
+task patchMockableAndroidJar(type: Zip, dependsOn: copyMockableAndroidJar) {
+  description = 'patch mockable-android-${api}.jar by own classes'
+  group = 'Unit Testing'
+
+  // set archive name and destination
+  entryCompression = ZipEntryCompression.STORED  // speedup task by excluding compression
+  destinationDir = file("${project.buildDir}/intermediates")
+  archiveName = "patched-mockable-android-${androidTargetSdkVersion}.jar"
+  def source = "${project.buildDir}/intermediates/mockable-android-${androidTargetSdkVersion}-original.jar"
+
+  // exclude from Mocks Jar classes which we replace by own implementation
+  from(zipTree(source)) {
+    exclude '**/android/util/SparseArray.class'
+    exclude '**/android/util/Log.class'
+  }
+}
+
+/* [ COVERALLS ] ==================================================================================================== */
+
+if (useJacoco) {
+  /* be specific about JaCoCo version. */
+  jacoco {
+    version JaCoCoVersion
+    //destinationFile = file("${project.buildDir}/jacoco/jacoco.exec")
+  }
+
+  apply plugin: 'com.github.kt3k.coveralls'
+  coveralls.jacocoReportPath = "${project.buildDir}/reports/jacoco/jacoco.xml"
+  tasks.coveralls.dependsOn 'jacocoResults'
+}
+
+/* [ ARTIFACTS ] ==================================================================================================== */
+
+// set output binary version. format: {versionName}.{versionCode}.{gitRevision}
+version = android.defaultConfig.versionName + "." + android.defaultConfig.versionCode + ".${GIT_REVISION}"
+group = LIBRARY_GROUP /* com.artfulbits */
+
+/* MAVEN REPOSITORY PUBLISHING */
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+
+/* https://github.com/bintray/bintray-examples/blob/master/gradle-aar-example/build.gradle */
+bintray {
+  /* Set to False for making publishing a real thing. */
+  dryRun = PUBLISHING_DRY_RUN
+
+  //apiUrl = "https://api.bintray.net"
+  user = USER_NAME
+  key = BINTRAY_API_KEY
+  configurations = ['archives']
+
+  /*
+    curl -T <FILE.EXT> -ukucherenko-alex:<API_KEY>
+      https://api.bintray.com/content/kucherenko-alex/android/<UR_COOL_PACKAGE_NAME>/<VERSION_NAME>/<FILE_TARGET_PATH>
+  */
+  pkg {
+    repo = 'android' /* Hardcoded!!! Create repository first in Bintray Admin UI! */
+    name = "${LIBRARY_GROUP}:${LIBRARY_ARTIFACT}" /* com.artfulbits:uniprefs */
+    desc = LIBRARY_DESC
+
+    websiteUrl = LIBRARY_URL
+    issueTrackerUrl = "${LIBRARY_URL}/issues"
+    vcsUrl = LIBRARY_GIT
+
+    licenses = ['Apache-2.0']
+    labels = ['aar', 'android', 'json', 'sqlite', 'xml', 'sharedpreferences', 'db']
+
+    publicDownloadNumbers = true
+  }
+}
+
+install {
+  repositories.mavenInstaller {
+    pom {
+      project {
+        packaging "${LIBRARY_PKG}"
+        name LIBRARY_NAME
+        description LIBRARY_DESC
+        url LIBRARY_URL
+        artifactId LIBRARY_ARTIFACT
+
+        /* Publishing License */
+        licenses {
+          license {
+            name LIBRARY_LIC
+            url LIBRARY_LIC_URL
+            distribution 'repo'
+          }
+        }
+        /* Developers of the library */
+        developers {
+          developer {
+            id USER_NAME
+            name USER_FULL
+            email USER_EMAIL
+          }
+        }
+        /* Source Code Management Info */
+        scm {
+          url "scm:${LIBRARY_GIT}"
+          connection "scm:${LIBRARY_GIT}"
+          developerConnection "scm:${LIBRARY_GIT}"
+        }
+      }
+    }
+  }
+}
+
+task sourcesJar(type: Jar) {
+  description = 'Compose sources archive'
+  group = 'publishing'
+
+  from android.sourceSets.main.java.srcDirs
+  classifier = 'sources'
+}
+
+task generateJavadoc(type: Javadoc) {
+  description = 'Generate JavaDoc from sources'
+  group = 'publishing'
+
+  source = android.sourceSets.main.java.srcDirs
+  exclude '**/R.html', '**/R.*.html', '**/index.html'
+  //classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+  classpath += files("${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
+  classpath += files("${android.sdkDirectory}/extras/android/support/annotations/android-support-annotations.jar")
+  options {
+    links "http://docs.oracle.com/javase/7/docs/api/"
+    linksOffline "http://d.android.com/reference", "${android.sdkDirectory}/docs/reference"
+  }
+  options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+task javadocJar(type: Jar, dependsOn: generateJavadoc) {
+  description = 'Compose JavaDoc archive'
+  group = 'publishing'
+
+  classifier = 'javadoc'
+  from generateJavadoc.destinationDir
+}
+
+artifacts {
+  /* The Java plug-in introduces six configurations: archives, default, compile, runtime, testCompile, testRuntime */
+  archives javadocJar
+  archives sourcesJar
+}

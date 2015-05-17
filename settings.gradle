@@ -1,7 +1,7 @@
 // include modules
 
 // Library
-include ':library'
+include ':binder'
 
 // Samples
-include ':samples:sample-01'
+include ':sample-01'
