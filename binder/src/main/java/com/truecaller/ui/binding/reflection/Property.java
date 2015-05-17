@@ -1,31 +1,49 @@
 package com.truecaller.ui.binding.reflection;
 
+import android.support.annotation.NonNull;
+
 import java.lang.reflect.Method;
+import java.util.List;
 
 /** Class is responsible for accessing a specific abstract 'field' by using reflection. */
 public class Property<T> {
-  /** Array of possible prefixes. */
+  /* [ CONSTANTS ] ================================================================================================= */
+
+  /** Array of possible prefixes used for getting the value. */
   private static final String[] KNOWN_GETTERS = new String[]{"get", "has", "is", "exceeds", ""};
+  /** Array of possible prefixes used for setting the value. */
+  private static final String[] KNOWN_SETTERS = new String[]{"set", ""};
+
+	/* [ MEMBERS ] =================================================================================================== */	
 
   /** Property data type. */
   private final Class<T> mType;
   /** Property name pattern. */
   private final String mName;
 
+	/* [ CONSTRUCTORS ] ============================================================================================== */	
+
   protected Property(final Class<T> type, final String name) {
     mType = type;
     mName = name;
   }
 
+	/* [ GETTER / SETTER METHODS ] =================================================================================== */	
+
   public final Class<T> getDataType() {
     return mType;
   }
 
+	/* [ IMPLEMENTATION & HELPERS ] ================================================================================== */	
+
   private Method extractGetter(final Object instance) throws NoSuchMethodException {
     Method result = null;
 
-    for (String prefix : KNOWN_GETTERS) {
-      result = instance.getClass().getMethod(prefix + mName);
+    final List<Method> methods = ReflectionUtils.getAllMethods(instance.getClass());
+
+    for (final String prefix : KNOWN_GETTERS) {
+      final String name = prefix + mName;
+      result = ReflectionUtils.findMethod(methods, name);
 
       if (null != result) {
         break;
@@ -36,11 +54,24 @@ public class Property<T> {
   }
 
   private Method extractSetter(final Object instance) throws NoSuchMethodException {
-    return instance.getClass().getMethod(mName, mType);
+    Method result = null;
+
+    final List<Method> methods = ReflectionUtils.getAllMethods(instance.getClass());
+
+    for (final String prefix : KNOWN_SETTERS) {
+      final String name = prefix + mName;
+      result = ReflectionUtils.findMethod(methods, name);
+
+      if (null != result) {
+        break;
+      }
+    }
+
+    return result;
   }
 
   @SuppressWarnings("unchecked")
-  public T get(final Object instance) {
+  public T get(@NonNull final Object instance) {
     try {
       return (T) extractGetter(instance).invoke(instance);
     } catch (final Throwable ignored) {
@@ -48,17 +79,6 @@ public class Property<T> {
     }
 
     return (T) primitiveDefault(mType);
-  }
-
-  public boolean set(final Object instance, final T value) {
-
-    try {
-      extractSetter(instance).invoke(instance, value);
-    } catch (final Throwable ignored) {
-      return false;
-    }
-
-    return true;
   }
 
   protected Object primitiveDefault(final Class<T> clazz) {
@@ -75,5 +95,15 @@ public class Property<T> {
     }
 
     return false;
+  }
+
+  public boolean set(@NonNull final Object instance, final T value) {
+    try {
+      extractSetter(instance).invoke(instance, value);
+    } catch (final Throwable ignored) {
+      return false;
+    }
+
+    return true;
   }
 }

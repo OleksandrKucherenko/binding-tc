@@ -47,7 +47,7 @@ repositories {
 
 dependencies {
   /* [ DEBUG/RELEASE ] ============================================================================================ */
-  compile fileTree(dir: 'libs', includes: ['*.jar'])
+  //compile fileTree(dir: 'libs', includes: ['*.jar'])
   /* Android support annotations and support classes. */
   compile "com.android.support:support-annotations:${androidSupportLib}"
   compile "com.android.support:support-v4:${androidSupportLib}"
