@@ -1,7 +1,7 @@
-package com.truecaller.ui.binding.toolbox;
+package com.artfulbits.ui.binding.toolbox;
 
-import com.truecaller.ui.binding.Listener;
-import com.truecaller.ui.binding.reflection.Property;
+import com.artfulbits.ui.binding.Listener;
+import com.artfulbits.ui.binding.reflection.Property;
 
 /** Implementation of common listeners. */
 public final class Listeners {

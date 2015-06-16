@@ -43,17 +43,17 @@ Typical Business Object declared in POJO way:
 Fragment binding:
 
 ```java
-import com.truecaller.ui.binding.Binder;
-import com.truecaller.ui.binding.BindingManager;
+import com.artfulbits.ui.binding.Binder;
+import com.artfulbits.ui.binding.BindingManager;
 
-import static com.truecaller.ui.binding.toolbox.Converters.direct;
-import static com.truecaller.ui.binding.toolbox.Listeners.none;
-import static com.truecaller.ui.binding.toolbox.Models.pojo;
-import static com.truecaller.ui.binding.toolbox.Models.property;
-import static com.truecaller.ui.binding.toolbox.Views.matches;
-import static com.truecaller.ui.binding.toolbox.Views.root;
-import static com.truecaller.ui.binding.toolbox.Views.view;
-import static com.truecaller.ui.binding.toolbox.Views.withId;
+import static com.artfulbits.ui.binding.toolbox.Converters.direct;
+import static com.artfulbits.ui.binding.toolbox.Listeners.none;
+import static com.artfulbits.ui.binding.toolbox.Models.pojo;
+import static com.artfulbits.ui.binding.toolbox.Models.property;
+import static com.artfulbits.ui.binding.toolbox.Views.matches;
+import static com.artfulbits.ui.binding.toolbox.Views.root;
+import static com.artfulbits.ui.binding.toolbox.Views.view;
+import static com.artfulbits.ui.binding.toolbox.Views.withId;
 import static org.hamcrest.core.IsAnything.anything;
 
 /** Login fragment with simplest UI. */

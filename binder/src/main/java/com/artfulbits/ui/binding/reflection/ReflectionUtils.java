@@ -1,4 +1,4 @@
-package com.truecaller.ui.binding.reflection;
+package com.artfulbits.ui.binding.reflection;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;

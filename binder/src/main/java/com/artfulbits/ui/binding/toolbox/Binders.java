@@ -1,7 +1,7 @@
-package com.truecaller.ui.binding.toolbox;
+package com.artfulbits.ui.binding.toolbox;
 
-import com.truecaller.ui.binding.Binder;
-import com.truecaller.ui.binding.BindingManager;
+import com.artfulbits.ui.binding.Binder;
+import com.artfulbits.ui.binding.BindingManager;
 
 /** Typical binders. */
 public final class Binders {

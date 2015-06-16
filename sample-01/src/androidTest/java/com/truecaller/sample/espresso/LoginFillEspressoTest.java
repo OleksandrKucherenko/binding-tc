@@ -1,9 +1,9 @@
-package com.truecaller.sample.espresso;
+package com.artfulbits.sample.espresso;
 
 import android.test.ActivityInstrumentationTestCase2;
 
-import com.truecaller.sample.MainActivity;
-import com.truecaller.sample.R;
+import com.artfulbits.sample.MainActivity;
+import com.artfulbits.sample.R;
 
 import static com.google.android.apps.common.testing.ui.espresso.Espresso.onView;
 import static com.google.android.apps.common.testing.ui.espresso.action.ViewActions.typeText;
@@ -14,7 +14,7 @@ import static com.google.android.apps.common.testing.ui.espresso.matcher.ViewMat
 /** Default Android tests. */
 public class LoginFillEspressoTest extends ActivityInstrumentationTestCase2<MainActivity> {
     public LoginFillEspressoTest() {
-        super("com.truecaller.sample", MainActivity.class);
+        super("com.artfulbits.sample", MainActivity.class);
     }
 
     @Override

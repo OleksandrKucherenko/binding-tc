@@ -1,7 +1,7 @@
-package com.truecaller.ui.binding.toolbox;
+package com.artfulbits.ui.binding.toolbox;
 
-import com.truecaller.ui.binding.Selector;
-import com.truecaller.ui.binding.reflection.Property;
+import com.artfulbits.ui.binding.Selector;
+import com.artfulbits.ui.binding.reflection.Property;
 
 import java.util.List;
 import java.util.Map;

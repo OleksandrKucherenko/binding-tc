@@ -1,6 +1,6 @@
-package com.truecaller.ui.binding.toolbox;
+package com.artfulbits.ui.binding.toolbox;
 
-import com.truecaller.ui.binding.Converter;
+import com.artfulbits.ui.binding.Converter;
 
 /** Methods for construction of typical data type converter's. */
 public final class Converters {

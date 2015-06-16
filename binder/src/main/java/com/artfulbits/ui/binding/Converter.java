@@ -1,4 +1,4 @@
-package com.truecaller.ui.binding;
+package com.artfulbits.ui.binding;
 
 /**
  * Interface responsible for converting values in to-, from- directions.<br/> Main rule for inheritors of the

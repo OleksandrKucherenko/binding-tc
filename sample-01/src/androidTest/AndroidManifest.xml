@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.truecaller.sample"
+          package="com.artfulbits.sample"
           android:versionCode="1"
           android:versionName="1.0">
 
@@ -11,10 +11,10 @@
     <!-- Define instrumentation -->
     <instrumentation
         android:name="com.google.android.apps.common.testing.testrunner.GoogleInstrumentationTestRunner"
-        android:targetPackage="com.truecaller.ui.binding"
+        android:targetPackage="com.artfulbits.ui.binding"
         android:handleProfiling="false"
         android:functionalTest="false"
-        android:label="Tests for com.truecaller"/>
+        android:label="Tests for com.artfulbits"/>
 
 
     <!-- Required permissions -->

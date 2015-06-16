@@ -1,11 +1,11 @@
-package com.truecaller.ui.binding;
+package com.artfulbits.ui.binding;
 
 import android.app.Activity;
 import android.app.Fragment;
 import android.view.View;
 import android.widget.BaseAdapter;
 
-import com.truecaller.ui.binding.reflection.Property;
+import com.artfulbits.ui.binding.reflection.Property;
 
 import java.util.LinkedList;
 import java.util.List;

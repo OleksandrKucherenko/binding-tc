@@ -1,4 +1,4 @@
-package com.truecaller.sample;
+package com.artfulbits.sample;
 
 /**
  * Created by alexk on 5/16/2014.

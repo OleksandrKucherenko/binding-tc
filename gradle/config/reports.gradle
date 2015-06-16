@@ -1,0 +1,54 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+/* ---------------------------------------------------------------------------------------------  */
+/* CUSTOM TASKS                                                                                   */
+/* ---------------------------------------------------------------------------------------------  */
+
+task openResults(dependsOn: ["openLintResults"]) {
+  description = 'open Tools results in current web browser'
+  group = 'Code Quality'
+
+  logger.lifecycle(":openResults");
+}
+
+if (useRobolectric) {
+  // Task opens robolectric report file in default web-browser
+  task openTestResults(type: Exec, dependsOn: ["test"]) {
+    description = 'open Robolectric results in current web browser'
+    group = 'Code Quality'
+
+    logger.lifecycle(":openTestResults")
+
+    // done: force open of HTML file
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+      // path is relative to current project path:
+      //      {project}\\samples\\sample-01
+      def path = """.\\build\\test-report\\index.html"""
+      commandLine "cmd.exe", '/C', path
+
+    } else {
+      // this build server, or Mac OS, or Linux - ignore this call
+    }
+  }
+
+  openResults.dependsOn openTestResults
+}
+
+// Task opens LINT utility report file in default web browser
+task openLintResults(type: Exec, dependsOn: ["lint"]) {
+  description = 'open Android Lint results in current web browser'
+  group = 'Code Quality'
+
+  logger.lifecycle(":openLintResults")
+
+  // done: force open of HTML file
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    // path is relative to current project path:
+    //      {project}\\samples\\sample-01
+    def path = """.\\build\\lint-results.html"""
+    commandLine "cmd.exe", '/C', path
+
+  } else {
+    // this build server, or Mac OS, or Linux - ignore this call
+  }
+}

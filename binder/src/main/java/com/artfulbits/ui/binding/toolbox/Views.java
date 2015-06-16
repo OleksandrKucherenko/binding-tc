@@ -1,4 +1,4 @@
-package com.truecaller.ui.binding.toolbox;
+package com.artfulbits.ui.binding.toolbox;
 
 import android.app.Activity;
 import android.support.v4.app.Fragment;
@@ -12,13 +12,13 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.truecaller.ui.binding.Selector;
-import com.truecaller.ui.binding.reflection.Property;
+import com.artfulbits.ui.binding.Selector;
+import com.artfulbits.ui.binding.reflection.Property;
 
-import static com.truecaller.ui.binding.toolbox.Models.bool;
-import static com.truecaller.ui.binding.toolbox.Models.integer;
-import static com.truecaller.ui.binding.toolbox.Models.property;
-import static com.truecaller.ui.binding.toolbox.Models.string;
+import static com.artfulbits.ui.binding.toolbox.Models.bool;
+import static com.artfulbits.ui.binding.toolbox.Models.integer;
+import static com.artfulbits.ui.binding.toolbox.Models.property;
+import static com.artfulbits.ui.binding.toolbox.Models.string;
 
 /** Methods for simplifying access to different types of View storages. */
 public final class Views {

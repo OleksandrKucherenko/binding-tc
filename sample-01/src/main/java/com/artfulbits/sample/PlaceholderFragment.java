@@ -1,4 +1,4 @@
-package com.truecaller.sample;
+package com.artfulbits.sample;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,23 +8,23 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.truecaller.ui.binding.Binder;
-import com.truecaller.ui.binding.BindingManager;
-import com.truecaller.ui.binding.toolbox.Binders;
-import com.truecaller.ui.binding.toolbox.Converters;
-import com.truecaller.ui.binding.toolbox.Listeners;
-import com.truecaller.ui.binding.toolbox.Views;
+import com.artfulbits.ui.binding.Binder;
+import com.artfulbits.ui.binding.BindingManager;
+import com.artfulbits.ui.binding.toolbox.Binders;
+import com.artfulbits.ui.binding.toolbox.Converters;
+import com.artfulbits.ui.binding.toolbox.Listeners;
+import com.artfulbits.ui.binding.toolbox.Views;
 
-import static com.truecaller.ui.binding.toolbox.Models.bool;
-import static com.truecaller.ui.binding.toolbox.Models.integer;
-import static com.truecaller.ui.binding.toolbox.Models.pojo;
-import static com.truecaller.ui.binding.toolbox.Models.string;
-import static com.truecaller.ui.binding.toolbox.Views.checkBox;
-import static com.truecaller.ui.binding.toolbox.Views.editText;
-import static com.truecaller.ui.binding.toolbox.Views.radioButton;
-import static com.truecaller.ui.binding.toolbox.Views.radioGroup;
-import static com.truecaller.ui.binding.toolbox.Views.spinner;
-import static com.truecaller.ui.binding.toolbox.Views.textView;
+import static com.artfulbits.ui.binding.toolbox.Models.bool;
+import static com.artfulbits.ui.binding.toolbox.Models.integer;
+import static com.artfulbits.ui.binding.toolbox.Models.pojo;
+import static com.artfulbits.ui.binding.toolbox.Models.string;
+import static com.artfulbits.ui.binding.toolbox.Views.checkBox;
+import static com.artfulbits.ui.binding.toolbox.Views.editText;
+import static com.artfulbits.ui.binding.toolbox.Views.radioButton;
+import static com.artfulbits.ui.binding.toolbox.Views.radioGroup;
+import static com.artfulbits.ui.binding.toolbox.Views.spinner;
+import static com.artfulbits.ui.binding.toolbox.Views.textView;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;

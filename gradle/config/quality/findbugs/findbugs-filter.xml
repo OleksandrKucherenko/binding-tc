@@ -16,7 +16,7 @@
     </Not>
   </Match>
   <Match>
-    <Package name="com.truecaller.tests"/>
+    <Package name="com.artfulbits.tests"/>
   </Match>
 
   <!-- Exclude all 3rd party libraries -->

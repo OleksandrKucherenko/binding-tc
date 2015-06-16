@@ -1,17 +1,17 @@
-package com.truecaller.sample;
+package com.artfulbits.sample;
 
 import android.app.Activity;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.*;
+import org.junit.runner.*;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /** First robolectric test. */
-@Config(emulateSdk = 18)
+@Config(sdk = 18)
 @RunWith(RobolectricTestRunner.class)
 public class LoginFillRobolectricTest {
 

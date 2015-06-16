@@ -1,6 +1,6 @@
-package com.truecaller.ui.binding;
+package com.artfulbits.ui.binding;
 
-import com.truecaller.ui.binding.reflection.Property;
+import com.artfulbits.ui.binding.reflection.Property;
 
 /**
  * Basic listener that controls value changes in attached instance. Also it triggers binding on capturing value
