@@ -3,7 +3,9 @@ package com.artfulbits.ui.binding.reflection;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +31,7 @@ public final class ReflectionUtils {
    * Find in list of fields specific one by its name.
    *
    * @param fields list of fields. Should be sorted by name!
-   * @param name field name which we want to find.
+   * @param name   field name which we want to find.
    * @return found field, otherwise {@code null}.
    */
   @Nullable
@@ -48,12 +50,30 @@ public final class ReflectionUtils {
    * Find in list of methods specific one by its name.
    *
    * @param methods list of methods. Should be sorted by name!
-   * @param name field name which we want to find.
+   * @param name    field name which we want to find.
    * @return found field, otherwise {@code null}.
    */
   @Nullable
   public static Method findMethod(@NonNull final List<Method> methods, @NonNull final String name) {
     final int index = Collections.binarySearch(methods, name, new SearchByMethodNameComparator());
+
+    if (index >= 0 && index < methods.size()) {
+      return methods.get(index);
+    }
+
+    return null;
+  }
+
+  /**
+   * Find in list of methods specific one by its name.
+   *
+   * @param methods list of methods. Should be sorted by name!
+   * @param name    field name which we want to find.
+   * @return found field, otherwise {@code null}.
+   */
+  @Nullable
+  public static Entry find(@NonNull final List<Entry> methods, @NonNull final String name) {
+    final int index = Collections.binarySearch(methods, name, new SearchByExecutableNameComparator());
 
     if (index >= 0 && index < methods.size()) {
       return methods.get(index);
@@ -124,7 +144,47 @@ public final class ReflectionUtils {
     return results;
   }
 
+  /** Get list of all executables inside the class that can be used for binding. */
+  @NonNull
+  public static List<Entry> getAll(@NonNull final Class<?> type) {
+    final List<Field> fields = getAllFields(type);
+    final List<Method> methods = getAllMethods(type);
+
+    final List<Entry> results = new ArrayList<>(fields.size() + methods.size());
+
+    for (final Field f : fields) {
+      results.add(new FieldFacade(f));
+    }
+
+    for (final Method m : methods) {
+      results.add(new MethodFacade(m));
+    }
+
+    Collections.sort(results, new ByExecutableName());
+
+    return results;
+  }
+
 	/* [ NESTED DECLARATIONS ] ======================================================================================= */
+
+  /** Generic facade interface. */
+  public interface Entry {
+    /** Accessable instance name. */
+    String getName();
+
+    /** Raw type that we wrap. */
+    AccessibleObject getRawType();
+
+    /** Invoke get or set. If args length more than zero - we invoke SET, otherwise GET. */
+    Object invoke(final Object receiver, final Object... args) throws IllegalAccessException, InvocationTargetException;
+  }
+
+  private static final class ByExecutableName implements Comparator<Entry> {
+    @Override
+    public int compare(final Entry lhs, final Entry rhs) {
+      return lhs.getName().compareTo(rhs.getName());
+    }
+  }
 
   /** Sort fields by name. */
   private static final class ByFieldName implements java.util.Comparator<Field> {
@@ -141,6 +201,23 @@ public final class ReflectionUtils {
     @Override
     public int compare(final Method lhs, final Method rhs) {
       return lhs.getName().compareTo(rhs.getName());
+    }
+  }
+
+  /** Search in fields collection by field name. */
+  private static final class SearchByExecutableNameComparator implements Comparator<Object> {
+    /** {@inheritDoc} */
+    @Override
+    public int compare(Object lhs, Object rhs) {
+      if (lhs instanceof Entry && rhs instanceof String) {
+        return ((Entry) lhs).getName().compareTo((String) rhs);
+      }
+
+      if (lhs instanceof String && rhs instanceof Entry) {
+        return ((String) lhs).compareTo(((Entry) rhs).getName());
+      }
+
+      throw new AssertionError("unexpected");
     }
   }
 
@@ -175,6 +252,57 @@ public final class ReflectionUtils {
       }
 
       throw new AssertionError("unexpected");
+    }
+  }
+
+  /** Facade for field. */
+  private static class FieldFacade implements Entry {
+    private final Field mF;
+
+    public FieldFacade(@NonNull final Field f) {
+      mF = f;
+    }
+
+    @Override
+    public String getName() {
+      return mF.getName();
+    }
+
+    @Override
+    public AccessibleObject getRawType() {
+      return mF;
+    }
+
+    @Override
+    public Object invoke(final Object receiver, final Object... args) throws IllegalAccessException {
+
+      // TODO: detect do we need Get or Set by number of parameters
+
+      return mF.get(receiver);
+    }
+  }
+
+  /** Facade for method. */
+  private static class MethodFacade implements Entry {
+    private final Method mM;
+
+    public MethodFacade(@NonNull final Method m) {
+      mM = m;
+    }
+
+    @Override
+    public String getName() {
+      return mM.getName();
+    }
+
+    @Override
+    public AccessibleObject getRawType() {
+      return mM;
+    }
+
+    @Override
+    public Object invoke(final Object receiver, final Object... args) throws IllegalAccessException, InvocationTargetException {
+      return mM.invoke(receiver, args);
     }
   }
 }

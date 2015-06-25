@@ -103,6 +103,22 @@ allprojects {
     ENABLE_FINDBUGS = ENABLE_QUALITY & true
     ENABLE_JAVANCSS = ENABLE_QUALITY & false
     ENABLE_CLASSYCLE = ENABLE_QUALITY & false
+
+    /* Maven/jCenter publishing */
+    ALLOW_PUBLISHING = false
+  }
+
+  /* ADJUST JAVA COMPILATION OPTIONS */
+  tasks.withType(JavaCompile) {
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
+
+    // report all Java errors even if the IDE does not
+    configure(options) {
+      compilerArgs << '-Xlint:all' << '-Xlint:-options'
+      deprecation = true
+      encoding = 'UTF-8'
+    }
   }
 }
 

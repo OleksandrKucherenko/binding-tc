@@ -326,111 +326,113 @@ if (useJacoco) {
 version = android.defaultConfig.versionName + "." + android.defaultConfig.versionCode + ".${GIT_REVISION}"
 group = LIBRARY_GROUP /* com.artfulbits */
 
+if (ALLOW_PUBLISHING) {
 /* MAVEN REPOSITORY PUBLISHING */
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'com.github.dcendents.android-maven'
+  apply plugin: 'com.jfrog.bintray'
+  apply plugin: 'com.github.dcendents.android-maven'
 
 /* https://github.com/bintray/bintray-examples/blob/master/gradle-aar-example/build.gradle */
-bintray {
-  /* Set to False for making publishing a real thing. */
-  dryRun = PUBLISHING_DRY_RUN
+  bintray {
+    /* Set to False for making publishing a real thing. */
+    dryRun = PUBLISHING_DRY_RUN
 
-  //apiUrl = "https://api.bintray.net"
-  user = USER_NAME
-  key = BINTRAY_API_KEY
-  configurations = ['archives']
+    //apiUrl = "https://api.bintray.net"
+    user = USER_NAME
+    key = BINTRAY_API_KEY
+    configurations = ['archives']
 
-  /*
+    /*
     curl -T <FILE.EXT> -ukucherenko-alex:<API_KEY>
       https://api.bintray.com/content/kucherenko-alex/android/<UR_COOL_PACKAGE_NAME>/<VERSION_NAME>/<FILE_TARGET_PATH>
   */
-  pkg {
-    repo = 'android' /* Hardcoded!!! Create repository first in Bintray Admin UI! */
-    name = "${LIBRARY_GROUP}:${LIBRARY_ARTIFACT}" /* com.artfulbits:uniprefs */
-    desc = LIBRARY_DESC
+    pkg {
+      repo = 'android' /* Hardcoded!!! Create repository first in Bintray Admin UI! */
+      name = "${LIBRARY_GROUP}:${LIBRARY_ARTIFACT}" /* com.artfulbits:uniprefs */
+      desc = LIBRARY_DESC
 
-    websiteUrl = LIBRARY_URL
-    issueTrackerUrl = "${LIBRARY_URL}/issues"
-    vcsUrl = LIBRARY_GIT
+      websiteUrl = LIBRARY_URL
+      issueTrackerUrl = "${LIBRARY_URL}/issues"
+      vcsUrl = LIBRARY_GIT
 
-    licenses = ['Apache-2.0']
-    labels = ['aar', 'android', 'json', 'sqlite', 'xml', 'sharedpreferences', 'db']
+      licenses = ['Apache-2.0']
+      labels = ['aar', 'android', 'json', 'sqlite', 'xml', 'sharedpreferences', 'db']
 
-    publicDownloadNumbers = true
+      publicDownloadNumbers = true
+    }
   }
-}
 
-install {
-  repositories.mavenInstaller {
-    pom {
-      project {
-        packaging "${LIBRARY_PKG}"
-        name LIBRARY_NAME
-        description LIBRARY_DESC
-        url LIBRARY_URL
-        artifactId LIBRARY_ARTIFACT
+  install {
+    repositories.mavenInstaller {
+      pom {
+        project {
+          packaging "${LIBRARY_PKG}"
+          name LIBRARY_NAME
+          description LIBRARY_DESC
+          url LIBRARY_URL
+          artifactId LIBRARY_ARTIFACT
 
-        /* Publishing License */
-        licenses {
-          license {
-            name LIBRARY_LIC
-            url LIBRARY_LIC_URL
-            distribution 'repo'
+          /* Publishing License */
+          licenses {
+            license {
+              name LIBRARY_LIC
+              url LIBRARY_LIC_URL
+              distribution 'repo'
+            }
           }
-        }
-        /* Developers of the library */
-        developers {
-          developer {
-            id USER_NAME
-            name USER_FULL
-            email USER_EMAIL
+          /* Developers of the library */
+          developers {
+            developer {
+              id USER_NAME
+              name USER_FULL
+              email USER_EMAIL
+            }
           }
-        }
-        /* Source Code Management Info */
-        scm {
-          url "scm:${LIBRARY_GIT}"
-          connection "scm:${LIBRARY_GIT}"
-          developerConnection "scm:${LIBRARY_GIT}"
+          /* Source Code Management Info */
+          scm {
+            url "scm:${LIBRARY_GIT}"
+            connection "scm:${LIBRARY_GIT}"
+            developerConnection "scm:${LIBRARY_GIT}"
+          }
         }
       }
     }
   }
-}
 
-task sourcesJar(type: Jar) {
-  description = 'Compose sources archive'
-  group = 'publishing'
+  task sourcesJar(type: Jar) {
+    description = 'Compose sources archive'
+    group = 'publishing'
 
-  from android.sourceSets.main.java.srcDirs
-  classifier = 'sources'
-}
-
-task generateJavadoc(type: Javadoc) {
-  description = 'Generate JavaDoc from sources'
-  group = 'publishing'
-
-  source = android.sourceSets.main.java.srcDirs
-  exclude '**/R.html', '**/R.*.html', '**/index.html'
-  //classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-  classpath += files("${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
-  classpath += files("${android.sdkDirectory}/extras/android/support/annotations/android-support-annotations.jar")
-  options {
-    links "http://docs.oracle.com/javase/7/docs/api/"
-    linksOffline "http://d.android.com/reference", "${android.sdkDirectory}/docs/reference"
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
   }
-  options.addStringOption('Xdoclint:none', '-quiet')
-}
 
-task javadocJar(type: Jar, dependsOn: generateJavadoc) {
-  description = 'Compose JavaDoc archive'
-  group = 'publishing'
+  task generateJavadoc(type: Javadoc) {
+    description = 'Generate JavaDoc from sources'
+    group = 'publishing'
 
-  classifier = 'javadoc'
-  from generateJavadoc.destinationDir
-}
+    source = android.sourceSets.main.java.srcDirs
+    exclude '**/R.html', '**/R.*.html', '**/index.html'
+    //classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += files("${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
+    classpath += files("${android.sdkDirectory}/extras/android/support/annotations/android-support-annotations.jar")
+    options {
+      links "http://docs.oracle.com/javase/7/docs/api/"
+      linksOffline "http://d.android.com/reference", "${android.sdkDirectory}/docs/reference"
+    }
+    options.addStringOption('Xdoclint:none', '-quiet')
+  }
 
-artifacts {
-  /* The Java plug-in introduces six configurations: archives, default, compile, runtime, testCompile, testRuntime */
-  archives javadocJar
-  archives sourcesJar
+  task javadocJar(type: Jar, dependsOn: generateJavadoc) {
+    description = 'Compose JavaDoc archive'
+    group = 'publishing'
+
+    classifier = 'javadoc'
+    from generateJavadoc.destinationDir
+  }
+
+  artifacts {
+    /* The Java plug-in introduces six configurations: archives, default, compile, runtime, testCompile, testRuntime */
+    archives javadocJar
+    archives sourcesJar
+  }
 }

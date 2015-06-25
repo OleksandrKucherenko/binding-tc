@@ -2,7 +2,8 @@ package com.artfulbits.ui.binding.reflection;
 
 import android.support.annotation.NonNull;
 
-import java.lang.reflect.Method;
+import com.artfulbits.ui.binding.reflection.ReflectionUtils.Entry;
+
 import java.util.List;
 
 /** Class is responsible for accessing a specific abstract 'field' by using reflection. */
@@ -14,36 +15,96 @@ public class Property<T> {
   /** Array of possible prefixes used for setting the value. */
   private static final String[] KNOWN_SETTERS = new String[]{"set", ""};
 
-	/* [ MEMBERS ] =================================================================================================== */	
+	/* [ MEMBERS ] =================================================================================================== */
 
   /** Property data type. */
   private final Class<T> mType;
   /** Property name pattern. */
   private final String mName;
+  /** reference on reflected class entry used for GET operation. */
+  private Entry mCachedGet;
+  /** reference on reflected class entry used for SET operation. */
+  private Entry mCachedSet;
 
-	/* [ CONSTRUCTORS ] ============================================================================================== */	
+	/* [ CONSTRUCTORS ] ============================================================================================== */
 
-  protected Property(final Class<T> type, final String name) {
+  protected Property(@NonNull final Class<T> type, @NonNull final String name) {
     mType = type;
     mName = name;
   }
 
-	/* [ GETTER / SETTER METHODS ] =================================================================================== */	
+  /** Extract generic type information in tricky way. */
+  private static <T> Class<T> typeTrick() {
+    final Object t = new Trick() {
+      Class<T> typeT;
+    };
+
+    try {
+      final Class<T> type = (Class<T>) t.getClass().getDeclaredFields()[0].getType();
+
+      return type;
+    } catch (Throwable ignored) {
+      // do nothing
+    }
+
+    return null;
+  }
+
+  public static <T> Property<T> from(final String name) {
+    return new Property<T>((Class<T>) typeTrick(), name);
+  }
+
+  @NonNull
+  public static Property<Integer> integer(@NonNull final String name) {
+    return new Property<>(Integer.class, name);
+  }
+
+  @NonNull
+  public static Property<Long> number(@NonNull final String name) {
+    return new Property<>(Long.class, name);
+  }
+
+  @NonNull
+  public static Property<Float> decimal4(@NonNull final String name) {
+    return new Property<>(Float.class, name);
+  }
+
+  @NonNull
+  public static Property<Double> decimal(@NonNull final String name) {
+    return new Property<>(Double.class, name);
+  }
+
+  @NonNull
+  public static Property<Character> letter(@NonNull final String name) {
+    return new Property<>(Character.class, name);
+  }
+
+  @NonNull
+  public static Property<Boolean> bit(@NonNull final String name) {
+    return new Property<>(Boolean.class, name);
+  }
+
+  @NonNull
+  public static Property<String> text(@NonNull final String name) {
+    return new Property<>(String.class, name);
+  }
+
+	/* [ GETTER / SETTER METHODS ] =================================================================================== */
 
   public final Class<T> getDataType() {
     return mType;
   }
 
-	/* [ IMPLEMENTATION & HELPERS ] ================================================================================== */	
+	/* [ IMPLEMENTATION & HELPERS ] ================================================================================== */
 
-  private Method extractGetter(final Object instance) throws NoSuchMethodException {
-    Method result = null;
+  private Entry extractGetter(final Object instance) throws NoSuchMethodException {
+    Entry result = null;
 
-    final List<Method> methods = ReflectionUtils.getAllMethods(instance.getClass());
+    final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
 
     for (final String prefix : KNOWN_GETTERS) {
       final String name = prefix + mName;
-      result = ReflectionUtils.findMethod(methods, name);
+      result = ReflectionUtils.find(methods, name);
 
       if (null != result) {
         break;
@@ -53,14 +114,14 @@ public class Property<T> {
     return result;
   }
 
-  private Method extractSetter(final Object instance) throws NoSuchMethodException {
-    Method result = null;
+  private Entry extractSetter(final Object instance) throws NoSuchMethodException {
+    Entry result = null;
 
-    final List<Method> methods = ReflectionUtils.getAllMethods(instance.getClass());
+    final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
 
     for (final String prefix : KNOWN_SETTERS) {
       final String name = prefix + mName;
-      result = ReflectionUtils.findMethod(methods, name);
+      result = ReflectionUtils.find(methods, name);
 
       if (null != result) {
         break;
@@ -73,7 +134,11 @@ public class Property<T> {
   @SuppressWarnings("unchecked")
   public T get(@NonNull final Object instance) {
     try {
-      return (T) extractGetter(instance).invoke(instance);
+      if (null == mCachedGet) {
+        mCachedGet = extractGetter(instance);
+      }
+
+      return (T) mCachedGet.invoke(instance);
     } catch (final Throwable ignored) {
       // TODO: log exception
     }
@@ -99,11 +164,18 @@ public class Property<T> {
 
   public boolean set(@NonNull final Object instance, final T value) {
     try {
-      extractSetter(instance).invoke(instance, value);
+      if (null == mCachedSet) {
+        mCachedSet = extractSetter(instance);
+      }
+
+      mCachedSet.invoke(instance, value);
     } catch (final Throwable ignored) {
       return false;
     }
 
     return true;
+  }
+
+  private interface Trick {
   }
 }
