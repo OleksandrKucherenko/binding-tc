@@ -66,7 +66,7 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
     Binders.numeric(bm)
         .view(editText(R.id.et_password))
         .onView(Listeners.<EditText>none())
-        .model(pojo(mUser, integer("password")))
+        .model(pojo(mUser, integer("Password")))
         .onModel(Listeners.<User>none())
         .format(Converters.<Integer>asNumber())
         .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
@@ -74,7 +74,7 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
     // edit Text - validation password
     Binders.texts(bm)
         .view(editText(R.id.et_confirm_password))
-        .model(pojo(mUser, string("confirmPassword")))
+        .model(pojo(mUser, string("ConfirmPassword")))
         .validate(is(not(emptyString()))); // ???
 
     // spinner
@@ -95,17 +95,19 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
     // radio group
     Binders.numbers(bm)
         .view(radioGroup(R.id.rg_options))
-        .model(pojo(mUser, integer("")));
+        .model(pojo(mUser, integer("Group")));
 
     // radio button
     Binders.bools(bm)
         .view(radioButton(R.id.rb_chooseGroup))
-        .model(pojo(mUser, bool("")));
+        .model(pojo(mUser, bool("SelectNewGroup")));
 
     // radio button
     Binders.bools(bm)
         .view(radioButton(R.id.rb_openLast))
-        .model(pojo(mUser, bool("")));
+        .model(pojo(mUser, bool("ContinueFromLastPoint")));
+
+    bm.associate();
   }
 
   @Override

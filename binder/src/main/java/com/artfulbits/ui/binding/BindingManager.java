@@ -2,13 +2,17 @@ package com.artfulbits.ui.binding;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.support.annotation.NonNull;
+import android.util.Pair;
 import android.view.View;
 import android.widget.BaseAdapter;
 
 import com.artfulbits.ui.binding.reflection.Property;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -17,18 +21,25 @@ import java.util.concurrent.atomic.AtomicInteger;
  * It controls aspects:<br/> <ul> <li>context instance extracting;</li> <li>Binding defining and configuring;</li>
  * <li></li> </ul>
  */
+@SuppressWarnings("unused")
 public class BindingManager {
   /* [ CONSTANTS AND MEMBERS ] ==================================================================================== */
 
+  /** Associated with POP action constant. */
+  private final static boolean DO_POP = true;
+  /** Associated with PUSH action constant. */
+  private final static boolean DO_PUSH = false;
+
   /** Weak references on listeners. */
-  private final WeakHashMap<LifecycleCallback, LifecycleCallback> mListeners = new WeakHashMap<LifecycleCallback,
-      LifecycleCallback>();
+  private final Set<LifecycleCallback> mListeners = new WeakHashMap<LifecycleCallback, LifecycleCallback>().keySet();
   /** Facade For all types of the Views. */
   private final ViewFacade mFacade;
   /** Collection of all defined binding rules. */
   private final List<Binder> mRules = new LinkedList<Binder>();
   /** Freeze counter. */
   private final AtomicInteger mFreezeCounter = new AtomicInteger(0);
+  /** Set of binding exchange transactions. We store order, binder and direction (boolean: true - pop, false - push). */
+  private final List<Pair<Binder, Boolean>> mPending = new ArrayList<>();
 
   /* [ CONSTRUCTORS ] ============================================================================================= */
 
@@ -59,15 +70,19 @@ public class BindingManager {
   }
 
   public List<Binder> getBindingsByInstance(final Object instance) {
-    final List<Binder> result = new LinkedList<Binder>();
+    final List<Binder> result = new LinkedList<>();
 
-    // TODO: do the search
+    for (Binder<?, ?> b : mRules) {
+      if (instance.equals(b.getRuntimeModel())) {
+        result.add(b);
+      }
+    }
 
     return result;
   }
 
   public List<Binder> getSuccessBindings() {
-    final List<Binder> result = new LinkedList<Binder>();
+    final List<Binder> result = new LinkedList<>();
 
     // TODO: do the search
 
@@ -75,7 +90,7 @@ public class BindingManager {
   }
 
   public List<Binder> getFailedBindings() {
-    final List<Binder> result = new LinkedList<Binder>();
+    final List<Binder> result = new LinkedList<>();
 
     // TODO: do the search
 
@@ -100,14 +115,16 @@ public class BindingManager {
 
   /* [ LIFECYCLE ] ================================================================================================ */
 
+  /** Register lifecycle extender listener. */
   public BindingManager register(final LifecycleCallback listener) {
     if (null != listener) {
-      mListeners.put(listener, listener);
+      mListeners.add(listener);
     }
 
     return this;
   }
 
+  /** Unregister lifecycle extender listener. */
   public BindingManager unregister(final LifecycleCallback listener) {
     if (null != listener) {
       mListeners.remove(listener);
@@ -123,7 +140,7 @@ public class BindingManager {
    *
    * @param instance the instance of model
    */
-  public BindingManager pushByInstance(final Object instance) {
+  public BindingManager pushByInstance(@NonNull final Object instance) {
     for (final Binder bind : getBindingsByInstance(instance)) {
       push(bind);
     }
@@ -132,23 +149,15 @@ public class BindingManager {
   }
 
   /**
-   * Force model instance update by value from view.
+   * Force model instance update by value from view with respect to 'Freeze mode'.
    *
    * @param binder binding rule.
    */
-  public BindingManager push(final Binder binder) {
-    // TODO: implement me
-    return this;
-  }
-
-  /**
-   * Force views updates that are bind to the provided model instance.
-   *
-   * @param instance the instance of model
-   */
-  public BindingManager popByInstance(final Object instance) {
-    for (final Binder bind : getBindingsByInstance(instance)) {
-      pop(bind);
+  public BindingManager push(@NonNull final Binder binder) {
+    if (isFrozen()) {
+      mPending.add(new Pair<>(binder, DO_PUSH));
+    } else {
+      binder.push();
     }
 
     return this;
@@ -157,11 +166,38 @@ public class BindingManager {
   /**
    * Force views updates that are bind to the provided model instance.
    *
+   * @param instance the instance of model
+   */
+  public BindingManager popByInstance(@NonNull final Object instance) {
+    for (final Binder bind : getBindingsByInstance(instance)) {
+      pop(bind);
+    }
+
+    return this;
+  }
+
+  /**
+   * Force views updates that are bind to the provided model instance with respect to 'Freeze mode'.
+   *
    * @param binder binding rule.
    */
-  public BindingManager pop(final Binder binder) {
-    // TODO: implement me
+  public BindingManager pop(@NonNull final Binder binder) {
+    if (isFrozen()) {
+      mPending.add(new Pair<>(binder, DO_POP));
+    } else {
+      binder.pop();
+    }
+
     return this;
+  }
+
+  /**
+   * Are we in 'freeze mode' state or not?
+   *
+   * @return {@code true} - if we frozen, otherwise {@code false}.
+   */
+  public boolean isFrozen() {
+    return mFreezeCounter.get() > 0;
   }
 
   /** Stop triggering of all data push/pop operations. */
@@ -173,12 +209,35 @@ public class BindingManager {
   /** Recover triggering of all data push/pop operations. */
   public BindingManager unfreeze() {
     if (0 >= mFreezeCounter.decrementAndGet()) {
-      // TODO: unfreeze triggering
-
       mFreezeCounter.set(0);
+
+      // execute pending data exchange requests
+      if (!mPending.isEmpty()) {
+        for (Pair<Binder, Boolean> p : mPending) {
+          if (/* DO_POP == */ p.second) {
+            pop(p.first);
+          } else {
+            push(p.first);
+          }
+        }
+
+        mPending.clear();
+      }
     }
 
     return this;
+  }
+
+  /**
+   * Method force binding between data model and view without data exchange. This is useful for binding verification on
+   * initial phase. It allows to check that all fields in data model and view exists and can be associated.
+   *
+   * @throws WrongConfigurationException - found mismatch.
+   */
+  public void associate() throws WrongConfigurationException {
+    // TODO: can be executed only from MAIN thread!
+
+    // TODO: force binding manager evaluate binding for each property
   }
 
 	/* [ NESTED DECLARATIONS ] ====================================================================================== */
@@ -196,7 +255,7 @@ public class BindingManager {
 
     private final Fragment mFragment;
 
-    public ViewFacade(android.support.v4.app.Fragment fragment) {
+    public ViewFacade(final android.support.v4.app.Fragment fragment) {
       mRootActivity = null;
       mSupportFragment = fragment;
       mFragment = null;
@@ -204,7 +263,7 @@ public class BindingManager {
       mRootAdapter = null;
     }
 
-    public ViewFacade(Fragment fragment) {
+    public ViewFacade(final Fragment fragment) {
       mRootActivity = null;
       mSupportFragment = null;
       mFragment = fragment;
@@ -238,8 +297,8 @@ public class BindingManager {
   }
 
   /**
-   * Lifecycle extending callback. Implement it if you want to enhance original lifecycle by new state, during
-   * which binding operation is the most suitable.
+   * Lifecycle extending callback. Implement it if you want to enhance original lifecycle by new state, during which
+   * binding operation is the most suitable.
    */
   public interface LifecycleCallback {
     void onCreateBinding(final BindingManager bm);

@@ -256,7 +256,7 @@ public final class ReflectionUtils {
   }
 
   /** Facade for field. */
-  private static class FieldFacade implements Entry {
+  private static final class FieldFacade implements Entry {
     private final Field mF;
 
     public FieldFacade(@NonNull final Field f) {
@@ -276,14 +276,17 @@ public final class ReflectionUtils {
     @Override
     public Object invoke(final Object receiver, final Object... args) throws IllegalAccessException {
 
-      // TODO: detect do we need Get or Set by number of parameters
+      // DONE: detect do we need Get or Set by number of parameters
+      if( null != args && args.length > 0 ){
+        mF.set( receiver, args[0] );
+      }
 
       return mF.get(receiver);
     }
   }
 
   /** Facade for method. */
-  private static class MethodFacade implements Entry {
+  private static final class MethodFacade implements Entry {
     private final Method mM;
 
     public MethodFacade(@NonNull final Method m) {

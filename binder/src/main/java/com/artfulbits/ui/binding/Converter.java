@@ -7,6 +7,7 @@ package com.artfulbits.ui.binding;
  * @param <TRight> type from right side of binding.
  * @param <TLeft>  type from left side of binding.
  */
+@SuppressWarnings("unused")
 public interface Converter<TLeft, TRight> {
   /**
    * Convert In- value into Out- value.

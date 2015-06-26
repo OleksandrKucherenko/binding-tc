@@ -8,11 +8,70 @@ import com.artfulbits.junit.TestHolder;
 
 import org.junit.*;
 
+import java.lang.Object;
+
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 /** Unit tests for {@link Property} class. */
 public class PropertySimpleTypesTests extends TestHolder {
+
+  @Test
+  public void test_Reflection_vs_Access() throws Exception {
+    final Meter m = getMeter();
+
+    m.start("Reflection performance");
+
+    final Property<String> fProperty = Property.text("fieldStr");
+    final Property<String> sProperty = Property.text("String");
+    final DummyClass instance = new DummyClass();
+    instance.fieldStr = "#1";
+    instance.setString("#2");
+
+    m.skip("warmup - " + fProperty.get(instance) + ", " + sProperty.get(instance));
+
+    int checks = 0; // dummy code, for dropping optimizations
+
+    for (int j = 0; j < Sampling.ITERATIONS_S; j++) {
+      m.loop(Sampling.ITERATIONS_XXL, "Property GET - method");
+      for (int i = 0; i < Sampling.ITERATIONS_XXL; i++) {
+        final String value = sProperty.get(instance);
+
+        if (null != value && 0 < value.length()) {
+          checks++;
+        }
+
+        m.recap();
+      }
+      m.unloop("method");
+
+      m.loop(Sampling.ITERATIONS_XXL, "Property GET - field");
+      for (int i = 0; i < Sampling.ITERATIONS_XXL; i++) {
+        final String value = fProperty.get(instance);
+
+        if (null != value && 0 < value.length()) {
+          checks++;
+        }
+
+        m.recap();
+      }
+      m.unloop("field");
+
+      m.loop(Sampling.ITERATIONS_XXL, "Property GET - direct");
+      for (int i = 0; i < Sampling.ITERATIONS_XXL; i++) {
+        final String value = instance.getString();
+
+        if (null != value && 0 < value.length()) {
+          checks++;
+        }
+
+        m.recap();
+      }
+      m.unloop("direct");
+    }
+
+    m.finish("All done! " + checks);
+  }
 
   @Test
   public void test_Properties_Binding_Short() throws Exception {
@@ -95,61 +154,27 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Reflection_vs_Access() throws Exception {
-    final Meter m = getMeter();
+  public void test_Properties_Binding_Enum() throws Exception {
+    final Property<DummyEnum> property = Property.from("fieldEnum");
 
-    m.start("Reflection performance");
-
-    final Property<String> fProperty = Property.text("fieldStr");
-    final Property<String> sProperty = Property.text("String");
     final DummyClass instance = new DummyClass();
-    instance.fieldStr = "#1";
-    instance.setString("#2");
+    instance.fieldEnum = DummyEnum.Something;
 
-    m.skip("warmup - " + fProperty.get(instance) + ", " + sProperty.get(instance));
-
-    int checks = 0; // dummy code, for dropping optimizations
-
-    for (int j = 0; j < Sampling.ITERATIONS_S; j++) {
-      m.loop(Sampling.ITERATIONS_XXL, "Property GET - method");
-      for (int i = 0; i < Sampling.ITERATIONS_XXL; i++) {
-        final String value = sProperty.get(instance);
-
-        if (!TextUtils.isEmpty(value)) {
-          checks++;
-        }
-
-        m.recap();
-      }
-      m.unloop("method");
-
-      m.loop(Sampling.ITERATIONS_XXL, "Property GET - field");
-      for (int i = 0; i < Sampling.ITERATIONS_XXL; i++) {
-        final String value = fProperty.get(instance);
-
-        if (!TextUtils.isEmpty(value)) {
-          checks++;
-        }
-
-        m.recap();
-      }
-      m.unloop("field");
-
-      m.loop(Sampling.ITERATIONS_XXL, "Property GET - direct");
-      for (int i = 0; i < Sampling.ITERATIONS_XXL; i++) {
-        final String value = instance.getString();
-
-        if (!TextUtils.isEmpty(value)) {
-          checks++;
-        }
-
-        m.recap();
-      }
-      m.unloop("direct");
-    }
-
-    m.finish("All done! " + checks);
+    assertThat(property.get(instance), equalTo(instance.fieldEnum));
   }
+
+  @Test
+  public void test_Properties_Binding_Object() throws Exception {
+    final Property<Object> property = Property.from("fieldObj");
+
+    final DummyClass instance = new DummyClass();
+    instance.fieldObj = this;
+
+    assertThat(property.get(instance), equalTo((Object)this));
+  }
+
+
+  /* [ NESTED DECLARATIONS ] ======================================================================================== */
 
   public enum DummyEnum {
     Nothing,
@@ -175,6 +200,8 @@ public class PropertySimpleTypesTests extends TestHolder {
     private double mDouble;
     private char mChar;
     private String mString;
+    private DummyEnum mEnum;
+    private Object mObject;
 
     public int getInteger() {
       return mInteger;
@@ -183,6 +210,10 @@ public class PropertySimpleTypesTests extends TestHolder {
     public DummyClass setInteger(final int value) {
       mInteger = value;
       return this;
+    }
+
+    public boolean hasTime(){
+      return 0 < mLong;
     }
 
     public boolean exceedsTime() {
@@ -227,6 +258,30 @@ public class PropertySimpleTypesTests extends TestHolder {
 
     public void setChar(char aChar) {
       mChar = aChar;
+    }
+
+    public float getFloat() {
+      return mFloat;
+    }
+
+    public void setFloat(final float aFloat) {
+      mFloat = aFloat;
+    }
+
+    public DummyEnum getEnum() {
+      return mEnum;
+    }
+
+    public void setEnum(final DummyEnum anEnum) {
+      mEnum = anEnum;
+    }
+
+    public Object getObject() {
+      return mObject;
+    }
+
+    public void setObject(final Object object) {
+      mObject = object;
     }
   }
 }

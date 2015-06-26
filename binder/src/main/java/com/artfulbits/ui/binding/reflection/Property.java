@@ -176,6 +176,7 @@ public class Property<T> {
     return true;
   }
 
+  /** Hack interface for making possible anonymous classes creation. */
   private interface Trick {
   }
 }

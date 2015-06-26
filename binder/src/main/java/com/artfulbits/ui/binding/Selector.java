@@ -4,10 +4,13 @@ import com.artfulbits.ui.binding.reflection.Property;
 
 /**
  * The type Selector of the property value from instance.
+ * Responsibility: 'Late Binding' association. Allows to associate property 'late binding information'
+ * with instance of class.
  *
  * @param <I> the instance data type
  * @param <P> the property extracted data type
  */
+@SuppressWarnings("unused")
 public class Selector<I, P extends Property> {
   /* ============================================================================================================== */
 
@@ -25,12 +28,19 @@ public class Selector<I, P extends Property> {
 
   /* ============================================================================================================== */
 
+  /** Get instance reflection type. */
   public Class<?> getInstanceType() {
     return mInstance.getClass();
   }
 
+  /** Get property definition that should be used for data exchange. */
   public P getProperty() {
     return mProperty;
+  }
+
+  /** Return reference on associated instance. */
+  public I getRuntimeInstance() {
+    return mInstance;
   }
 
   /* [ INITIALIZATION HELPERS ] =================================================================================== */
