@@ -16,14 +16,6 @@ Active development, started at: 2014-05-15
 * hamcrest validation syntax,
 * 100% covered by unit tests, TDD
 
-#Prepare Environment
-
-For development used latest Android Studio with gradle build scripts. For TDD used two frameworks: Robolectric and Espresso.
-
-| *Robolectric Tests Executor* | *Espresso Tests Executor* |
-|------------------------------|---------------------------|
-| ![Android Studio Robolectric Tests Configuration](_documentation/images/android-studio-configuration-robolectric-tests.png) | ![Android Studio Espresso Tests Configuration](_documentation/images/android-studio-configuration-espresso-tests.png) |
-
 #Binding In Details
 
 ![Data Flow inside the Binding Library](_documentation/images/binding-architecture-flow.png)
@@ -70,8 +62,9 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
     final View view = inflater.inflate(R.layout.fragment_main, container, false);
 
     // custom Binding --> can be done at any point of the lifecycle
-    Binder bindLogin = mBm.bind(view(matches(root(view), withId(R.id.et_login)), property("text")))
-            .model(pojo(mUser, property("login")));
+    Binder bindLogin = mBm
+      .bind(view(matches(root(view), withId(R.id.et_login)), property("text")))
+      .model(pojo(mUser, property("login")));
 
     // update view by model values
     mBm.pop(bindLogin);
@@ -85,6 +78,8 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
   @Override
   public void onCreateBinding(final BindingManager bm) {
     // custom LIFECYCLE step --> BindingManager.LifecycleCallback 
+    
+    // most robust syntax with all possible configuration chain calls
     final Binder bindPassword = bm
             .bind(view(withId(R.id.et_password), property("text")))
             .model(pojo(mUser, property("password")))
@@ -98,7 +93,7 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
 
 # Extended lifecycle
 
-![Android Activity/Fragments lifecycle](https://raw.githubusercontent.com/xxv/android-lifecycle/master/complete_android_fragment_lifecycle.png)
+![Android Activity/Fragments lifecycle][1]
 
 AEB adding a new step into lifecycle ```onCreateBinding()``` it executed after the ```onAttachedToWindow()``` and before ```onCreateOptionsMenu()```.
  
@@ -153,3 +148,6 @@ AEB adding a new step into lifecycle ```onCreateBinding()``` it executed after t
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
+
+
+[1]: https://raw.githubusercontent.com/xxv/android-lifecycle/master/complete_android_fragment_lifecycle.png
