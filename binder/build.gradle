@@ -258,15 +258,37 @@ afterEvaluate {
     // http://goo.gl/wXhBIF --> MockableJarGenerator.java
     mock.finalizedBy patchMockableAndroidJar
   }
-  /* Path classpath of the test tasks for using our patched version of the JAR */
+  /* Patch classpath of the test tasks for using our own version of the mockable JAR */
   tasks.matching { it.name.startsWith("test") }.each { t ->
     def old = "mockable-android-${androidTargetSdkVersion}.jar"
     def mock = "${project.buildDir}\\intermediates\\patched-mockable-android-${androidTargetSdkVersion}.jar"
+
     try {
       t.classpath = files(t.classpath.files, mock).filter { it.name != old }
     } catch (final Throwable ignored) {
       // ignore task
     }
+  }
+  /* Include resources. See: https://code.google.com/p/android/issues/detail?id=64887#c13 */
+  iterateVariants(this.&createTestResourcesTask)
+}
+
+def createTestResourcesTask(String f, String b) {
+  /** compose dynamic tasks */
+  def flavor = f.capitalize()
+  def buildType = b.capitalize()
+  def tName = "copy${flavor}${buildType}TestResources"
+
+  project.task(tName, type: Copy) {
+    description = "Make resources available for test: test${flavor}${buildType}."
+    group = 'Unit Testing'
+
+    from project.android.sourceSets["test"].resources.srcDirs
+    into "${project.buildDir}/intermediates/classes/test/${f}/${b}"
+  }
+
+  tasks.matching { it.name.equalsIgnoreCase("test${flavor}${buildType}") }.each {
+    it.dependsOn tName
   }
 }
 
@@ -434,5 +456,23 @@ if (ALLOW_PUBLISHING) {
     /* The Java plug-in introduces six configurations: archives, default, compile, runtime, testCompile, testRuntime */
     archives javadocJar
     archives sourcesJar
+  }
+}
+
+/* [ HELPERS ] ====================================================================================================== */
+
+def iterateVariants(func) {
+  if (project.android.productFlavors.size() > 0) {
+    project.android.productFlavors.each { f ->
+      iterateBuildTypes(f.name, func)
+    }
+  } else {
+    iterateBuildTypes('', func)
+  }
+}
+
+def iterateBuildTypes(String flavor, func) {
+  project.android.buildTypes.each { b ->
+    func(flavor, b.name);
   }
 }

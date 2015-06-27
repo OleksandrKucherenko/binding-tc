@@ -1,450 +1,201 @@
 // tools: Code Analysis Tools
+
 import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
-    repositories {
-        jcenter()
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        // https://github.com/aaschmid/gradle-cpd-plugin
-        classpath 'de.aaschmid.gradle.plugins:gradle-cpd-plugin:+'
-    }
+  repositories {
+    jcenter()
+    mavenLocal()
+    mavenCentral()
+  }
+  dependencies {
+    // https://github.com/aaschmid/gradle-cpd-plugin
+    classpath 'de.aaschmid.gradle.plugins:gradle-cpd-plugin:+'
+  }
 }
 
 task checkOpenResults(dependsOn: ['check']) {
-    description = 'Open reports of ALL attached Quality Tools in Web browser'
-    group = 'Reporting'
+  description = 'Open reports of ALL attached Quality Tools in Web browser'
+  group = 'Reporting'
 
-    // do nothing, it used for dependency graph building only
+  // do nothing, it used for dependency graph building only
 }
 
+/* [ LINT ] ========================================================================================================= */
 if (ENABLE_QUALITY) {
-    /* [ LINT ] ===================================================================================================== */
-
-    task lintOpenResults(type: Exec, dependsOn: ['lint']) {
-        description = 'open Android Lint results in current web browser'
-        group = 'Reporting'
-
-        // path is relative to current project path: {project}\\samples\\sample-01
-        // file:/C:/Android/_projects_/meter/samples/sample-01/build/outputs/lint-results.html
-        def path = ""
-
-        ignoreExitValue true // task is not critical, ignore it failure
-
-        // done: force open of HTML file
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            path = """${project.buildDir}\\outputs\\lint-results.html"""
-            rootProject.logger.lifecycle('  report: ' + path)
-            commandLine "cmd.exe", '/C', path
-        } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-            // build on Linux
-            path = """${project.buildDir}/outputs/lint-results.html"""
-            commandLine "${rootProject.rootDir}/gradle/open-test-results.sh", path
-        } else if (Os.isFamily(Os.FAMILY_MAC)) {
-            // Mac OS
-        }
-    }
-
-    // dependsOn, mustRunAfter, shouldRunAfter, doFirst, doLast, finalizedBy
-    checkOpenResults.dependsOn 'lintOpenResults'
-
-    /* [ UNIT Test Results ] ======================================================================================== */
-    if (useTesting) {
-        // attach task to build variants
-//        afterEvaluate {
-//            tasks.matching { it.name.startsWith("test") && !it.name.equals("testOpenResults") }.each { test ->
-//                // dependsOn, mustRunAfter, shouldRunAfter, doFirst, doLast, finalizedBy
-//                test.finalizedBy testOpenResults
-//            }
-//        }
-
-        task testOpenResults(type: Exec, dependsOn: ['test']) {
-            // Task opens report file in default web-browser
-            description = 'open Unit Tests results in current web browser'
-            group = 'Reporting'
-
-            // path is relative to current project path: {project}\\samples\\sample-01
-            // file:///C:/Android/_projects_/meter/library/build/reports/tests/index.html
-            def path = ""
-
-            ignoreExitValue true // task is not critical, ignore it failure
-
-            // done: force open of HTML file
-            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                path = """${project.buildDir}\\reports\\tests\\debug\\index.html"""
-                rootProject.logger.lifecycle('  report: ' + path)
-                commandLine "cmd.exe", '/C', path
-            } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-                // build on Linux
-                path = """${project.buildDir}/reports/tests/debug/index.html"""
-                commandLine "${rootProject.rootDir}/gradle/open-test-results.sh", path
-            } else if (Os.isFamily(Os.FAMILY_MAC)) {
-                // Mac OS
-            }
-        }
-
-        checkOpenResults.dependsOn 'testOpenResults'
-
-        if (useJacoco) {
-            // Helpers:
-            //  http://forums.gradle.org/gradle/topics/gradle_1_6_jacoco_in_multi_module_build
-            //  http://goo.gl/1ZrSl0 --> JacocoPlugin.groovy
-            //  http://goo.gl/0pkjse --> JacocoReportTask.groovy
-
-            task jacocoResults(type: JacocoReport, dependsOn: ['test']) {
-                description = "Generates Jacoco coverage reports: XML and HTML"
-                group = "Reporting"
-//                outputs.upToDateWhen { false }
-
-                // use hidden configuration, for details look into JacocoPlugin.groovy
-                jacocoClasspath = project.configurations['androidJacocoAnt']
-
-                // exclude auto-generated classes and tests
-                def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*',
-                                  'android/**/*.*']
-                def testsTree = fileTree(dir: "${project.buildDir}/intermediates/classes/test/debug", excludes: fileFilter)
-                def debugTree = fileTree(dir: "${project.buildDir}/intermediates/classes/debug", excludes: fileFilter)
-                def releaseTree = fileTree(dir: "${project.buildDir}/intermediates/classes/release", excludes: fileFilter)
-                def testsSrc = "${project.projectDir}/src/test/java"
-                def mainSrc = "${project.projectDir}/src/main/java"
-
-                sourceDirectories = files([testsSrc, mainSrc])
-                classDirectories = files([testsTree, debugTree, releaseTree])
-                executionData = fileTree(dir: project.projectDir, includes: ['**/*.exec', '**/*.ec'])
-
-                reports {
-                    xml {
-                        enabled = true
-                        destination = "${project.buildDir}/reports/jacoco/jacoco.xml"
-                    }
-                    csv.enabled false
-                    html {
-                        enabled = true
-                        destination = "${project.buildDir}/reports/jacoco"
-                    }
-                }
-            }
-
-            task jacocoOpenResults(type: Exec, dependsOn: ['jacocoResults']) {
-                // Task opens report file in default web-browser
-                description = 'open Code Coverage for Unit Tests in web browser'
-                group = 'Reporting'
-
-                def path = ''
-
-                ignoreExitValue true // task is not critical, ignore it failure
-
-                // done: force open of HTML file
-                if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    path = """${project.buildDir}\\reports\\jacoco\\index.html"""
-                    commandLine "cmd.exe", '/C', path
-                } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-                    // build on Linux
-                    path = """${project.buildDir}/reports/jacoco/index.html"""
-                    commandLine "${rootProject.rootDir}/gradle/open-test-results.sh", path
-                } else if (Os.isFamily(Os.FAMILY_MAC)) {
-                    // Mac OS
-                }
-
-                rootProject.logger.lifecycle('  report: ' + path)
-            }
-
-            checkOpenResults.dependsOn 'jacocoOpenResults'
-        }
-    }
+  task lintOpenResults(dependsOn: ['lint']) {
+    description = 'Open all reports for all flavors and build configurations.'
+    group = 'Reporting'
+  }
+  checkOpenResults.dependsOn lintOpenResults
+  afterEvaluate { iterateVariants(this.&createLintOpenResultsTask) }
 }
 
-if (ENABLE_CHECKSTYLE) {
-    apply plugin: 'checkstyle'
-
-    task checkstyle(type: Checkstyle) {
-        description = 'execute checkstyle tool on project source code'
-        group = 'Code Quality'
-
-        // important: keep those two flags, otherwise Jenkins will fail build on any rule break with severity 'error'
-        ignoreFailures = true
-        showViolations = false
-
-        configFile file("${rootProject.rootDir}/gradle/config/quality/checkstyle/checkstyle.xml")
-        source 'src'
-        include '**/*.java'
-
-        // exclude auto-generated code and 3rd party libs
-        exclude '**/build/generated/**', '**/build/source/**',
-            '**/com/android/**', '**/com/google/**', '**/android/support/**',
-            '**/BuildConfig.java', '**/R.java'
-
-        classpath = files()
-
-        reports {
-            xml.enabled = true
-        }
-    }
-
-    task checkstyleHtmlReport(dependsOn: ['checkstyle']) {
-        description = 'Checkstyle HTML report generation'
-        group = 'Reporting'
-
-        if (file("${project.buildDir}/reports/checkstyle/findbugs.xml").exists()) {
-            ant.xslt(in: "${project.buildDir}/reports/checkstyle/checkstyle.xml",
-                style: "${project.rootDir}/gradle/config/quality/checkstyle/checkstyle-noframe-sorted.xsl",
-                out: "${project.buildDir}/reports/checkstyle/checkstyle-results.html"
-            )
-        }
-    }
-
-    task checkstyleOpenResults(type: Exec, dependsOn: ['checkstyleHtmlReport']) {
-        description = 'open Checkstyle results in current web browser'
-        group = 'Reporting'
-
-        // path is relative to current project path: {project}\\samples\\sample-01
-        // file:/C:/Android/_projects_/meter/samples/sample-01/build/outputs/lint-results.html
-        def path = ""
-
-        // task is not critical, ignore it failure
-        ignoreExitValue true
-
-        // done: force open of HTML file
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            path = """${project.buildDir}\\reports\\checkstyle\\checkstyle-results.html"""
-            rootProject.logger.lifecycle('  report: ' + path)
-            commandLine "cmd.exe", '/C', path
-        } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-            // build on Linux
-            path = """${project.buildDir}/reports/checkstyle/checkstyle-results.html"""
-            commandLine "${rootProject.rootDir}/gradle/open-test-results.sh", path
-        } else if (Os.isFamily(Os.FAMILY_MAC)) {
-            // Mac OS
-        }
-    }
-
-    check.dependsOn 'checkstyle'
-    checkOpenResults.dependsOn 'checkstyleHtmlReport'
+/* [ UNIT Test Results ] ============================================================================================ */
+if (ENABLE_QUALITY && useTesting) {
+  task testOpenResults(dependsOn: ['test']) {
+    description = 'Open all Unit Tests results  for all flavors and build types.'
+    group = 'Reporting'
+  }
+  checkOpenResults.dependsOn testOpenResults
+  afterEvaluate { iterateVariants(this.&createTestOpenResultsTask) }
 }
 
-if (ENABLE_FINDBUGS) {
-    apply plugin: 'findbugs'
-
-    task findbugs(type: FindBugs, dependsOn: ['assembleDebug']) {
-        description = 'execute findbugs tool on project compiled code'
-        group = 'Code Quality'
-
-        ignoreFailures = true
-
-        effort = "max"
-        reportLevel = "high"
-        excludeFilter = new File("${project.rootDir}/gradle/config/quality/findbugs/findbugs-filter.xml")
-        classes = files("${project.buildDir}/intermediates/classes")
-
-        source 'src'
-        include '**/*.java'
-        // exclude auto-generated code and 3rd party libs
-        exclude '**/build/generated/**', '**/build/source/**',
-            '**/com/android/**', '**/com/google/**', '**/android/support/**'
-
-        reports {
-            xml {
-                destination "${project.buildDir}/reports/findbugs/findbugs.xml"
-                xml.withMessages true
-                //enabled = true
-            }
-
-            // XML and HTML cannot be generated in one call, so HTML we produce by custom task
-            html.enabled false
-        }
-
-        classpath = files()
-    }
-
-    task findbugsHtmlReport(dependsOn: ['findbugs', 'findbugsResults']) {
-        description = 'Findbugs HTML report generation'
-        group = 'Reporting'
-
-//        inputs.dir("${project.buildDir}/reports/findbugs")
-//        outputs.dir("${project.buildDir}/reports/findbugs")
-
-        if (file("${project.buildDir}/reports/findbugs/findbugs.xml").exists()) {
-            ant.xslt(in: "${project.buildDir}/reports/findbugs/findbugs.xml",
-                style: "${project.rootDir}/gradle/config/quality/findbugs/findbugs.xsl",
-                out: "${project.buildDir}/reports/findbugs/findbugs-results.html"
-            )
-        }
-    }
-
-    task findbugsOpenResults(type: Exec, dependsOn: ['findbugsHtmlReport']) {
-        description = 'open Findbugs results in current web browser'
-        group = 'Reporting'
-
-        // path is relative to current project path: {project}\\samples\\sample-01
-        // file:/C:/Android/_projects_/meter/samples/sample-01/build/outputs/lint-results.html
-        def path = ""
-
-        // task is not critical, ignore it failure
-        ignoreExitValue true
-
-        // done: force open of HTML file
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            path = """${project.buildDir}\\reports\\findbugs\\findbugs-results.html"""
-            rootProject.logger.lifecycle('  report: ' + path)
-            commandLine "cmd.exe", '/C', path
-        } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-            // build on Linux
-            path = """${project.buildDir}/reports/findbugs/findbugs-results.html"""
-            commandLine "${rootProject.rootDir}/gradle/open-test-results.sh", path
-        } else if (Os.isFamily(Os.FAMILY_MAC)) {
-            // Mac OS
-        }
-    }
-
-    check.dependsOn 'findbugs'
-    checkOpenResults.dependsOn 'findbugsOpenResults'
+/* [ JACOCO coverage ] ============================================================================================== */
+if (ENABLE_QUALITY && useTesting && useJacoco) {
+  task jacocoOpenResults(dependsOn: ['test']) {
+    // Task opens report file in default web-browser
+    description = 'open Code Coverage for Unit Tests in web browser'
+    group = 'Reporting'
+  }
+  checkOpenResults.dependsOn jacocoOpenResults
+  afterEvaluate { iterateVariants(this.&createJacocoOpenResultsTask) }
 }
 
-if (ENABLE_PMD) {
-    apply plugin: 'pmd'
-    check.dependsOn 'pmdResults'
+/* [ HELPERS ] ====================================================================================================== */
 
-    pmd {
-        description = 'execute PMD tool on project source code'
-        group = 'Code Quality'
+def adoptToOs(String path) {
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) { // windows
+    path = path.replace("/", "\\")
+  } else if (Os.isFamily(Os.FAMILY_UNIX)) { // linux
+    path = path.replace("\\", "/")
+  } else if (Os.isFamily(Os.FAMILY_MAC)) { // mac os
+    path = path.replace("\\", "/")
+  }
 
-        // specify new version, otherwise will be used old v4.3
-        toolVersion = "5.1.0"
-        targetJdk = "1.6"
-
-        ignoreFailures = true
-
-        ruleSets = ["rulesets/java/basic.xml",
-                    "rulesets/java/braces.xml",
-                    "rulesets/java/imports.xml",
-                    "rulesets/java/empty.xml",
-                    "rulesets/java/codesize.xml",
-                    "rulesets/java/design.xml",
-                    "rulesets/java/optimizations.xml",
-                    "rulesets/java/strings.xml",
-                    "rulesets/java/unusedcode.xml"]
-
-        ruleSetFiles = files("${project.rootDir}/gradle/config/quality/pmd/pmd-ruleset.xml")
-
-        reportsDir file("${project.buildDir}/reports/pmd")
-
-        sourceSets {
-            results {
-                // leave it empty, source set will be configured later
-                // otherwise we will have a conflict with java compiler
-            }
-        }
-    }
-
-    tasks.pmdResults {
-        description = 'generate PMD tool results report'
-        group = 'Code Quality'
-
-        source 'src'
-
-        // exclude auto-generated code and 3rd party libs, resource folders
-        exclude '**/build/generated/**',
-            '**/build/source/**',
-            '**/com/android/**',
-            '**/com/google/**',
-            '**/android/support/**',
-            '**/res/**'
-
-        reports {
-            xml {
-                enabled = true
-                destination = file("${project.buildDir}/reports/pmd/pmd.xml")
-            }
-            html {
-                enabled = true
-                destination = file("${project.buildDir}/reports/pmd/pmd-results.html")
-            }
-        }
-    }
-
-    task pmdOpenResults(type: Exec, dependsOn: ['pmdResults']) {
-        description = 'open PMD results in current web browser'
-        group = 'Reporting'
-
-        // path is relative to current project path: {project}\\samples\\sample-01
-        // file:/C:/Android/_projects_/meter/samples/sample-01/build/outputs/lint-results.html
-        def path = ""
-
-        // task is not critical, ignore it failure
-        ignoreExitValue true
-
-        // done: force open of HTML file
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            path = """${project.buildDir}\\reports\\pmd\\pmd-results.html"""
-            rootProject.logger.lifecycle('  report: ' + path)
-            commandLine "cmd.exe", '/C', path
-        } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-            // build on Linux
-            path = """${project.buildDir}/reports/pmd/pmd-results.html"""
-            commandLine "${rootProject.rootDir}/gradle/open-test-results.sh", path
-        } else if (Os.isFamily(Os.FAMILY_MAC)) {
-            // Mac OS
-        }
-    }
-
-    checkOpenResults.dependsOn 'pmdOpenResults'
+  return path;
 }
 
-if (ENABLE_CPD) {
-    apply plugin: 'cpd'
-    check.dependsOn 'cpd'
-    tasks.cpd {
-        description = 'execute CPD (copy/paste duplicates) tool on project code'
-        group = 'Code Quality'
+def openExternalBrowser(String path) {
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) { // windows
+    return ['cmd.exe', '/C', path]
+  } else if (Os.isFamily(Os.FAMILY_UNIX)) { // linux
+    return ["${rootProject.rootDir}/gradle/open-test-results.sh", path]
+  } else if (Os.isFamily(Os.FAMILY_MAC)) { // mac os
+    // TODO: implement me
+    return ['']
+  }
+}
 
-        reports {
-            csv.enabled = false
-            text.enabled = false
-            xml {
-                enabled = true
-                destination file("$project.buildDir/reports/cpd/cpd.xml")
-            }
-        }
-        source = files('src')
+def iterateVariants(func) {
+  if (project.android.productFlavors.size() > 0) {
+    project.android.productFlavors.each { f ->
+      iterateBuildTypes(f.name, func)
     }
+  } else {
+    iterateBuildTypes('', func)
+  }
 }
 
-if (ENABLE_JDEPEND) {
-    apply plugin: 'jdepend'
-    check.dependsOn 'jdepend'
+def iterateBuildTypes(String flavor, func) {
+  project.android.buildTypes.each { b ->
+    func(flavor, b.name);
+  }
+}
 
-    task jdepend(type: JDepend, dependsOn: ['assembleDebug']) {
-        description = 'execute JDepend tool on project binaries'
-        group = 'Code Quality'
+/* [ TASKS CREATORS ] =============================================================================================== */
 
-        classesDir = file("${project.buildDir}/intermediates/classes")
+def createLintOpenResultsTask(String f, String b) {
+  def flavor = f.capitalize()
+  def buildType = b.capitalize()
+  def taskName = "openLintReport${flavor}${buildType}"
 
-        reports {
-            text {
-                enabled = false
-                destination = file("${project.buildDir}/reports/jdepend/jdepend-results.txt")
-            }
-            xml {
-                enabled = !text.enabled
-                destination = file("${project.buildDir}/reports/jdepend/jdepend-results.xml")
-            }
-        }
+  project.task(taskName, type: Exec, dependsOn: ["lint${flavor}${buildType}"]) {
+    description = "open lint${flavor}${buildType} results in current web browser."
+    group = 'Reporting Routine'
+
+    ignoreExitValue true // task is not critical, ignore it failure
+
+    // path is relative to current project path: {project}\\samples\\sample-01
+    // file:/C:/Android/_projects_/meter/samples/sample-01/build/outputs/lint-results.html
+    def lintFile = "lint-results-${flavor}${buildType}-fatal.html"
+    def path = """${project.buildDir}\\outputs\\${lintFile}"""
+
+    project.logger.info("  report: ${adoptToOs(path)}")
+    commandLine openExternalBrowser(adoptToOs(path))
+  }
+
+  lintOpenResults.dependsOn taskName
+}
+
+def createTestOpenResultsTask(String f, String b) {
+  def flavor = f.capitalize()
+  def buildType = b.capitalize()
+  def taskName = "openTestReport${flavor}${buildType}"
+
+  project.task(taskName, type: Exec, dependsOn: ["test${flavor}${buildType}"]) {
+    // Task opens report file in default web-browser
+    description = 'open Unit Tests results in current web browser'
+    group = 'Reporting Routine'
+
+    ignoreExitValue true // task is not critical, ignore it failure
+
+    // path is relative to current project path: {project}\\samples\\sample-01
+    // file:///C:/Android/_projects_/meter/library/build/reports/tests/index.html
+    def path = """${project.buildDir}\\reports\\tests\\${flavor}${buildType}\\index.html"""
+
+    project.logger.info("  report: ${adoptToOs(path)}")
+    commandLine openExternalBrowser(adoptToOs(path))
+  }
+
+  testOpenResults.dependsOn taskName
+}
+
+def createJacocoOpenResultsTask(String f, String b) {
+  def flavor = f.capitalize()
+  def buildType = b.capitalize()
+  def taskName = "generateJacocoReport${flavor}${buildType}"
+
+  project.task(taskName, type: JacocoReport, dependsOn: ["test${flavor}${buildType}"]) {
+    description = 'Generates Jacoco coverage reports: XML and HTML'
+    group = 'Reporting Routine'
+
+    // use hidden configuration, for details look into JacocoPlugin.groovy
+    jacocoClasspath = project.configurations['androidJacocoAnt']
+
+    // exclude auto-generated classes and tests
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*', '**/Mock*.*']
+    def testsTree = fileTree(dir: "${project.buildDir}/intermediates/classes/test/${flavor}/${buildType}", excludes: fileFilter)
+    def flavorTree = fileTree(dir: "${project.buildDir}/intermediates/classes/${flavor}/${buildType}", excludes: fileFilter)
+
+    // sources
+    def testsSrc = "${project.projectDir}/src/test/java"
+    def testsFlavorSrc = "${project.projectDir}/src/test${flavor}/java"
+    def testsBuildSrc = "${project.projectDir}/src/test${buildType}/java"
+    def testsVariantSrc = "${project.projectDir}/src/test${flavor}${buildType}/java"
+    def mainSrc = "${project.projectDir}/src/main/java"
+
+    // TODO: confirm order of the src dirs
+    sourceDirectories = files([testsSrc, testsFlavorSrc, testsBuildSrc, testsVariantSrc, mainSrc])
+    classDirectories = files([testsTree, flavorTree])
+    executionData = fileTree(dir: project.projectDir, includes: ['**/*.exec', '**/*.ec'])
+
+    reports {
+      xml {
+        enabled = true
+        destination = "${project.buildDir}/reports/jacoco/${flavor}/${buildType}/jacoco.xml"
+      }
+      csv.enabled false
+      html {
+        enabled = true
+        destination = "${project.buildDir}/reports/jacoco/${flavor}/${buildType}"
+      }
     }
+  }
+
+  def taskName2 = "openJacocoReport${flavor}${buildType}"
+  project.task(taskName2, type: Exec, dependsOn: [taskName]) {
+    // Task opens report file in default web-browser
+    description = 'open Code Coverage for Unit Tests in web browser'
+    group = 'Reporting Routine'
+
+    ignoreExitValue true // task is not critical, ignore it failure
+
+    def path = """${project.buildDir}/reports/jacoco/${flavor}/${buildType}/index.html"""
+
+    rootProject.logger.info('  report: ' + path)
+    commandLine openExternalBrowser(adoptToOs(path))
+  }
+
+  jacocoOpenResults.dependsOn taskName2
 }
-
-if (ENABLE_JAVANCSS) {
-    apply from: "${rootProject.rootDir}/gradle/config/javancss.gradle"
-
-    // configure dependencies
-    check.dependsOn 'javancss'
-}
-
-if (ENABLE_CLASSYCLE) {
-    apply from: "${rootProject.rootDir}/gradle/config/classycle.gradle"
-}
-
-// References:
-//   http://www.sw-engineering-candies.com/blog-1/howtotransformtheresultsfromfindbugscheckstyleandpmdintoasinglehtmlreportwithxslt20andjava
-//   https://chromium.googlesource.com/chromium/deps/findbugs/+/b9b6889b94a3081615d5ca62173e9816a31cc1eb/src/xsl/default.xsl
