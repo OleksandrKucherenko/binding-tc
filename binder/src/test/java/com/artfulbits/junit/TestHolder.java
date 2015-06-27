@@ -19,13 +19,17 @@ import java.io.Writer;
 import java.util.logging.Level;
 
 /** base class for all our jUnit tests. Provides basic helpers that simplify our tests execution. */
+@SuppressWarnings("unused")
 public abstract class TestHolder implements Meter.Output {
+  /* [ CONSTANTS ] ================================================================================================= */
+
   /** Size of hash calculation buffer. Default: 4Kb. */
   private final static int BUFFER_SIZE = 4 * 1024;
   /** Default size of read/write operation buffer. Default: 16Kb. */
   private final static int BUFFER_READ_WRITE_SIZE = 4 * BUFFER_SIZE;
 
   /* [ INJECTIONS ] ================================================================================================ */
+
   @Rule
   public TestName mTestName = new TestName();
 
@@ -43,7 +47,7 @@ public abstract class TestHolder implements Meter.Output {
     return mContext;
   }
 
-  //region Standard Output
+  //region --> Standard Output
 
   /** Get instance of the micro-benchmarking tool. */
   protected Meter getMeter() {
@@ -63,12 +67,14 @@ public abstract class TestHolder implements Meter.Output {
     return mLog;
   }
 
+  /** {@inheritDoc} */
   public void log(final Level level, final String tag, final String msg) {
     mLog.append(level.toString().charAt(0)).append(" : ")
         .append(tag).append(" : ")
         .append(msg).append("\r\n");
   }
 
+  /** Put message into system output. */
   public void trace(final String msg) {
     log(Level.INFO, "--", msg);
   }
@@ -134,7 +140,7 @@ public abstract class TestHolder implements Meter.Output {
   /**
    * Copy all from reader to writer.
    *
-   * @param in  instance of reader.
+   * @param in instance of reader.
    * @param out instance of writer.
    * @throws IOException read/write operation failure.
    */
@@ -150,7 +156,7 @@ public abstract class TestHolder implements Meter.Output {
   /**
    * Copy input stream to output. Method close streams after copy.
    *
-   * @param in  instance of input stream.
+   * @param in instance of input stream.
    * @param out instance of output stream.
    * @throws IOException read/write operation failure.
    */

@@ -69,11 +69,25 @@ public class BindingManager {
     return mRules;
   }
 
-  public List<Binder> getBindingsByInstance(final Object instance) {
+  /** Get list of binder's that interact with specified model model. */
+  public List<Binder> getBindingsByModel(@NonNull final Object model) {
     final List<Binder> result = new LinkedList<>();
 
     for (Binder<?, ?> b : mRules) {
-      if (instance.equals(b.getRuntimeModel())) {
+      if (model.equals(b.getRuntimeModel())) {
+        result.add(b);
+      }
+    }
+
+    return result;
+  }
+
+  /** Get list of binder's that interact with specified view view. */
+  public List<Binder> getBindingsByView(@NonNull final Object view) {
+    final List<Binder> result = new LinkedList<>();
+
+    for (Binder<?, ?> b : mRules) {
+      if (view.equals(b.getRuntimeView())) {
         result.add(b);
       }
     }
@@ -140,8 +154,8 @@ public class BindingManager {
    *
    * @param instance the instance of model
    */
-  public BindingManager pushByInstance(@NonNull final Object instance) {
-    for (final Binder bind : getBindingsByInstance(instance)) {
+  public BindingManager pushByModel(@NonNull final Object instance) {
+    for (final Binder bind : getBindingsByModel(instance)) {
       push(bind);
     }
 
@@ -168,8 +182,8 @@ public class BindingManager {
    *
    * @param instance the instance of model
    */
-  public BindingManager popByInstance(@NonNull final Object instance) {
-    for (final Binder bind : getBindingsByInstance(instance)) {
+  public BindingManager popByModel(@NonNull final Object instance) {
+    for (final Binder bind : getBindingsByModel(instance)) {
       pop(bind);
     }
 

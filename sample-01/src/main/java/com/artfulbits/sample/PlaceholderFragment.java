@@ -11,24 +11,20 @@ import android.widget.EditText;
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingManager;
 import com.artfulbits.ui.binding.toolbox.Binders;
-import com.artfulbits.ui.binding.toolbox.Converters;
+import com.artfulbits.ui.binding.toolbox.Formatter;
 import com.artfulbits.ui.binding.toolbox.Listeners;
-import com.artfulbits.ui.binding.toolbox.Views;
 
 import static com.artfulbits.ui.binding.toolbox.Models.bool;
 import static com.artfulbits.ui.binding.toolbox.Models.integer;
 import static com.artfulbits.ui.binding.toolbox.Models.pojo;
-import static com.artfulbits.ui.binding.toolbox.Models.string;
+import static com.artfulbits.ui.binding.toolbox.Models.text;
 import static com.artfulbits.ui.binding.toolbox.Views.checkBox;
 import static com.artfulbits.ui.binding.toolbox.Views.editText;
 import static com.artfulbits.ui.binding.toolbox.Views.radioButton;
 import static com.artfulbits.ui.binding.toolbox.Views.radioGroup;
 import static com.artfulbits.ui.binding.toolbox.Views.spinner;
 import static com.artfulbits.ui.binding.toolbox.Views.textView;
-import static org.hamcrest.Matchers.emptyString;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.AllOf.allOf;
 import static org.hamcrest.core.IsNot.not;
 
@@ -45,14 +41,14 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
 
     // create binding to Login
     final Binder bindLogin = Binders.texts(mBinding)
-        .view(textView(Views.<EditText>withId(R.id.et_login)))
-        .model(pojo(mUser, string("login")));
+        .view(textView(R.id.et_login))
+        .model(pojo(mUser, text("login")));
 
     // update view by model values
     mBinding.pop(bindLogin);
 
     // update model by views values (can be executed more than one rule!)
-    mBinding.pushByInstance(mUser);
+    mBinding.pushByModel(mUser);
 
     btnProceed = (Button) view.findViewById(R.id.bt_proceed);
 
@@ -61,24 +57,24 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
 
   @Override
   public void onCreateBinding(final BindingManager bm) {
-    // worst case scenario: verbose syntax for edit text
-    // limit user input by NUMBERS for PIN style password, 4 digits in length
+    // #1: worst case scenario: verbose syntax for edit text
+    // #2: limit user input by NUMBERS for PIN style password, 4 digits in length
     Binders.numeric(bm)
         .view(editText(R.id.et_password))
         .onView(Listeners.<EditText>none())
         .model(pojo(mUser, integer("Password")))
         .onModel(Listeners.<User>none())
-        .format(Converters.<Integer>asNumber())
+        .format(Formatter.<Integer>asNumber())
         .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
 
     // edit Text - validation password
     Binders.texts(bm)
         .view(editText(R.id.et_confirm_password))
-        .model(pojo(mUser, string("ConfirmPassword")))
+        .model(pojo(mUser, text("ConfirmPassword")))
         .validate(is(not(emptyString()))); // ???
 
     // spinner
-    Binders.numbers(bm)
+    Binders.integers(bm)
         .view(spinner(R.id.sp_group))
         .model(pojo(mUser, integer("")));
 
@@ -93,7 +89,7 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
         .model(pojo(mUser, bool("StorePassword")));
 
     // radio group
-    Binders.numbers(bm)
+    Binders.integers(bm)
         .view(radioGroup(R.id.rg_options))
         .model(pojo(mUser, integer("Group")));
 

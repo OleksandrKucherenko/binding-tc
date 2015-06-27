@@ -38,7 +38,7 @@ Fragment binding:
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingManager;
 
-import static com.artfulbits.ui.binding.toolbox.Converters.direct;
+import static com.artfulbits.ui.binding.toolbox.Formatter.direct;
 import static com.artfulbits.ui.binding.toolbox.Listeners.none;
 import static com.artfulbits.ui.binding.toolbox.Models.pojo;
 import static com.artfulbits.ui.binding.toolbox.Models.property;

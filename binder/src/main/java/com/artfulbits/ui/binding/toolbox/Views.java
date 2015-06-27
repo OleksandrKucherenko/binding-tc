@@ -17,10 +17,10 @@ import com.artfulbits.ui.binding.reflection.Property;
 
 import static com.artfulbits.ui.binding.toolbox.Models.bool;
 import static com.artfulbits.ui.binding.toolbox.Models.integer;
-import static com.artfulbits.ui.binding.toolbox.Models.property;
-import static com.artfulbits.ui.binding.toolbox.Models.string;
+import static com.artfulbits.ui.binding.toolbox.Models.text;
 
-/** Methods for simplifying access to different types of View storages. */
+/** Methods for simplifying access to different types of View storage's. */
+@SuppressWarnings("unused")
 public final class Views {
   /* [ VIEW SELECTOR ] ============================================================================================ */
 
@@ -58,6 +58,10 @@ public final class Views {
 
   /* [ TYPED VERSIONS ] =========================================================================================== */
 
+  public static Selector<TextView, Property<String>> textView(final int id) {
+    return textView(Views.<TextView>withId(id));
+  }
+
   public static Selector<EditText, Property<String>> editText(final int id) {
     return textView(Views.<EditText>withId(id));
   }
@@ -86,22 +90,22 @@ public final class Views {
   }
 
   /**
-   * Text view selector, can be used for: TextView, EditText, AutoComplete, Button
-   * or any other inheritor of the TextView.
+   * Text view selector, can be used for: TextView, EditText, AutoComplete, Button or any other inheritor of the
+   * TextView.
    *
-   * @param <T>      Type of View
+   * @param <T> Type of View
    * @param selector selector that helps in identifying the view instance
    * @return the selector of "text" property from TextView inheritor
    */
   public static <T extends TextView> Selector<T, Property<String>> textView(
       final Selector<T, Property<T>> selector) {
-    return view(selector, string("text"));
+    return view(selector, text("text"));
   }
 
   /**
    * Checked property selector, can be used for CheckBox, RadioButton, Switch and ToggleButton.
    *
-   * @param <T>      the type parameter
+   * @param <T> the type parameter
    * @param selector the selector
    * @return the selector
    */
@@ -112,7 +116,7 @@ public final class Views {
 
   public static <T extends RadioGroup> Selector<T, Property<Integer>> radioGroup(
       final Selector<T, Property<T>> selector) {
-    final Property<Integer> prop = property("checkedRadioButtonId");
+    final Property<Integer> prop = Models.integer("checkedRadioButtonId");
 
     return view(selector, prop);
   }

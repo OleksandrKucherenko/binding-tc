@@ -1,12 +1,16 @@
 package com.artfulbits.ui.binding.toolbox;
 
+import android.support.annotation.NonNull;
+
 import com.artfulbits.ui.binding.Selector;
 import com.artfulbits.ui.binding.reflection.Property;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 /** Helpers that simplify common operations with different data storage instances. */
+@SuppressWarnings("unused")
 public final class Models {
 
   private Models() {
@@ -15,71 +19,127 @@ public final class Models {
 
   /* [ DATA STRUCTURES ] ========================================================================================== */
 
-  public static <I, T> Selector<I, Property<T>> pojo(final I instance, Property<T> selector) {
+  @NonNull
+  public static <I, T> Selector<I, Property<T>> pojo(@NonNull final I instance, @NonNull Property<T> property) {
+    return new Selector<>(instance, property);
+  }
+
+  public static <I, T> Selector<I, Property<T>> map(@NonNull final Map<String, I> instance, @NonNull Property<T> property) {
+    // TODO: property should know how to extract value from MAP, property name is a key
+
     return null;
   }
 
-  public static <I, T> Selector<I, Property<T>> map(final Map<String, I> instance, Property<T> selector) {
+  public static <I, T> Selector<I, Property<T>> index(@NonNull final List<I> instance, @NonNull Property<T> property) {
+    // TODO: property should know how to extract value from LIST, property name is index/position
+
     return null;
   }
 
-  public static <I, T> Selector<I, Property<T>> index(final List<I> instance, Property<T> selector) {
-    return null;
-  }
-
-  public static <I, T> Selector<I, Property<T>> index(final I[] instance, Property<T> selector) {
-    return null;
+  public static <I, T> Selector<I, Property<T>> index(@NonNull final I[] instance, @NonNull Property<T> property) {
+    return index(Arrays.asList(instance), property);
   }
 
   /* [ GENERICS ] ================================================================================================= */
 
-  public static <T> Property<T> property(final String name) {
+  /** Extract generic type information in tricky way. */
+  private static <T> Class<T> typeTrick() {
+    final Object t = new Trick() {
+      Class<T> typeT;
+    };
+
+    try {
+      final Class<T> type = (Class<T>) t.getClass().getDeclaredFields()[0].getType();
+
+      return type;
+    } catch (final Throwable ignored) {
+      // do nothing
+    }
+
     return null;
   }
 
-  public static <T> Property<T> name(final String nameGet, final String nameSet) {
-    return null;
+  @NonNull
+  public static <T> Property<T> from(@NonNull final String name) {
+    return new Property<>((Class<T>) typeTrick(), name);
   }
 
-  /* [ TYPED VERSIONS ] =========================================================================================== */
-
-  public static Property<String> string(final String name) {
-    return null;
+  @NonNull
+  public static <T> Property<T> from(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>((Class<T>) typeTrick(), getName, setName);
   }
 
-  public static Property<String> string(final String nameGet, final String nameSet) {
-    return null;
+  @NonNull
+  public static Property<Integer> integer(@NonNull final String name) {
+    return new Property<>(Integer.class, name);
   }
 
-  public static Property<Integer> integer(final String name) {
-    return null;
+  @NonNull
+  public static Property<Integer> integer(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(Integer.class, getName, setName);
   }
 
-  public static Property<Integer> integer(final String nameGet, final String nameSet) {
-    return null;
+  @NonNull
+  public static Property<Long> number(@NonNull final String name) {
+    return new Property<>(Long.class, name);
   }
 
-  public static Property<Long> number(final String name) {
-    return null;
+  @NonNull
+  public static Property<Long> number(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(Long.class, getName, setName);
   }
 
-  public static Property<Long> number(final String nameGet, final String nameSet) {
-    return null;
+  @NonNull
+  public static Property<Float> decimal(@NonNull final String name) {
+    return new Property<>(Float.class, name);
   }
 
-  public static Property<Boolean> bool(final String name) {
-    return null;
+  @NonNull
+  public static Property<Float> decimal(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(Float.class, getName, setName);
   }
 
-  public static Property<Boolean> bool(final String nameGet, final String nameSet) {
-    return null;
+  @NonNull
+  public static Property<Double> real(@NonNull final String name) {
+    return new Property<>(Double.class, name);
   }
 
-  public static Property<Double> real(final String name) {
-    return null;
+  @NonNull
+  public static Property<Double> real(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(Double.class, getName, setName);
   }
 
-  public static Property<Double> real(final String nameGet, final String nameSet) {
-    return null;
+  @NonNull
+  public static Property<Character> letter(@NonNull final String name) {
+    return new Property<>(Character.class, name);
+  }
+
+  @NonNull
+  public static Property<Character> letter(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(Character.class, getName, setName);
+  }
+
+  @NonNull
+  public static Property<Boolean> bool(@NonNull final String name) {
+    return new Property<>(Boolean.class, name);
+  }
+
+  @NonNull
+  public static Property<Boolean> bool(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(Boolean.class, getName, setName);
+  }
+
+  @NonNull
+  public static Property<String> text(@NonNull final String name) {
+    return new Property<>(String.class, name);
+  }
+
+  @NonNull
+  public static Property<String> text(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(String.class, getName, setName);
+  }
+
+  /** Hack interface for making possible anonymous classes creation. */
+  private interface Trick {
   }
 }

@@ -167,18 +167,6 @@ public final class ReflectionUtils {
 
 	/* [ NESTED DECLARATIONS ] ======================================================================================= */
 
-  /** Generic facade interface. */
-  public interface Entry {
-    /** Accessable instance name. */
-    String getName();
-
-    /** Raw type that we wrap. */
-    AccessibleObject getRawType();
-
-    /** Invoke get or set. If args length more than zero - we invoke SET, otherwise GET. */
-    Object invoke(final Object receiver, final Object... args) throws IllegalAccessException, InvocationTargetException;
-  }
-
   private static final class ByExecutableName implements Comparator<Entry> {
     @Override
     public int compare(final Entry lhs, final Entry rhs) {

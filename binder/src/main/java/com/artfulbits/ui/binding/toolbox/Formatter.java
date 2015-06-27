@@ -1,20 +1,22 @@
 package com.artfulbits.ui.binding.toolbox;
 
-import com.artfulbits.ui.binding.Converter;
+import com.artfulbits.ui.binding.Formatting;
 
 /** Methods for construction of typical data type converter's. */
-public final class Converters {
+@SuppressWarnings("unused")
+public final class Formatter {
 
   /** hidden constructor. */
-  private Converters() {
+  private Formatter() {
     throw new AssertionError();
   }
 
-  public static <T, V extends T> Converter<T, V> direct() {
-    return new Converter<T, V>() {
+  /** No formatting. Input and Output is the same value. */
+  public static <T, V> Formatting<T, V> direct() {
+    return new Formatting<T, V>() {
       @Override
       public T toOut(V value) {
-        return value;
+        return (T) value;
       }
 
       @Override
@@ -24,8 +26,9 @@ public final class Converters {
     };
   }
 
-  public static <T extends Number> Converter<String, T> asNumber() {
-    return new Converter<String, T>() {
+  /** Convert String to Number and vise verse. */
+  public static <T extends Number> Formatting<String, T> asNumber() {
+    return new Formatting<String, T>() {
       @Override
       public String toOut(final Number value) {
         return value.toString();

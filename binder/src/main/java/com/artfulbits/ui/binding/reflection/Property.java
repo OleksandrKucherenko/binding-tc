@@ -2,11 +2,10 @@ package com.artfulbits.ui.binding.reflection;
 
 import android.support.annotation.NonNull;
 
-import com.artfulbits.ui.binding.reflection.ReflectionUtils.Entry;
-
 import java.util.List;
 
 /** Class is responsible for accessing a specific abstract 'field' by using reflection. */
+@SuppressWarnings("unused")
 public class Property<T> {
   /* [ CONSTANTS ] ================================================================================================= */
 
@@ -25,68 +24,26 @@ public class Property<T> {
   private Entry mCachedGet;
   /** reference on reflected class entry used for SET operation. */
   private Entry mCachedSet;
+  /** Name of found 'get' entry. */
+  private String mConfirmedGet;
+  /** Name of found 'set' entry. */
+  private String mConfirmedSet;
 
 	/* [ CONSTRUCTORS ] ============================================================================================== */
 
-  protected Property(@NonNull final Class<T> type, @NonNull final String name) {
+  /** Expected automatic 'get' and 'set' finding. */
+  public Property(@NonNull final Class<T> type, @NonNull final String name) {
     mType = type;
     mName = name;
   }
 
-  /** Extract generic type information in tricky way. */
-  private static <T> Class<T> typeTrick() {
-    final Object t = new Trick() {
-      Class<T> typeT;
-    };
+  /** 'get' and 'set' are explicitly defined. */
+  public Property(@NonNull final Class<T> type, @NonNull final String getName, @NonNull final String setName) {
+    mType = type;
+    mName = null;
 
-    try {
-      final Class<T> type = (Class<T>) t.getClass().getDeclaredFields()[0].getType();
-
-      return type;
-    } catch (Throwable ignored) {
-      // do nothing
-    }
-
-    return null;
-  }
-
-  public static <T> Property<T> from(final String name) {
-    return new Property<T>((Class<T>) typeTrick(), name);
-  }
-
-  @NonNull
-  public static Property<Integer> integer(@NonNull final String name) {
-    return new Property<>(Integer.class, name);
-  }
-
-  @NonNull
-  public static Property<Long> number(@NonNull final String name) {
-    return new Property<>(Long.class, name);
-  }
-
-  @NonNull
-  public static Property<Float> decimal4(@NonNull final String name) {
-    return new Property<>(Float.class, name);
-  }
-
-  @NonNull
-  public static Property<Double> decimal(@NonNull final String name) {
-    return new Property<>(Double.class, name);
-  }
-
-  @NonNull
-  public static Property<Character> letter(@NonNull final String name) {
-    return new Property<>(Character.class, name);
-  }
-
-  @NonNull
-  public static Property<Boolean> bit(@NonNull final String name) {
-    return new Property<>(Boolean.class, name);
-  }
-
-  @NonNull
-  public static Property<String> text(@NonNull final String name) {
-    return new Property<>(String.class, name);
+    mConfirmedGet = getName;
+    mConfirmedSet = setName;
   }
 
 	/* [ GETTER / SETTER METHODS ] =================================================================================== */
@@ -95,42 +52,17 @@ public class Property<T> {
     return mType;
   }
 
-	/* [ IMPLEMENTATION & HELPERS ] ================================================================================== */
-
-  private Entry extractGetter(final Object instance) throws NoSuchMethodException {
-    Entry result = null;
-
-    final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
-
-    for (final String prefix : KNOWN_GETTERS) {
-      final String name = prefix + mName;
-      result = ReflectionUtils.find(methods, name);
-
-      if (null != result) {
-        break;
-      }
-    }
-
-    return result;
+  /** Get resolved 'get' entry name. Null - if not resolved yet. */
+  public String getGetterName() {
+    return mConfirmedGet;
   }
 
-  private Entry extractSetter(final Object instance) throws NoSuchMethodException {
-    Entry result = null;
-
-    final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
-
-    for (final String prefix : KNOWN_SETTERS) {
-      final String name = prefix + mName;
-      result = ReflectionUtils.find(methods, name);
-
-      if (null != result) {
-        break;
-      }
-    }
-
-    return result;
+  /** Get resolved 'set' entry name. Null - if not resolved yet. */
+  public String getSetterName() {
+    return mConfirmedSet;
   }
 
+  /** Get property value. */
   @SuppressWarnings("unchecked")
   public T get(@NonNull final Object instance) {
     try {
@@ -146,22 +78,7 @@ public class Property<T> {
     return (T) primitiveDefault(mType);
   }
 
-  protected Object primitiveDefault(final Class<T> clazz) {
-    if (int.class == clazz || short.class == clazz || long.class == clazz || byte.class == clazz) {
-      return (byte) 0;
-    }
-
-    if (float.class == clazz || double.class == clazz) {
-      return 0.0f;
-    }
-
-    if (char.class == clazz) {
-      return '\0';
-    }
-
-    return false;
-  }
-
+  /** Set property value. */
   public boolean set(@NonNull final Object instance, final T value) {
     try {
       if (null == mCachedSet) {
@@ -176,7 +93,92 @@ public class Property<T> {
     return true;
   }
 
-  /** Hack interface for making possible anonymous classes creation. */
-  private interface Trick {
+  /* [ OVERRIDES ] ================================================================================================= */
+
+  /** Resolve 'getter' entry. */
+  protected Entry extractGetter(final Object instance) throws Exception {
+    return reflectGetter(instance);
+  }
+
+  /** Resolve 'setter' entry. */
+  protected Entry extractSetter(final Object instance) throws Exception {
+    return reflectSetter(instance);
+  }
+
+  /** Extract default value based on class type. */
+  protected Object primitiveDefault(@NonNull final Class<T> clazz) {
+    if (int.class == clazz || short.class == clazz || long.class == clazz || byte.class == clazz) {
+      return (byte) 0;
+    }
+
+    if (float.class == clazz || double.class == clazz) {
+      return 0.0f;
+    }
+
+    if (char.class == clazz) {
+      return '\0';
+    }
+
+    if (boolean.class == clazz) {
+      return false;
+    }
+
+    return null;
+  }
+
+	/* [ IMPLEMENTATION & HELPERS ] ================================================================================== */
+
+  /** find 'getter' using reflection. */
+  private Entry reflectGetter(final Object instance) throws NoSuchMethodException {
+    Entry result = null;
+
+    final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
+
+    // explicit name defined
+    if (null != mConfirmedGet) {
+      result = ReflectionUtils.find(methods, mConfirmedGet);
+    }
+
+    // search required
+    if (null != result && null != mName) {
+      for (final String prefix : KNOWN_GETTERS) {
+        final String name = prefix + mName;
+        result = ReflectionUtils.find(methods, name);
+
+        if (null != result) {
+          mConfirmedGet = name;
+          break;
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /** find 'setter' using reflection. */
+  private Entry reflectSetter(final Object instance) throws NoSuchMethodException {
+    Entry result = null;
+
+    final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
+
+    // explicit name defined
+    if (null != mConfirmedSet) {
+      result = ReflectionUtils.find(methods, mConfirmedSet);
+    }
+
+    // search required
+    if (null != result && null != mName) {
+      for (final String prefix : KNOWN_SETTERS) {
+        final String name = prefix + mName;
+        result = ReflectionUtils.find(methods, name);
+
+        if (null != result) {
+          mConfirmedSet = name;
+          break;
+        }
+      }
+    }
+
+    return result;
   }
 }

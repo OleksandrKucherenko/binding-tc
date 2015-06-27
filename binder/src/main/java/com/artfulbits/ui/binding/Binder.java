@@ -3,23 +3,25 @@ package com.artfulbits.ui.binding;
 import android.support.annotation.NonNull;
 
 import com.artfulbits.ui.binding.reflection.Property;
+import com.artfulbits.ui.binding.toolbox.Formatter;
 
 import org.hamcrest.CoreMatchers;
 
 /** Base class for all binding rules keeping. */
+@SuppressWarnings("unused")
 public class Binder<TLeft, TRight> {
   /** Reference on binding owner. */
   private BindingManager mManager;
   /** Reference on view instance. */
   private Selector<?, Property<TLeft>> mView;
   /** Reference on storage instance. */
-  private Selector<?, Property<TRight>> mStorage;
+  private Selector<?, Property<TRight>> mModel;
   /** View changes listener. */
   private Listener<?> mOnView;
   /** Data model changes listener. */
   private Listener<?> mOnModel;
   /** Data type converter. */
-  private Converter<TLeft, TRight> mFormatter;
+  private Formatting<TLeft, TRight> mFormatting;
   /** Data validation. */
   private org.hamcrest.Matcher<TRight> mValidation;
   /** Value used in last evaluated/extracted/exchange operation. View side. */
@@ -51,16 +53,16 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
-  public Binder<TLeft, TRight> model(final Selector<?, Property<TRight>> storage) {
-    mStorage = storage;
+  public Binder<TLeft, TRight> model(final Selector<?, Property<TRight>> model) {
+    mModel = model;
 
     onModel(mOnModel);
 
     return this;
   }
 
-  public Binder<TLeft, TRight> format(final Converter<TLeft, TRight> converter) {
-    mFormatter = converter;
+  public Binder<TLeft, TRight> format(final Formatting<TLeft, TRight> formatting) {
+    mFormatting = formatting;
 
     return this;
   }
@@ -84,8 +86,8 @@ public class Binder<TLeft, TRight> {
   public Binder<TLeft, TRight> onModel(final Listener<?> listener) {
     mOnModel = listener;
 
-    if (null != mStorage) {
-      mStorage.listenTo(mOnModel);
+    if (null != mModel) {
+      mModel.listenTo(mOnModel);
     }
 
     return this;
@@ -104,8 +106,12 @@ public class Binder<TLeft, TRight> {
   }
 
   @NonNull
-  public Converter<TLeft, TRight> resolveFormatter() {
-    return mFormatter;
+  public Formatting<TLeft, TRight> resolveFormatting() {
+    if (null == mFormatting) {
+      mFormatting = Formatter.direct();
+    }
+
+    return mFormatting;
   }
 
   @NonNull
@@ -120,7 +126,7 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: View --> Model.
-   * <p>
+   * <p/>
    * Data flow: View --> IsChanged --> Formatter --> Validator --> Is Changed --> Model;
    */
   public void pop() {
@@ -134,7 +140,7 @@ public class Binder<TLeft, TRight> {
     mLastLeft = lValue;
 
     // formatter
-    final TRight rValue = resolveFormatter().toIn(lValue);
+    final TRight rValue = resolveFormatting().toIn(lValue);
 
     // validation
     if (!resolveValidation().matches(rValue)) return;
@@ -152,7 +158,7 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: Model --> View.
-   * <p>
+   * <p/>
    * Data flow: Model --> Is Changed --> Validator --> Formatter --> Is Changed --> View.
    */
   public void push() {
@@ -169,7 +175,7 @@ public class Binder<TLeft, TRight> {
     if (!resolveValidation().matches(rValue)) return;
 
     // do formatting
-    final TLeft lValue = resolveFormatter().toOut(rValue);
+    final TLeft lValue = resolveFormatting().toOut(rValue);
 
     // is changed?
     if (mLastLeft == lValue) return;
@@ -184,7 +190,7 @@ public class Binder<TLeft, TRight> {
   /* ============================================================================================================== */
 
   public TLeft getRuntimeModel() {
-    return (TLeft) mStorage.getRuntimeInstance();
+    return (TLeft) mModel.getRuntimeInstance();
   }
 
   public TRight getRuntimeView() {
@@ -192,10 +198,10 @@ public class Binder<TLeft, TRight> {
   }
 
   protected final Class<TRight> getModelType() {
-    return null;
+    return (Class<TRight>) mModel.getInstanceType();
   }
 
   protected final Class<TLeft> getViewType() {
-    return null;
+    return (Class<TLeft>) mView.getInstanceType();
   }
 }

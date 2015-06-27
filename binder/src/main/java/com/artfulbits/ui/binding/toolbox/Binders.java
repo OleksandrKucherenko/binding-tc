@@ -18,11 +18,11 @@ public final class Binders {
     return bm.bind();
   }
 
-  public static Binder<Integer, Integer> numbers(final BindingManager bm) {
+  public static Binder<Integer, Integer> integers(final BindingManager bm) {
     return bm.bind();
   }
 
-  public static Binder<Double, Double> floats(final BindingManager bm) {
+  public static Binder<Double, Double> reals(final BindingManager bm) {
     return bm.bind();
   }
 
