@@ -3,11 +3,12 @@ package com.artfulbits.ui.binding;
 import android.app.Activity;
 import android.app.Fragment;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Pair;
 import android.view.View;
 import android.widget.BaseAdapter;
 
-import com.artfulbits.ui.binding.reflection.Property;
+import com.artfulbits.ui.binding.toolbox.Views;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <li></li> </ul>
  */
 @SuppressWarnings("unused")
-public class BindingManager {
+public class BindingsManager {
   /* [ CONSTANTS AND MEMBERS ] ==================================================================================== */
 
   /** Associated with POP action constant. */
@@ -31,9 +32,9 @@ public class BindingManager {
   private final static boolean DO_PUSH = false;
 
   /** Weak references on listeners. */
-  private final Set<LifecycleCallback> mListeners = new WeakHashMap<LifecycleCallback, LifecycleCallback>().keySet();
+  private final Set<Lifecycle> mListeners = new WeakHashMap<Lifecycle, Lifecycle>().keySet();
   /** Facade For all types of the Views. */
-  private final ViewFacade mFacade;
+  private final Selector<?, View> mFacade;
   /** Collection of all defined binding rules. */
   private final List<Binder> mRules = new LinkedList<Binder>();
   /** Freeze counter. */
@@ -43,24 +44,53 @@ public class BindingManager {
 
   /* [ CONSTRUCTORS ] ============================================================================================= */
 
-  public BindingManager(final Activity parent) {
-    mFacade = new ViewFacade(parent);
+  /** Create bindings manager for activity instance. */
+  public BindingsManager(@NonNull final Activity activity) {
+    mFacade = Views.root(activity);
   }
 
-  public BindingManager(final Fragment parent) {
-    mFacade = new ViewFacade(parent);
+  /** Create bindings manager for native OS fragment. */
+  public BindingsManager(@NonNull final Fragment fragment) {
+    mFacade = Views.root(fragment);
   }
 
-  public BindingManager(final android.support.v4.app.Fragment parent) {
-    mFacade = new ViewFacade(parent);
+  /** Create bindings manager for 'support fragment'. */
+  public BindingsManager(@NonNull final android.support.v4.app.Fragment fragment) {
+    mFacade = Views.root(fragment);
   }
 
-  public BindingManager(final View parent) {
-    mFacade = new ViewFacade(parent);
+  /** Create bindings manager for view instance. */
+  public BindingsManager(@NonNull final View view) {
+    mFacade = Views.root(view);
   }
 
-  public BindingManager(final BaseAdapter adapter) {
-    mFacade = new ViewFacade(adapter);
+  /** Create bindings manager for adapter instance. */
+  public BindingsManager(@NonNull final BaseAdapter adapter) {
+    // TODO: implement me
+    throw new AssertionError("Implement me!");
+//    mFacade = Views.root(adapter);
+  }
+
+  /* [ STATIC HELPERS ] =========================================================================================== */
+
+  public static BindingsManager newInstance(@NonNull final Activity i, final Lifecycle listener) {
+    return new BindingsManager(i).register(listener);
+  }
+
+  public static BindingsManager newInstance(@NonNull final android.support.v4.app.Fragment i, final Lifecycle listener) {
+    return new BindingsManager(i).register(listener);
+  }
+
+  public static BindingsManager newInstance(@NonNull final Fragment i, final Lifecycle listener) {
+    return new BindingsManager(i).register(listener);
+  }
+
+  public static BindingsManager newInstance(@NonNull final View i, final Lifecycle listener) {
+    return new BindingsManager(i).register(listener);
+  }
+
+  public static BindingsManager newInstance(@NonNull final BaseAdapter i, final Lifecycle listener) {
+    return new BindingsManager(i).register(listener);
   }
 
   /* [ BINDING RULES DEFINING ] =================================================================================== */
@@ -111,14 +141,16 @@ public class BindingManager {
     return result;
   }
 
+  /* [ GENERIC BINDERS ] ========================================================================================== */
+
   public <TLeft, TRight> Binder<TLeft, TRight> bind() {
     final Binder<TLeft, TRight> result = new Binder<>();
 
     return result.attachToManager(this);
   }
 
-  public <TLeft, TRight> Binder<TLeft, TRight> bind(final Selector<?, Property<TLeft>> view,
-                                                    final Selector<?, Property<TRight>> model) {
+  public <TLeft, TRight> Binder<TLeft, TRight> bind(final Selector<?, TLeft> view,
+                                                    final Selector<?, TRight> model) {
     final Binder<TLeft, TRight> result = new Binder<>();
 
     return result
@@ -127,10 +159,32 @@ public class BindingManager {
         .attachToManager(this);
   }
 
+  /* [ COMMON BINDERS ] =========================================================================================== */
+
+  public Binder<String, String> texts() {
+    return bind();
+  }
+
+  public Binder<Integer, Integer> integers() {
+    return bind();
+  }
+
+  public Binder<Double, Double> reals() {
+    return bind();
+  }
+
+  public Binder<Boolean, Boolean> bools() {
+    return bind();
+  }
+
+  public Binder<String, Integer> numeric() {
+    return bind();
+  }
+
   /* [ LIFECYCLE ] ================================================================================================ */
 
   /** Register lifecycle extender listener. */
-  public BindingManager register(final LifecycleCallback listener) {
+  public BindingsManager register(@Nullable final Lifecycle listener) {
     if (null != listener) {
       mListeners.add(listener);
     }
@@ -139,7 +193,7 @@ public class BindingManager {
   }
 
   /** Unregister lifecycle extender listener. */
-  public BindingManager unregister(final LifecycleCallback listener) {
+  public BindingsManager unregister(final Lifecycle listener) {
     if (null != listener) {
       mListeners.remove(listener);
     }
@@ -154,7 +208,7 @@ public class BindingManager {
    *
    * @param instance the instance of model
    */
-  public BindingManager pushByModel(@NonNull final Object instance) {
+  public BindingsManager pushByModel(@NonNull final Object instance) {
     for (final Binder bind : getBindingsByModel(instance)) {
       push(bind);
     }
@@ -167,7 +221,7 @@ public class BindingManager {
    *
    * @param binder binding rule.
    */
-  public BindingManager push(@NonNull final Binder binder) {
+  public BindingsManager push(@NonNull final Binder binder) {
     if (isFrozen()) {
       mPending.add(new Pair<>(binder, DO_PUSH));
     } else {
@@ -182,7 +236,7 @@ public class BindingManager {
    *
    * @param instance the instance of model
    */
-  public BindingManager popByModel(@NonNull final Object instance) {
+  public BindingsManager popByModel(@NonNull final Object instance) {
     for (final Binder bind : getBindingsByModel(instance)) {
       pop(bind);
     }
@@ -195,7 +249,7 @@ public class BindingManager {
    *
    * @param binder binding rule.
    */
-  public BindingManager pop(@NonNull final Binder binder) {
+  public BindingsManager pop(@NonNull final Binder binder) {
     if (isFrozen()) {
       mPending.add(new Pair<>(binder, DO_POP));
     } else {
@@ -215,13 +269,13 @@ public class BindingManager {
   }
 
   /** Stop triggering of all data push/pop operations. */
-  public BindingManager freeze() {
+  public BindingsManager freeze() {
     mFreezeCounter.incrementAndGet();
     return this;
   }
 
   /** Recover triggering of all data push/pop operations. */
-  public BindingManager unfreeze() {
+  public BindingsManager unfreeze() {
     if (0 >= mFreezeCounter.decrementAndGet()) {
       mFreezeCounter.set(0);
 
@@ -314,9 +368,11 @@ public class BindingManager {
    * Lifecycle extending callback. Implement it if you want to enhance original lifecycle by new state, during which
    * binding operation is the most suitable.
    */
-  public interface LifecycleCallback {
-    void onCreateBinding(final BindingManager bm);
+  public interface Lifecycle {
+    /** Raised on moment when is the best to create bindings. */
+    void onCreateBinding(final BindingsManager bm);
 
-    void onValidationResult(final BindingManager bm, final boolean success);
+    /** Raised on moment of validation. */
+    void onValidationResult(final BindingsManager bm, final boolean success);
   }
 }

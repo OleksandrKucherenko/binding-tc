@@ -11,11 +11,11 @@ import org.hamcrest.CoreMatchers;
 @SuppressWarnings("unused")
 public class Binder<TLeft, TRight> {
   /** Reference on binding owner. */
-  private BindingManager mManager;
+  private BindingsManager mManager;
   /** Reference on view instance. */
-  private Selector<?, Property<TLeft>> mView;
+  private Selector<?, TLeft> mView;
   /** Reference on storage instance. */
-  private Selector<?, Property<TRight>> mModel;
+  private Selector<?, TRight> mModel;
   /** View changes listener. */
   private Listener<?> mOnView;
   /** Data model changes listener. */
@@ -34,7 +34,7 @@ public class Binder<TLeft, TRight> {
   /* package */ Binder() {
   }
 
-  /* package */ Binder<TLeft, TRight> attachToManager(final BindingManager manager) {
+  /* package */ Binder<TLeft, TRight> attachToManager(final BindingsManager manager) {
     mManager = manager;
 
     // do self registration
@@ -45,7 +45,7 @@ public class Binder<TLeft, TRight> {
 
   /* ============================================================================================================== */
 
-  public Binder<TLeft, TRight> view(final Selector<?, Property<TLeft>> view) {
+  public Binder<TLeft, TRight> view(final Selector<?, TLeft> view) {
     mView = view;
 
     onView(mOnView);
@@ -53,7 +53,7 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
-  public Binder<TLeft, TRight> model(final Selector<?, Property<TRight>> model) {
+  public Binder<TLeft, TRight> model(final Selector<?, TRight> model) {
     mModel = model;
 
     onModel(mOnModel);
@@ -126,7 +126,7 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: View --> Model.
-   * <p/>
+   * <p>
    * Data flow: View --> IsChanged --> Formatter --> Validator --> Is Changed --> Model;
    */
   public void pop() {
@@ -158,7 +158,7 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: Model --> View.
-   * <p/>
+   * <p>
    * Data flow: Model --> Is Changed --> Validator --> Formatter --> Is Changed --> View.
    */
   public void push() {

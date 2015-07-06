@@ -249,6 +249,10 @@ public final class ReflectionUtils {
 
     public FieldFacade(@NonNull final Field f) {
       mF = f;
+
+      if (!mF.isAccessible()) {
+        mF.setAccessible(true);
+      }
     }
 
     @Override
@@ -265,8 +269,8 @@ public final class ReflectionUtils {
     public Object invoke(final Object receiver, final Object... args) throws IllegalAccessException {
 
       // DONE: detect do we need Get or Set by number of parameters
-      if( null != args && args.length > 0 ){
-        mF.set( receiver, args[0] );
+      if (null != args && args.length > 0) {
+        mF.set(receiver, args[0]);
       }
 
       return mF.get(receiver);
@@ -279,6 +283,10 @@ public final class ReflectionUtils {
 
     public MethodFacade(@NonNull final Method m) {
       mM = m;
+
+      if (!mM.isAccessible()) {
+        mM.setAccessible(true);
+      }
     }
 
     @Override

@@ -10,6 +10,8 @@ public class User {
   private boolean mStorePassword;
   /** Persist login information in app settings or not.*/
   private boolean mStoreLogin;
+  /** Selected group index. */
+  private int mGroupSpin;
   /** Selected initialization group. Variants are: 'Select New Group' or
    * 'Continue from last point'; */
   private int mGroup;
@@ -17,6 +19,14 @@ public class User {
   private boolean mSelectNewGroup;
   /** Is 'Continue from Last Point' chosen? */
   private boolean mContinueFromLastPoint;
+
+  public int getGroupSpin() {
+    return mGroupSpin;
+  }
+
+  public void setGroupSpin(final int groupSpin) {
+    mGroupSpin = groupSpin;
+  }
 
   public String getLogin() {
     return mLogin;

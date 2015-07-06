@@ -36,7 +36,7 @@ Fragment binding:
 
 ```java
 import com.artfulbits.ui.binding.Binder;
-import com.artfulbits.ui.binding.BindingManager;
+import com.artfulbits.ui.binding.BindingsManager;
 
 import static com.artfulbits.ui.binding.toolbox.Formatter.direct;
 import static com.artfulbits.ui.binding.toolbox.Listeners.none;

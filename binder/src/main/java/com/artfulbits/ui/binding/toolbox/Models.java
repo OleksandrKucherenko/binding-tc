@@ -20,30 +20,37 @@ public final class Models {
   /* [ DATA STRUCTURES ] ========================================================================================== */
 
   @NonNull
-  public static <I, T> Selector<I, Property<T>> pojo(@NonNull final I instance, @NonNull Property<T> property) {
+  public static <I, T> Selector<I, T> pojo(@NonNull final I instance,
+                                           @NonNull Property<T> property) {
     return new Selector<>(instance, property);
   }
 
-  public static <I, T> Selector<I, Property<T>> map(@NonNull final Map<String, I> instance, @NonNull Property<T> property) {
+  @NonNull
+  public static <I, T> Selector<I, T> map(@NonNull final Map<String, I> instance,
+                                          @NonNull Property<T> property) {
     // TODO: property should know how to extract value from MAP, property name is a key
 
     return null;
   }
 
-  public static <I, T> Selector<I, Property<T>> index(@NonNull final List<I> instance, @NonNull Property<T> property) {
+  @NonNull
+  public static <I, T> Selector<I, T> index(@NonNull final List<I> instance,
+                                            @NonNull Property<T> property) {
     // TODO: property should know how to extract value from LIST, property name is index/position
 
     return null;
   }
 
-  public static <I, T> Selector<I, Property<T>> index(@NonNull final I[] instance, @NonNull Property<T> property) {
+  @NonNull
+  public static <I, T> Selector<I, T> index(@NonNull final I[] instance,
+                                            @NonNull Property<T> property) {
     return index(Arrays.asList(instance), property);
   }
 
   /* [ GENERICS ] ================================================================================================= */
 
   /** Extract generic type information in tricky way. */
-  private static <T> Class<T> typeTrick() {
+  public static <T> Class<T> typeTrick() {
     final Object t = new Trick() {
       Class<T> typeT;
     };

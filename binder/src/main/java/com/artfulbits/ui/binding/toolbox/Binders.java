@@ -1,7 +1,7 @@
 package com.artfulbits.ui.binding.toolbox;
 
 import com.artfulbits.ui.binding.Binder;
-import com.artfulbits.ui.binding.BindingManager;
+import com.artfulbits.ui.binding.BindingsManager;
 
 /** Typical binders. */
 public final class Binders {
@@ -14,23 +14,23 @@ public final class Binders {
 
   /* [ TYPED VERSIONS ] =========================================================================================== */
 
-  public static Binder<String, String> texts(final BindingManager bm) {
+  public static Binder<String, String> texts(final BindingsManager bm) {
     return bm.bind();
   }
 
-  public static Binder<Integer, Integer> integers(final BindingManager bm) {
+  public static Binder<Integer, Integer> integers(final BindingsManager bm) {
     return bm.bind();
   }
 
-  public static Binder<Double, Double> reals(final BindingManager bm) {
+  public static Binder<Double, Double> reals(final BindingsManager bm) {
     return bm.bind();
   }
 
-  public static Binder<Boolean, Boolean> bools(final BindingManager bm) {
+  public static Binder<Boolean, Boolean> bools(final BindingsManager bm) {
     return bm.bind();
   }
 
-  public static Binder<String, Integer> numeric(final BindingManager bm) {
+  public static Binder<String, Integer> numeric(final BindingsManager bm) {
     return bm.bind();
   }
 }

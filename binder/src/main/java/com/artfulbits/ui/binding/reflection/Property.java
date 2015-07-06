@@ -9,6 +9,8 @@ import java.util.List;
 public class Property<T> {
   /* [ CONSTANTS ] ================================================================================================= */
 
+  /** Use this constant for defining 'empty' name of the getter or setter. */
+  public static final String NO_NAME = "";
   /** Array of possible prefixes used for getting the value. */
   private static final String[] KNOWN_GETTERS = new String[]{"get", "has", "is", "exceeds", ""};
   /** Array of possible prefixes used for setting the value. */
@@ -63,14 +65,18 @@ public class Property<T> {
   }
 
   /** Get property value. */
-  @SuppressWarnings("unchecked")
   public T get(@NonNull final Object instance) {
+    return get(instance, getterArguments());
+  }
+
+  @SuppressWarnings("unchecked")
+  public T get(@NonNull final Object instance, final Object... args) {
     try {
       if (null == mCachedGet) {
         mCachedGet = extractGetter(instance);
       }
 
-      return (T) mCachedGet.invoke(instance);
+      return (T) mCachedGet.invoke(instance, args);
     } catch (final Throwable ignored) {
       // TODO: log exception
     }
@@ -85,7 +91,7 @@ public class Property<T> {
         mCachedSet = extractSetter(instance);
       }
 
-      mCachedSet.invoke(instance, value);
+      mCachedSet.invoke(instance, setterArguments(value));
     } catch (final Throwable ignored) {
       return false;
     }
@@ -94,6 +100,16 @@ public class Property<T> {
   }
 
   /* [ OVERRIDES ] ================================================================================================= */
+
+  /** Execution arguments for 'getter'. */
+  protected Object[] getterArguments() {
+    return (Object[]) null;
+  }
+
+  /** Execution arguments for 'setter'. */
+  protected Object[] setterArguments(final T value) {
+    return new Object[]{value};
+  }
 
   /** Resolve 'getter' entry. */
   protected Entry extractGetter(final Object instance) throws Exception {
@@ -140,7 +156,7 @@ public class Property<T> {
     }
 
     // search required
-    if (null != result && null != mName) {
+    if (null == result && null != mName) {
       for (final String prefix : KNOWN_GETTERS) {
         final String name = prefix + mName;
         result = ReflectionUtils.find(methods, name);

@@ -1,6 +1,7 @@
 package com.artfulbits.ui.binding.toolbox;
 
 import android.app.Activity;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.View;
 import android.widget.AdapterView;
@@ -24,100 +25,125 @@ import static com.artfulbits.ui.binding.toolbox.Models.text;
 public final class Views {
   /* [ VIEW SELECTOR ] ============================================================================================ */
 
-  public static <V extends View, T> Selector<V, Property<T>> view(
-      final Selector<V, Property<V>> instance,
+  /** Create chained view property extractor. */
+  public static <V extends View, T> Selector<?, T> view(
+      final Selector<?, V> instance,
       final Property<T> property) {
-    return null;
+    return new Selector<>(instance, property);
   }
 
   /* [ GENERIC SELECTORS ] ======================================================================================== */
 
-  public static <V extends View> Selector<V, Property<V>> matches(final Selector<V, Property<V>>... selectors) {
-    return null;
+  /** Create selector that evaluated to view instance with specified id. */
+  public static <V extends View> Selector<?, V> withId(@NonNull final View v, final int id) {
+    final Property<V> p = new Property<V>(Models.<V>typeTrick(), "findViewById", Property.NO_NAME) {
+      @Override
+      protected Object[] getterArguments() {
+        return new Object[]{id};
+      }
+    };
+
+    return new Selector<>(v, p);
   }
 
-  public static <V extends View> Selector<V, Property<V>> withId(final int id) {
-    return null;
+  /** create selector bind to 'findViewById' method. */
+  public static <V extends View> Selector<?, V> root(final Activity activity) {
+    // activity.findViewById();
+    final Property<V> find = Models.from("findViewById", "");
+    return new Selector<>(activity, find);
   }
 
-  public static <V extends View> Selector<V, Property<V>> root(final Activity activity) {
-    return null;
+  /** create selector bind to 'findViewById' method. */
+  public static <V extends View> Selector<?, V> root(final Fragment fragment) {
+    //fragment.getView().findViewById();
+
+    // double binding in use
+    final Selector<Fragment, View> view = new Selector<>(
+        fragment, Models.<View>from("getView", ""));
+
+    return new Selector<>(view, Models.<V>from("findViewById", ""));
   }
 
-  public static <V extends View> Selector<V, Property<V>> root(final Fragment activity) {
-    return null;
+  /** create selector bind to 'findViewById' method. */
+  public static <V extends View> Selector<?, V> root(final android.app.Fragment fragment) {
+    //fragment.getView().findViewById();
+
+    // double binding in use
+    final Selector<android.app.Fragment, View> view = new Selector<>(
+        fragment, Models.<View>from("getView", ""));
+
+    return new Selector<>(view, Models.<V>from("findViewById", ""));
   }
 
-  public static <V extends View> Selector<V, Property<V>> root(final android.app.Fragment activity) {
-    return null;
-  }
-
-  public static <V extends View> Selector<V, Property<V>> root(final View activity) {
-    return null;
+  /** create selector bind to 'findViewById' method. */
+  public static <V extends View> Selector<?, V> root(final View view) {
+    //view.findViewById();
+    return new Selector<>(view, Models.<V>from("findViewById", ""));
   }
 
   /* [ TYPED VERSIONS ] =========================================================================================== */
 
-  public static Selector<TextView, Property<String>> textView(final int id) {
-    return textView(Views.<TextView>withId(id));
+  public static Selector<TextView, String> textView(@NonNull final View v, final int id) {
+    return textView(Views.<TextView>withId(v, id));
   }
 
-  public static Selector<EditText, Property<String>> editText(final int id) {
-    return textView(Views.<EditText>withId(id));
+  public static Selector<EditText, String> editText(@NonNull final View v, final int id) {
+    return textView(Views.<EditText>withId(v, id));
   }
 
-  public static Selector<CheckBox, Property<Boolean>> checkBox(final int id) {
-    return checkedView(Views.<CheckBox>withId(id));
+  public static Selector<CheckBox, Boolean> checkBox(@NonNull final View v, final int id) {
+    return checkedView(Views.<CheckBox>withId(v, id));
   }
 
-  public static Selector<RadioGroup, Property<Integer>> radioGroup(final int id) {
-    return radioGroup(Views.<RadioGroup>withId(id));
+  public static Selector<RadioGroup, Integer> radioGroup(@NonNull final View v, final int id) {
+    return radioGroup(Views.<RadioGroup>withId(v, id));
   }
 
-  public static Selector<RadioButton, Property<Boolean>> radioButton(final int id) {
-    return checkedView(Views.<RadioButton>withId(id));
+  public static Selector<RadioButton, Boolean> radioButton(@NonNull final View v, final int id) {
+    return checkedView(Views.<RadioButton>withId(v, id));
   }
 
-  public static Selector<Spinner, Property<Integer>> spinner(final int id) {
-    return adapterView(Views.<Spinner>withId(id));
+  public static Selector<Spinner, Integer> spinner(@NonNull final View v, final int id) {
+    return adapterView(Views.<Spinner>withId(v, id));
   }
 
   /* [ EXTENDED VERSIONS ] ======================================================================================== */
 
-  public static <T extends AdapterView<?>> Selector<T, Property<Integer>> adapterView(
-      final Selector<T, Property<T>> selector) {
-    return view(selector, integer("getSelectedItemPosition", "setSelection"));
+  public static <T extends AdapterView<?>> Selector<T, Integer> adapterView(@NonNull final Selector<?, T> selector) {
+    final Property<Integer> property = integer("getSelectedItemPosition", "setSelection");
+
+    return (Selector<T, Integer>) view(selector, property);
   }
 
   /**
    * Text view selector, can be used for: TextView, EditText, AutoComplete, Button or any other inheritor of the
    * TextView.
    *
-   * @param <T> Type of View
+   * @param <T>      Type of View
    * @param selector selector that helps in identifying the view instance
    * @return the selector of "text" property from TextView inheritor
    */
-  public static <T extends TextView> Selector<T, Property<String>> textView(
-      final Selector<T, Property<T>> selector) {
-    return view(selector, text("text"));
+  public static <T extends TextView> Selector<T, String> textView(@NonNull final Selector<?, T> selector) {
+    final Property<String> property = text("text");
+    return (Selector<T, String>) view(selector, property);
   }
 
   /**
    * Checked property selector, can be used for CheckBox, RadioButton, Switch and ToggleButton.
    *
-   * @param <T> the type parameter
+   * @param <T>      the type parameter
    * @param selector the selector
    * @return the selector
    */
-  public static <T extends CompoundButton> Selector<T, Property<Boolean>> checkedView(
-      final Selector<T, Property<T>> selector) {
-    return view(selector, bool("checked"));
+  public static <T extends CompoundButton> Selector<T, Boolean> checkedView(@NonNull final Selector<?, T> selector) {
+    final Property<Boolean> property = bool("checked");
+    return (Selector<T, Boolean>) view(selector, property);
   }
 
-  public static <T extends RadioGroup> Selector<T, Property<Integer>> radioGroup(
-      final Selector<T, Property<T>> selector) {
-    final Property<Integer> prop = Models.integer("checkedRadioButtonId");
+  /** 'Checked Radio Button Id' property binding. */
+  public static <T extends RadioGroup> Selector<T, Integer> radioGroup(@NonNull final Selector<?, T> selector) {
+    final Property<Integer> property = integer("checkedRadioButtonId");
 
-    return view(selector, prop);
+    return (Selector<T, Integer>) view(selector, property);
   }
 }

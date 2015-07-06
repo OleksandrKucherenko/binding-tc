@@ -2,6 +2,7 @@ package com.artfulbits.sample;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,8 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.artfulbits.ui.binding.Binder;
-import com.artfulbits.ui.binding.BindingManager;
-import com.artfulbits.ui.binding.toolbox.Binders;
+import com.artfulbits.ui.binding.BindingsManager;
 import com.artfulbits.ui.binding.toolbox.Formatter;
 import com.artfulbits.ui.binding.toolbox.Listeners;
 
@@ -29,9 +29,9 @@ import static org.hamcrest.core.AllOf.allOf;
 import static org.hamcrest.core.IsNot.not;
 
 /** Login fragment with simplest UI. */
-public class PlaceholderFragment extends Fragment implements BindingManager.LifecycleCallback {
+public class PlaceholderFragment extends Fragment implements BindingsManager.Lifecycle {
 
-  private final BindingManager mBinding = new BindingManager(this).register(this);
+  private final BindingsManager mBinding = BindingsManager.newInstance(this, this);
   private final User mUser = new User();
   private Button btnProceed;
 
@@ -40,8 +40,8 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
     final View view = inflater.inflate(R.layout.fragment_main, container, false);
 
     // create binding to Login
-    final Binder bindLogin = Binders.texts(mBinding)
-        .view(textView(R.id.et_login))
+    final Binder bindLogin = mBinding.texts()
+        .view(textView(view, R.id.et_login))
         .model(pojo(mUser, text("login")));
 
     // update view by model values
@@ -56,11 +56,14 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
   }
 
   @Override
-  public void onCreateBinding(final BindingManager bm) {
+  public void onCreateBinding(final BindingsManager bm) {
+    if (null == getView())
+      throw new AssertionError("That should never happens. Lifecycle expects existence of View.");
+
     // #1: worst case scenario: verbose syntax for edit text
     // #2: limit user input by NUMBERS for PIN style password, 4 digits in length
-    Binders.numeric(bm)
-        .view(editText(R.id.et_password))
+    bm.numeric()
+        .view(editText(getView(), R.id.et_password))
         .onView(Listeners.<EditText>none())
         .model(pojo(mUser, integer("Password")))
         .onModel(Listeners.<User>none())
@@ -68,52 +71,51 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
         .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
 
     // edit Text - validation password
-    Binders.texts(bm)
-        .view(editText(R.id.et_confirm_password))
+    bm.texts()
+        .view(editText(getView(), R.id.et_confirm_password))
         .model(pojo(mUser, text("ConfirmPassword")))
         .validate(is(not(emptyString()))); // ???
 
     // spinner
-    Binders.integers(bm)
-        .view(spinner(R.id.sp_group))
-        .model(pojo(mUser, integer("")));
+    bm.integers()
+        .view(spinner(getView(), R.id.sp_group))
+        .model(pojo(mUser, integer("GroupSpin")));
 
     // master-details scenario: master checkbox
-    Binders.bools(bm)
-        .view(checkBox(R.id.cb_login))
+    bm.bools()
+        .view(checkBox(getView(), R.id.cb_login))
         .model(pojo(mUser, bool("StoreLogin")));
 
     // master-detail scenario: details checkbox
-    Binders.bools(bm)
-        .view(checkBox(R.id.cb_password))
+    bm.bools()
+        .view(checkBox(getView(), R.id.cb_password))
         .model(pojo(mUser, bool("StorePassword")));
 
     // radio group
-    Binders.integers(bm)
-        .view(radioGroup(R.id.rg_options))
+    bm.integers()
+        .view(radioGroup(getView(), R.id.rg_options))
         .model(pojo(mUser, integer("Group")));
 
     // radio button
-    Binders.bools(bm)
-        .view(radioButton(R.id.rb_chooseGroup))
+    bm.bools()
+        .view(radioButton(getView(), R.id.rb_chooseGroup))
         .model(pojo(mUser, bool("SelectNewGroup")));
 
     // radio button
-    Binders.bools(bm)
-        .view(radioButton(R.id.rb_openLast))
+    bm.bools()
+        .view(radioButton(getView(), R.id.rb_openLast))
         .model(pojo(mUser, bool("ContinueFromLastPoint")));
 
     bm.associate();
   }
 
   @Override
-  public void onValidationResult(final BindingManager bm, final boolean success) {
-
+  public void onValidationResult(final BindingsManager bm, final boolean success) {
     btnProceed.setEnabled(success);
 
     if (!success) {
       for (Binder binder : bm.getFailedBindings()) {
-        // TODO: show errors
+        Log.i("BINDING", "Result of validation: " + binder.toString());
       }
     }
   }
