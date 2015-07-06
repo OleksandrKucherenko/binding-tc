@@ -42,9 +42,7 @@ public class Selector<I, V> {
   public I getRuntimeInstance() {
     // late binding trick, allows to build a chain of calls
     if (mInstance instanceof Selector) {
-      final Selector inner = (Selector) mInstance;
-      final Object result = inner.get();
-      return (I) result;
+      return (I) ((Selector) mInstance).get();
     }
 
     return mInstance;

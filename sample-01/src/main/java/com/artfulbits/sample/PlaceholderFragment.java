@@ -30,13 +30,16 @@ import static org.hamcrest.core.IsNot.not;
 
 /** Login fragment with simplest UI. */
 public class PlaceholderFragment extends Fragment implements BindingsManager.Lifecycle {
-
+  /** instance that extends Fragment lifecycle. */
   private final BindingsManager mBinding = BindingsManager.newInstance(this, this);
+  /** model instance. */
   private final User mUser = new User();
+  /** reference on Proceed button. */
   private Button btnProceed;
 
+  /** {@inheritDoc} */
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle saved) {
     final View view = inflater.inflate(R.layout.fragment_main, container, false);
 
     // create binding to Login
@@ -55,6 +58,7 @@ public class PlaceholderFragment extends Fragment implements BindingsManager.Lif
     return view;
   }
 
+  /** {@inheritDoc} */
   @Override
   public void onCreateBinding(final BindingsManager bm) {
     if (null == getView())
@@ -109,6 +113,7 @@ public class PlaceholderFragment extends Fragment implements BindingsManager.Lif
     bm.associate();
   }
 
+  /** {@inheritDoc} */
   @Override
   public void onValidationResult(final BindingsManager bm, final boolean success) {
     btnProceed.setEnabled(success);

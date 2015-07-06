@@ -36,7 +36,7 @@ public final class ReflectionUtils {
    */
   @Nullable
   public static Field findField(@NonNull final List<Field> fields, @NonNull final String name) {
-    final int index = Collections.binarySearch(fields, name, new SearchByFieldNameComparator());
+    final int index = Collections.binarySearch(fields, name, SearchByFieldNameComparator.INSTANCE);
 
     // field found
     if (index >= 0 && index < fields.size()) {
@@ -55,8 +55,9 @@ public final class ReflectionUtils {
    */
   @Nullable
   public static Method findMethod(@NonNull final List<Method> methods, @NonNull final String name) {
-    final int index = Collections.binarySearch(methods, name, new SearchByMethodNameComparator());
+    final int index = Collections.binarySearch(methods, name, SearchByMethodNameComparator.INSTANCE);
 
+    // method found
     if (index >= 0 && index < methods.size()) {
       return methods.get(index);
     }
@@ -73,8 +74,9 @@ public final class ReflectionUtils {
    */
   @Nullable
   public static Entry find(@NonNull final List<Entry> methods, @NonNull final String name) {
-    final int index = Collections.binarySearch(methods, name, new SearchByExecutableNameComparator());
+    final int index = Collections.binarySearch(methods, name, SearchByExecutableNameComparator.INSTANCE);
 
+    // entry found
     if (index >= 0 && index < methods.size()) {
       return methods.get(index);
     }
@@ -108,7 +110,7 @@ public final class ReflectionUtils {
       i = i.getSuperclass();
     }
 
-    Collections.sort(results, new ByFieldName());
+    Collections.sort(results, ByFieldName.INSTANCE);
 
     return results;
   }
@@ -139,7 +141,7 @@ public final class ReflectionUtils {
       i = i.getSuperclass();
     }
 
-    Collections.sort(results, new ByMethodName());
+    Collections.sort(results, ByMethodName.INSTANCE);
 
     return results;
   }
@@ -160,7 +162,7 @@ public final class ReflectionUtils {
       results.add(new MethodFacade(m));
     }
 
-    Collections.sort(results, new ByExecutableName());
+    Collections.sort(results, ByExecutableName.INSTANCE);
 
     return results;
   }
@@ -168,6 +170,14 @@ public final class ReflectionUtils {
 	/* [ NESTED DECLARATIONS ] ======================================================================================= */
 
   private static final class ByExecutableName implements Comparator<Entry> {
+    /** Single instance. */
+    public final static ByExecutableName INSTANCE = new ByExecutableName();
+
+    /** private constructor. */
+    private ByExecutableName() {
+    }
+
+    /** Compare names. */
     @Override
     public int compare(final Entry lhs, final Entry rhs) {
       return lhs.getName().compareTo(rhs.getName());
@@ -176,6 +186,13 @@ public final class ReflectionUtils {
 
   /** Sort fields by name. */
   private static final class ByFieldName implements java.util.Comparator<Field> {
+    /** Single instance. */
+    public static final ByFieldName INSTANCE = new ByFieldName();
+
+    /** private constructor. */
+    private ByFieldName() {
+    }
+
     /** {@inheritDoc} */
     @Override
     public int compare(final Field lhs, final Field rhs) {
@@ -185,6 +202,13 @@ public final class ReflectionUtils {
 
   /** Sort methods by name. */
   private static final class ByMethodName implements java.util.Comparator<Method> {
+    /** Single instance. */
+    public final static ByMethodName INSTANCE = new ByMethodName();
+
+    /** private constructor. */
+    private ByMethodName() {
+    }
+
     /** {@inheritDoc} */
     @Override
     public int compare(final Method lhs, final Method rhs) {
@@ -194,6 +218,13 @@ public final class ReflectionUtils {
 
   /** Search in fields collection by field name. */
   private static final class SearchByExecutableNameComparator implements Comparator<Object> {
+    /** Single instance. */
+    public final static SearchByExecutableNameComparator INSTANCE = new SearchByExecutableNameComparator();
+
+    /** private consructor. */
+    private SearchByExecutableNameComparator() {
+    }
+
     /** {@inheritDoc} */
     @Override
     public int compare(Object lhs, Object rhs) {
@@ -211,6 +242,13 @@ public final class ReflectionUtils {
 
   /** Search in fields collection by field name. */
   private static final class SearchByFieldNameComparator implements Comparator<Object> {
+    /** Single instance. */
+    public final static SearchByFieldNameComparator INSTANCE = new SearchByFieldNameComparator();
+
+    /** private constructor. */
+    private SearchByFieldNameComparator() {
+    }
+
     /** {@inheritDoc} */
     @Override
     public int compare(Object lhs, Object rhs) {
@@ -228,6 +266,13 @@ public final class ReflectionUtils {
 
   /** Search in fields collection by field name. */
   private static final class SearchByMethodNameComparator implements Comparator<Object> {
+    /** Single instance. */
+    public final static SearchByMethodNameComparator INSTANCE = new SearchByMethodNameComparator();
+
+    /** private constructor. */
+    private SearchByMethodNameComparator() {
+    }
+
     /** {@inheritDoc} */
     @Override
     public int compare(Object lhs, Object rhs) {

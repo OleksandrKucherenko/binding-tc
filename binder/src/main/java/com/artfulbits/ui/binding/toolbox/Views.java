@@ -36,6 +36,7 @@ public final class Views {
 
   /** Create selector that evaluated to view instance with specified id. */
   public static <V extends View> Selector<?, V> withId(@NonNull final View v, final int id) {
+    // View.findViewById(id)
     final Property<V> p = new Property<V>(Models.<V>typeTrick(), "findViewById", Property.NO_NAME) {
       @Override
       protected Object[] getterArguments() {
@@ -46,39 +47,52 @@ public final class Views {
     return new Selector<>(v, p);
   }
 
+  /** Extract View from other selector. */
+  public static <V extends View> Selector<?, V> withId(@NonNull final Selector<?, ?> s, final int id) {
+    // ${root}.get(id)
+    final Property<V> p = new Property<V>(Models.<V>typeTrick(), "get", Property.NO_NAME) {
+      @Override
+      protected Object[] getterArguments() {
+        return new Object[]{id};
+      }
+    };
+
+    return new Selector<>(s, p);
+  }
+
   /** create selector bind to 'findViewById' method. */
   public static <V extends View> Selector<?, V> root(final Activity activity) {
-    // activity.findViewById();
-    final Property<V> find = Models.from("findViewById", "");
+    // activity.findViewById(...);
+    final Property<V> find = Models.from("findViewById", Property.NO_NAME);
     return new Selector<>(activity, find);
   }
 
   /** create selector bind to 'findViewById' method. */
   public static <V extends View> Selector<?, V> root(final Fragment fragment) {
-    //fragment.getView().findViewById();
+    // fragment.getView().findViewById(...);
 
     // double binding in use
     final Selector<Fragment, View> view = new Selector<>(
-        fragment, Models.<View>from("getView", ""));
+        fragment, Models.<View>from("getView", Property.NO_NAME));
 
-    return new Selector<>(view, Models.<V>from("findViewById", ""));
+    return new Selector<>(view, Models.<V>from("findViewById", Property.NO_NAME));
   }
 
   /** create selector bind to 'findViewById' method. */
   public static <V extends View> Selector<?, V> root(final android.app.Fragment fragment) {
-    //fragment.getView().findViewById();
+    // fragment.getView().findViewById(...);
 
     // double binding in use
     final Selector<android.app.Fragment, View> view = new Selector<>(
-        fragment, Models.<View>from("getView", ""));
+        fragment, Models.<View>from("getView", Property.NO_NAME));
 
-    return new Selector<>(view, Models.<V>from("findViewById", ""));
+    return new Selector<>(view, Models.<V>from("findViewById", Property.NO_NAME));
   }
 
   /** create selector bind to 'findViewById' method. */
   public static <V extends View> Selector<?, V> root(final View view) {
-    //view.findViewById();
-    return new Selector<>(view, Models.<V>from("findViewById", ""));
+    // view.findViewById(...);
+    return new Selector<>(view, Models.<V>from("findViewById", Property.NO_NAME));
   }
 
   /* [ TYPED VERSIONS ] =========================================================================================== */
@@ -87,8 +101,16 @@ public final class Views {
     return textView(Views.<TextView>withId(v, id));
   }
 
+  public static <V extends View> Selector<TextView, String> textView(@NonNull final Selector<?, V> s, final int id) {
+    return textView(Views.<TextView>withId(s, id));
+  }
+
   public static Selector<EditText, String> editText(@NonNull final View v, final int id) {
     return textView(Views.<EditText>withId(v, id));
+  }
+
+  public static <V extends View> Selector<EditText, String> editText(@NonNull final Selector<?, V> s, final int id) {
+    return textView(Views.<EditText>withId(s, id));
   }
 
   public static Selector<CheckBox, Boolean> checkBox(@NonNull final View v, final int id) {
@@ -108,12 +130,6 @@ public final class Views {
   }
 
   /* [ EXTENDED VERSIONS ] ======================================================================================== */
-
-  public static <T extends AdapterView<?>> Selector<T, Integer> adapterView(@NonNull final Selector<?, T> selector) {
-    final Property<Integer> property = integer("getSelectedItemPosition", "setSelection");
-
-    return (Selector<T, Integer>) view(selector, property);
-  }
 
   /**
    * Text view selector, can be used for: TextView, EditText, AutoComplete, Button or any other inheritor of the
@@ -143,6 +159,12 @@ public final class Views {
   /** 'Checked Radio Button Id' property binding. */
   public static <T extends RadioGroup> Selector<T, Integer> radioGroup(@NonNull final Selector<?, T> selector) {
     final Property<Integer> property = integer("checkedRadioButtonId");
+
+    return (Selector<T, Integer>) view(selector, property);
+  }
+
+  public static <T extends AdapterView<?>> Selector<T, Integer> adapterView(@NonNull final Selector<?, T> selector) {
+    final Property<Integer> property = integer("getSelectedItemPosition", "setSelection");
 
     return (Selector<T, Integer>) view(selector, property);
   }
