@@ -12,9 +12,9 @@ public class Property<T> {
   /** Use this constant for defining 'empty' name of the getter or setter. */
   public static final String NO_NAME = "";
   /** Array of possible prefixes used for getting the value. */
-  private static final String[] KNOWN_GETTERS = new String[]{"get", "has", "is", "exceeds", ""};
+  private static final String[] KNOWN_GETTERS = new String[]{"get", "has", "is", "exceeds", "m", ""};
   /** Array of possible prefixes used for setting the value. */
-  private static final String[] KNOWN_SETTERS = new String[]{"set", ""};
+  private static final String[] KNOWN_SETTERS = new String[]{"set", "m", ""};
 
 	/* [ MEMBERS ] =================================================================================================== */
 

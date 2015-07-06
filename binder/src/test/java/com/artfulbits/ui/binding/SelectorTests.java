@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 
 /** Unit tests of the {@link com.artfulbits.ui.binding.Selector} class. */
 public class SelectorTests {
+  /** Direct call. */
   @Test
   public void test_00_CommonUsage() throws Exception {
     final DummyInner di = new DummyInner();
@@ -20,6 +21,7 @@ public class SelectorTests {
     assertThat(sOwner.get(), equalTo("owner"));
   }
 
+  /** Nested selectors. */
   @Test
   public void test_01_ChainCalls() throws Exception {
     final DummyInner di = new DummyInner();
@@ -31,6 +33,7 @@ public class SelectorTests {
     final Selector<?, String> sName = new Selector<>(sSub, Models.text("Name"));
 
     assertThat(sName.get(), equalTo("test"));
+    assertThat(sSub.get(), equalTo(di.getSubInner()));
   }
 
   
