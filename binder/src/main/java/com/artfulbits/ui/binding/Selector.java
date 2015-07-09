@@ -2,6 +2,8 @@ package com.artfulbits.ui.binding;
 
 import com.artfulbits.ui.binding.reflection.Property;
 
+import java.util.Locale;
+
 /**
  * Selector of the property value from instance.<br/> Responsibility:<br/> - 'Late Binding' declaration.<br/> - Allows
  * to associate property 'binding information' with instance of class.<br/> - Allows to resolve chain of
@@ -27,6 +29,25 @@ public class Selector<I, V> {
   }
 
   /* ============================================================================================================== */
+
+  /**
+   * Return human readable resolved to string selector. If runtime binding not happens yet, resolving to string may
+   * provide 'incomplete' selector without correct properties names.
+   * <p/>
+   * Example 1: {View}.getText()/{View}.setText() | setText()<br/> Example 2: ({Activity}.findViewById(...)).getText() |
+   * setText()<br/> Example 3: (({Data}.getSubItem()).getView()).getText() | setText()
+   * <p/>
+   * Syntax:<br/> {} - dynamic type, resolved in runtime<br/> &lt;&gt; - constant<br/> ... - arguments expected;
+   */
+  @Override
+  public String toString() {
+
+    final String subselector = (mInstance instanceof Selector) ?
+        "(" + mInstance.toString() + ")" :
+        "{" + getInstanceType().getSimpleName() + "}";
+
+    return String.format(Locale.US, "%s.%s", subselector, mProperty.toString());
+  }
 
   /** Get instance reflection type. */
   public Class<?> getInstanceType() {

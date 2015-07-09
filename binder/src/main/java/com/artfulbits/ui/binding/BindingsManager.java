@@ -310,60 +310,6 @@ public class BindingsManager {
 
 	/* [ NESTED DECLARATIONS ] ====================================================================================== */
 
-  /** Consolidate API for all types of Views. */
-  private static final class ViewFacade {
-    /** Reference on root element of binding. */
-    private final Activity mRootActivity;
-
-    private final View mRootView;
-
-    private final BaseAdapter mRootAdapter;
-
-    private final android.support.v4.app.Fragment mSupportFragment;
-
-    private final Fragment mFragment;
-
-    public ViewFacade(final android.support.v4.app.Fragment fragment) {
-      mRootActivity = null;
-      mSupportFragment = fragment;
-      mFragment = null;
-      mRootView = null;
-      mRootAdapter = null;
-    }
-
-    public ViewFacade(final Fragment fragment) {
-      mRootActivity = null;
-      mSupportFragment = null;
-      mFragment = fragment;
-      mRootView = null;
-      mRootAdapter = null;
-    }
-
-    public ViewFacade(final View parent) {
-      mRootActivity = null;
-      mSupportFragment = null;
-      mFragment = null;
-      mRootView = parent;
-      mRootAdapter = null;
-    }
-
-    public ViewFacade(final Activity parent) {
-      mRootActivity = parent;
-      mSupportFragment = null;
-      mFragment = null;
-      mRootView = null;
-      mRootAdapter = null;
-    }
-
-    public ViewFacade(final BaseAdapter adapter) {
-      mRootActivity = null;
-      mSupportFragment = null;
-      mFragment = null;
-      mRootView = null;
-      mRootAdapter = adapter;
-    }
-  }
-
   /**
    * Lifecycle extending callback. Implement it if you want to enhance original lifecycle by new state, during which
    * binding operation is the most suitable.

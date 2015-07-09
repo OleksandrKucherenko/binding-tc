@@ -1,8 +1,11 @@
 package com.artfulbits.ui.binding.reflection;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import java.util.List;
+import java.util.Locale;
 
 /** Class is responsible for accessing a specific abstract 'field' by using reflection. */
 @SuppressWarnings("unused")
@@ -49,6 +52,25 @@ public class Property<T> {
   }
 
 	/* [ GETTER / SETTER METHODS ] =================================================================================== */
+
+  /**
+   * Resolve property logic to human readable string.
+   * <p/>
+   * Example 1: .getText() | setText()<br/> Example 2: .findViewById(...) | &lt;none&gt;()<br/> Example 3: .{Text}(...)
+   * | &lt;none&gt;()<br/>
+   */
+  @Override
+  public String toString() {
+    final String argsGetter = "(" + (null != getterArguments() ? "..." : "") + ")";
+    final String argsSetter = "(" + (setterArguments(null).length > 1 ? "..." : "") + ")";
+    final String search = (TextUtils.isEmpty(mName)) ? "<none>" : "{" + mName + "}";
+    final String getter = (TextUtils.isEmpty(getGetterName())) ? search : getGetterName();
+    final String setter = (TextUtils.isEmpty(getSetterName())) ? search : getSetterName();
+
+    return String.format(Locale.US, "%s%s | %s%s",
+        getter, argsGetter,
+        setter, argsSetter);
+  }
 
   public final Class<T> getDataType() {
     return mType;
@@ -102,11 +124,13 @@ public class Property<T> {
   /* [ OVERRIDES ] ================================================================================================= */
 
   /** Execution arguments for 'getter'. */
+  @Nullable
   protected Object[] getterArguments() {
     return (Object[]) null;
   }
 
   /** Execution arguments for 'setter'. */
+  @NonNull
   protected Object[] setterArguments(final T value) {
     return new Object[]{value};
   }

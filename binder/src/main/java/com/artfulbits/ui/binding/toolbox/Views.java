@@ -49,7 +49,7 @@ public final class Views {
 
   /** Extract View from other selector. */
   public static <V extends View> Selector<?, V> withId(@NonNull final Selector<?, ?> s, final int id) {
-    // ${root}.get(id)
+    // {root}.get(id)
     final Property<V> p = new Property<V>(Models.<V>typeTrick(), "get", Property.NO_NAME) {
       @Override
       protected Object[] getterArguments() {
