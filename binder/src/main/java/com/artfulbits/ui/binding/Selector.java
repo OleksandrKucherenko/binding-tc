@@ -1,5 +1,7 @@
 package com.artfulbits.ui.binding;
 
+import android.support.annotation.NonNull;
+
 import com.artfulbits.ui.binding.reflection.Property;
 
 import java.util.Locale;
@@ -13,7 +15,7 @@ import java.util.Locale;
  * @param <V> the property extracted data type
  */
 @SuppressWarnings("unused")
-public class Selector<I, V> {
+public class Selector<I, V> implements Notifications {
   /* ============================================================================================================== */
 
   /** Instance of the class which we use as source/destination of data. */
@@ -23,7 +25,8 @@ public class Selector<I, V> {
 
   /* ============================================================================================================== */
 
-  public Selector(final I instance, final Property<V> property) {
+  /** Create a new instance of the selector. */
+  public Selector(@NonNull final I instance, @NonNull final Property<V> property) {
     mInstance = instance;
     mProperty = property;
   }
@@ -33,20 +36,19 @@ public class Selector<I, V> {
   /**
    * Return human readable resolved to string selector. If runtime binding not happens yet, resolving to string may
    * provide 'incomplete' selector without correct properties names.
-   * <p/>
+   * <p>
    * Example 1: {View}.getText()/{View}.setText() | setText()<br/> Example 2: ({Activity}.findViewById(...)).getText() |
    * setText()<br/> Example 3: (({Data}.getSubItem()).getView()).getText() | setText()
-   * <p/>
+   * <p>
    * Syntax:<br/> {} - dynamic type, resolved in runtime<br/> &lt;&gt; - constant<br/> ... - arguments expected;
    */
   @Override
   public String toString() {
-
-    final String subselector = (mInstance instanceof Selector) ?
+    final String subSelector = (mInstance instanceof Selector) ?
         "(" + mInstance.toString() + ")" :
         "{" + getInstanceType().getSimpleName() + "}";
 
-    return String.format(Locale.US, "%s.%s", subselector, mProperty.toString());
+    return String.format(Locale.US, "%s.%s", subSelector, mProperty.toString());
   }
 
   /** Get instance reflection type. */
@@ -79,13 +81,11 @@ public class Selector<I, V> {
     getProperty().set(getRuntimeInstance(), value);
   }
 
+  @Override
+  public final void onChanged() {
+    // TODO:  notify all about property change.
+  }
+
   /* [ INITIALIZATION HELPERS ] =================================================================================== */
 
-  public Selector<I, V> listenTo(final Listener<?> listener) {
-    // TODO: store for late binding when actually Property instances will be calculated
-
-    //listener.attach(mProperty, mInstance);
-
-    return this;
-  }
 }

@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingsManager;
@@ -68,9 +67,9 @@ public class PlaceholderFragment extends Fragment implements BindingsManager.Lif
     // #2: limit user input by NUMBERS for PIN style password, 4 digits in length
     bm.numeric()
         .view(editText(getView(), R.id.et_password))
-        .onView(Listeners.<EditText>none())
+        .onView(Listeners.onTextChanged())
         .model(pojo(mUser, integer("Password")))
-        .onModel(Listeners.<User>none())
+        .onModel(Listeners.none())
         .format(Formatter.<Integer>asNumber())
         .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
 

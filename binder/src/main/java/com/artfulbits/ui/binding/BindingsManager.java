@@ -2,6 +2,8 @@ package com.artfulbits.ui.binding;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Pair;
@@ -27,12 +29,18 @@ public class BindingsManager {
   /* [ CONSTANTS AND MEMBERS ] ==================================================================================== */
 
   /** Associated with POP action constant. */
-  private final static boolean DO_POP = true;
+  private final static int DO_POP = 1;
   /** Associated with PUSH action constant. */
-  private final static boolean DO_PUSH = false;
+  private final static int DO_PUSH = 0;
+  /** Detected View change. */
+  private final static int MSG_ON_VIEW_CHANGED = 1;
+  /** Detected Model change. */
+  private final static int MSG_ON_MODEL_CHANGED = 2;
+  /** Request unfreeze operation execution in UI thread. */
+  private final static int MSG_UNFREEZE = 3;
 
-  /** Weak references on listeners. */
-  private final Set<Lifecycle> mListeners = new WeakHashMap<Lifecycle, Lifecycle>().keySet();
+  /** Weak references on lifecycle listeners. */
+  private final Set<Lifecycle> mListeners = new WeakHashMap<Lifecycle, Void>().keySet();
   /** Facade For all types of the Views. */
   private final Selector<?, View> mFacade;
   /** Collection of all defined binding rules. */
@@ -40,7 +48,14 @@ public class BindingsManager {
   /** Freeze counter. */
   private final AtomicInteger mFreezeCounter = new AtomicInteger(0);
   /** Set of binding exchange transactions. We store order, binder and direction (boolean: true - pop, false - push). */
-  private final List<Pair<Binder, Boolean>> mPending = new ArrayList<>();
+  private final List<Pair<Binder, Integer>> mPending = new ArrayList<>();
+  /** Handler for forwarding processing to MAIN UI thread. */
+  private final Handler mDispatcher = new Handler(new Handler.Callback() {
+    @Override
+    public boolean handleMessage(final Message msg) {
+      return onHandleMessage(msg);
+    }
+  });
 
   /* [ CONSTRUCTORS ] ============================================================================================= */
 
@@ -91,6 +106,32 @@ public class BindingsManager {
 
   public static BindingsManager newInstance(@NonNull final BaseAdapter i, final Lifecycle listener) {
     return new BindingsManager(i).register(listener);
+  }
+
+  /* [ OVERRIDES ] ================================================================================================ */
+
+  /** UI THREAD! processing of messages in UI thread. */
+  protected boolean onHandleMessage(final Message msg) {
+
+    switch (msg.what) {
+      case MSG_ON_MODEL_CHANGED:
+        pop((Binder) msg.obj);
+        return true;
+
+      case MSG_ON_VIEW_CHANGED:
+        push((Binder) msg.obj);
+        return true;
+
+      case MSG_UNFREEZE:
+        if (DO_POP == msg.arg1) {
+          ((Binder) msg.obj).pop();
+        } else {
+          ((Binder) msg.obj).push();
+        }
+        return true;
+    }
+
+    return false;
   }
 
   /* [ BINDING RULES DEFINING ] =================================================================================== */
@@ -281,11 +322,18 @@ public class BindingsManager {
 
       // execute pending data exchange requests
       if (!mPending.isEmpty()) {
-        for (Pair<Binder, Boolean> p : mPending) {
-          if (/* DO_POP == */ p.second) {
-            pop(p.first);
+        for (Pair<Binder, Integer> p : mPending) {
+          // update is possible only in UI thread
+          if (View.class.isAssignableFrom(p.first.getViewType())) {
+            mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_UNFREEZE, p.second, -1, p.first));
+            continue;
+          }
+
+          // do data exchange
+          if (DO_POP == p.second) {
+            p.first.pop();
           } else {
-            push(p.first);
+            p.first.push();
           }
         }
 
@@ -306,6 +354,20 @@ public class BindingsManager {
     // TODO: can be executed only from MAIN thread!
 
     // TODO: force binding manager evaluate binding for each property
+  }
+
+  /* package */ void notifyOnViewChanged(@NonNull final Binder binder) {
+    mDispatcher.removeMessages(MSG_ON_VIEW_CHANGED);
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_VIEW_CHANGED, binder));
+  }
+
+  /* package */ void notifyOnModelChanged(@NonNull final Binder binder) {
+    mDispatcher.removeMessages(MSG_ON_MODEL_CHANGED);
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_MODEL_CHANGED, binder));
+  }
+
+  /* package */ void notifyOnValidation(@NonNull final Binder binder) {
+    // TODO: notify lifecycle on validation success or failure
   }
 
 	/* [ NESTED DECLARATIONS ] ====================================================================================== */

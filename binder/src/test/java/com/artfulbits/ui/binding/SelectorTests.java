@@ -1,5 +1,6 @@
 package com.artfulbits.ui.binding;
 
+import com.artfulbits.junit.TestHolder;
 import com.artfulbits.ui.binding.toolbox.Models;
 
 import org.junit.Test;
@@ -8,7 +9,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 /** Unit tests of the {@link com.artfulbits.ui.binding.Selector} class. */
-public class SelectorTests {
+public class SelectorTests extends TestHolder {
   /** Direct call. */
   @Test
   public void test_00_CommonUsage() throws Exception {
@@ -17,6 +18,8 @@ public class SelectorTests {
     di.getSubInner().setName("test");
 
     final Selector<DummyInner, String> sOwner = new Selector<>(di, Models.text("Owner"));
+
+    trace(sOwner.toString());
 
     assertThat(sOwner.get(), equalTo("owner"));
   }
@@ -31,6 +34,8 @@ public class SelectorTests {
     // chain of calls di.getSubInner().getName()
     final Selector<DummyInner, DummySubInner> sSub = new Selector<>(di, Models.<DummySubInner>from("SubInner"));
     final Selector<?, String> sName = new Selector<>(sSub, Models.text("Name"));
+
+    trace(sName.toString());
 
     assertThat(sName.get(), equalTo("test"));
     assertThat(sSub.get(), equalTo(di.getSubInner()));

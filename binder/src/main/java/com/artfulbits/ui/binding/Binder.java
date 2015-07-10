@@ -7,7 +7,12 @@ import com.artfulbits.ui.binding.toolbox.Formatter;
 
 import org.hamcrest.CoreMatchers;
 
-/** Base class for all binding rules keeping. */
+/**
+ * Base class for all binding rules keeping.
+ *
+ * @param <TLeft>  the type of View field
+ * @param <TRight> the type of Model field
+ */
 @SuppressWarnings("unused")
 public class Binder<TLeft, TRight> {
   /** Reference on binding owner. */
@@ -17,9 +22,9 @@ public class Binder<TLeft, TRight> {
   /** Reference on storage instance. */
   private Selector<?, TRight> mModel;
   /** View changes listener. */
-  private Listener<?> mOnView;
+  private Listener mOnView;
   /** Data model changes listener. */
-  private Listener<?> mOnModel;
+  private Listener mOnModel;
   /** Data type converter. */
   private Formatting<TLeft, TRight> mFormatting;
   /** Data validation. */
@@ -45,7 +50,7 @@ public class Binder<TLeft, TRight> {
 
   /* ============================================================================================================== */
 
-  public Binder<TLeft, TRight> view(final Selector<?, TLeft> view) {
+  public Binder<TLeft, TRight> view(@NonNull final Selector<?, TLeft> view) {
     mView = view;
 
     onView(mOnView);
@@ -53,7 +58,7 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
-  public Binder<TLeft, TRight> model(final Selector<?, TRight> model) {
+  public Binder<TLeft, TRight> model(@NonNull final Selector<?, TRight> model) {
     mModel = model;
 
     onModel(mOnModel);
@@ -61,36 +66,64 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
-  public Binder<TLeft, TRight> format(final Formatting<TLeft, TRight> formatting) {
+  public Binder<TLeft, TRight> format(@NonNull final Formatting<TLeft, TRight> formatting) {
     mFormatting = formatting;
 
     return this;
   }
 
-  public Binder<TLeft, TRight> validate(final org.hamcrest.Matcher<TRight> validator) {
+  public Binder<TLeft, TRight> validate(@NonNull final org.hamcrest.Matcher<TRight> validator) {
     mValidation = validator;
 
     return this;
   }
 
-  public Binder<TLeft, TRight> onView(final Listener<?> listener) {
+  public Binder<TLeft, TRight> onView(@NonNull final Listener listener) {
     mOnView = listener;
 
     if (null != mView) {
-      mView.listenTo(mOnView);
+      listener.binding(mView);
+
+      listener.willNotify(new Notifications() {
+        @Override
+        public void onChanged() {
+          mView.onChanged();
+
+          onViewChanged();
+        }
+      });
     }
 
     return this;
   }
 
-  public Binder<TLeft, TRight> onModel(final Listener<?> listener) {
+  public Binder<TLeft, TRight> onModel(@NonNull final Listener listener) {
     mOnModel = listener;
 
     if (null != mModel) {
-      mModel.listenTo(mOnModel);
+      listener.binding(mModel);
+
+      listener.willNotify(new Notifications() {
+        @Override
+        public void onChanged() {
+          mModel.onChanged();
+
+          onModelChanged();
+        }
+      });
     }
 
     return this;
+  }
+
+  /** Notify manager that binder detects view side changes. */
+  protected void onViewChanged() {
+    mManager.notifyOnViewChanged(this);
+  }
+
+  /** Notify manager that binder detects model side changes. */
+  protected void onModelChanged() {
+    mManager.notifyOnModelChanged(this);
   }
 
   /* ============================================================================================================== */

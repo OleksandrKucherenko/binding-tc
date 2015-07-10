@@ -31,6 +31,9 @@ public class ViewsTests extends TestHolder {
     assertThat(activity, is(notNullValue()));
     assertThat(selector, is(notNullValue()));
     assertThat(selector.get(), is(notNullValue()));
+
+    // any other call with different arguments should return NULL
+    assertThat(find.get(activity, 0), is(nullValue()));
   }
 
   public static class ActivityMock {
