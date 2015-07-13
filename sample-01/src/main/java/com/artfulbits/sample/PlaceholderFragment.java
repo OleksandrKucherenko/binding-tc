@@ -10,9 +10,12 @@ import android.widget.Button;
 
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingsManager;
-import com.artfulbits.ui.binding.toolbox.Formatter;
-import com.artfulbits.ui.binding.toolbox.Listeners;
 
+import static com.artfulbits.ui.binding.toolbox.Formatter.asInteger;
+import static com.artfulbits.ui.binding.toolbox.Listeners.anyOf;
+import static com.artfulbits.ui.binding.toolbox.Listeners.onFocusLost;
+import static com.artfulbits.ui.binding.toolbox.Listeners.onObservable;
+import static com.artfulbits.ui.binding.toolbox.Listeners.onTextChanged;
 import static com.artfulbits.ui.binding.toolbox.Models.bool;
 import static com.artfulbits.ui.binding.toolbox.Models.integer;
 import static com.artfulbits.ui.binding.toolbox.Models.pojo;
@@ -25,7 +28,6 @@ import static com.artfulbits.ui.binding.toolbox.Views.spinner;
 import static com.artfulbits.ui.binding.toolbox.Views.textView;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.AllOf.allOf;
-import static org.hamcrest.core.IsNot.not;
 
 /** Login fragment with simplest UI. */
 public class PlaceholderFragment extends Fragment implements BindingsManager.Lifecycle {
@@ -67,17 +69,17 @@ public class PlaceholderFragment extends Fragment implements BindingsManager.Lif
     // #2: limit user input by NUMBERS for PIN style password, 4 digits in length
     bm.numeric()
         .view(editText(getView(), R.id.et_password))
-        .onView(Listeners.onTextChanged())
-        .model(pojo(mUser, integer("Password")))
-        .onModel(Listeners.none())
-        .format(Formatter.<Integer>asNumber())
+        .onView(anyOf(onTextChanged(), onFocusLost()))
+        .model(pojo(mUser, integer("Pin")))
+        .onModel(onObservable("Pin"))
+        .format(asInteger())
         .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
 
     // edit Text - validation password
-    bm.texts()
+    bm.numeric()
         .view(editText(getView(), R.id.et_confirm_password))
-        .model(pojo(mUser, text("ConfirmPassword")))
-        .validate(is(not(emptyString()))); // ???
+        .model(pojo(mUser, integer("ConfirmPin")))
+        .validate(is(equalTo(mUser.getPin()))); // ???
 
     // spinner
     bm.integers()

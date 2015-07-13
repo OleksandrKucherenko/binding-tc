@@ -1,19 +1,24 @@
 package com.artfulbits.sample;
 
+import java.util.Observable;
+
 /** Typical POJO class. */
-public class User {
+public class User extends Observable {
   /** User name. */
-  private String  mLogin;
+  private String mLogin;
   /** Pin Code. */
-  private int     mPassword;
+  private int mPin;
+  /** Pin Code for confirmation. */
+  private int mConfirmPin;
   /** Persist password in app settings or not. */
   private boolean mStorePassword;
-  /** Persist login information in app settings or not.*/
+  /** Persist login information in app settings or not. */
   private boolean mStoreLogin;
   /** Selected group index. */
   private int mGroupSpin;
-  /** Selected initialization group. Variants are: 'Select New Group' or
-   * 'Continue from last point'; */
+  /**
+   * Selected initialization group. Variants are: 'Select New Group' or 'Continue from last point';
+   */
   private int mGroup;
   /** Is 'Select New Group' option chosen? */
   private boolean mSelectNewGroup;
@@ -36,12 +41,27 @@ public class User {
     mLogin = login;
   }
 
-  public int getPassword() {
-    return mPassword;
+  public int getPin() {
+    return mPin;
   }
 
-  public void setPassword(final int password) {
-    mPassword = password;
+  public void setPin(final int pin) {
+    mPin = pin;
+
+    notifyObservers("Pin");
+  }
+
+  public int getConfirmPin() {
+    return mConfirmPin;
+  }
+
+  public void setConfirmPin(final int confirmPin) {
+    mConfirmPin = confirmPin;
+
+    notifyObservers("ConfirmPin");
+
+    if (mConfirmPin == mPin && mPin != 0)
+      notifyObservers("PinsEqual");
   }
 
   public boolean isStorePassword() {

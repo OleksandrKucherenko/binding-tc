@@ -11,17 +11,20 @@ import com.artfulbits.ui.binding.Notifications;
 import com.artfulbits.ui.binding.Selector;
 
 import java.util.HashSet;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Set;
 
 /** Implementation of common listeners. */
 @SuppressWarnings("unused")
 public final class Listeners {
+  /* [ CONSTANTS ] ================================================================================================= */
+
   /** Generic EMPTY listener. */
   public final static Listener NONE = new Listener() {
     @Override
     public Listener binding(@NonNull final Selector<?, ?> instance) {
       // do nothing...
-
       return this;
     }
 
@@ -36,10 +39,14 @@ public final class Listeners {
     }
   };
 
+	/* [ CONSTRUCTORS ] ============================================================================================== */
+
   /** hidden constructor. */
   private Listeners() {
     throw new AssertionError();
   }
+
+	/* [ STATIC METHODS ] ============================================================================================ */
 
   /**
    * Join multiple listeners into one expression.
@@ -77,11 +84,21 @@ public final class Listeners {
 
   /**
    * Get 'empty listener' instance. this is simply a stub that can be used in expressions but it doing absolutely
-   * nothing.
+   * nothing. You can add Logs into stub, for making binding process more transparent.
    */
   @NonNull
   public static Listener none() {
     return NONE;
+  }
+
+  /** Raise notification on any change from Observable side. */
+  public static Listener onObservable() {
+    return new ObserverListener();
+  }
+
+  /** Listen to notifications from Observable instance and raise notification only if filter matched. */
+  public static Listener onObservable(final Object filter) {
+    return new ObserverListener(filter);
   }
 
   /** Detect text changes and raise data exchange on that. */
@@ -93,6 +110,8 @@ public final class Listeners {
   public static Listener onFocusLost() {
     return new FocusLostListener();
   }
+
+	/* [ NESTED DECLARATIONS ] ======================================================================================= */
 
   /** Listen to text changes of the TextView control. */
   private static class TextWatcherListener implements Listener, TextWatcher {
@@ -176,6 +195,58 @@ public final class Listeners {
     @Override
     public void detach(@NonNull final Notifications listener) {
       mKnown.remove(listener);
+    }
+  }
+
+  /** Listner to Observable instance. */
+  private static class ObserverListener implements Listener, Observer {
+    /** filter that allows any kind of data be treated as a notification to listener. */
+    public static final Object ANYTHING = new Object();
+    /** Set of notifiers. */
+    private final Set<Notifications> mKnown = new HashSet<>();
+    /** Filter instance. */
+    private final Object mFilter;
+
+    /** No filter, allowed all notifications. */
+    public ObserverListener() {
+      this(ANYTHING);
+    }
+
+    /** Define custom filter. */
+    public ObserverListener(final Object filter) {
+      mFilter = filter;
+    }
+
+    @Override
+    public Listener binding(@NonNull final Selector<?, ?> instance) {
+      final Object i = instance.getRuntimeInstance();
+
+      if (i instanceof Observable) {
+        final Observable ob = (Observable) i;
+
+        ob.addObserver(this);
+      }
+
+      return this;
+    }
+
+    @Override
+    public void willNotify(@NonNull final Notifications listener) {
+      mKnown.add(listener);
+    }
+
+    @Override
+    public void detach(@NonNull final Notifications listener) {
+      mKnown.remove(listener);
+    }
+
+    @Override
+    public void update(final Observable observable, final Object data) {
+      if (ANYTHING.equals(mFilter) || mFilter.equals(data)) {
+        for (Notifications selector : mKnown) {
+          selector.onChanged();
+        }
+      }
     }
   }
 }

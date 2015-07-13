@@ -5,7 +5,6 @@ import android.app.Fragment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Pair;
 import android.view.View;
 import android.widget.BaseAdapter;
@@ -32,12 +31,19 @@ public class BindingsManager {
   private final static int DO_POP = 1;
   /** Associated with PUSH action constant. */
   private final static int DO_PUSH = 0;
+
   /** Detected View change. */
   private final static int MSG_ON_VIEW_CHANGED = 1;
   /** Detected Model change. */
   private final static int MSG_ON_MODEL_CHANGED = 2;
   /** Request unfreeze operation execution in UI thread. */
-  private final static int MSG_UNFREEZE = 3;
+  private final static int MSG_UNFREEZE = 4;
+  /** Request validation report delivery in UI thread. */
+  private final static int MSG_VALIDATION = 8;
+  /** Request validation success report delivery in UI thread. */
+  private final static int MSG_SUCCESS = 16;
+  /** Request validation failure report delivery in UI thread. */
+  private final static int MSG_FAILURE = 32;
 
   /** Weak references on lifecycle listeners. */
   private final Set<Lifecycle> mListeners = new WeakHashMap<Lifecycle, Void>().keySet();
@@ -112,21 +118,36 @@ public class BindingsManager {
 
   /** UI THREAD! processing of messages in UI thread. */
   protected boolean onHandleMessage(final Message msg) {
+    final Binder binder = (msg.obj instanceof Binder) ? (Binder) msg.obj : null;
 
     switch (msg.what) {
       case MSG_ON_MODEL_CHANGED:
-        pop((Binder) msg.obj);
+        pop(binder);
         return true;
 
       case MSG_ON_VIEW_CHANGED:
-        push((Binder) msg.obj);
+        push(binder);
         return true;
 
       case MSG_UNFREEZE:
         if (DO_POP == msg.arg1) {
-          ((Binder) msg.obj).pop();
+          binder.pop();
         } else {
-          ((Binder) msg.obj).push();
+          binder.push();
+        }
+        return true;
+
+      case MSG_SUCCESS:
+        binder.getOnSuccess().onValidationSuccess(this, binder);
+        return true;
+
+      case MSG_FAILURE:
+        binder.getOnFailure().onValidationFailure(this, binder);
+        return true;
+
+      case MSG_VALIDATION:
+        for (Lifecycle lf : mListeners) {
+          lf.onValidationResult(this, isAllValid());
         }
         return true;
     }
@@ -164,6 +185,10 @@ public class BindingsManager {
     }
 
     return result;
+  }
+
+  public boolean isAllValid() {
+    return getFailedBindings().size() == 0;
   }
 
   public List<Binder> getSuccessBindings() {
@@ -225,7 +250,7 @@ public class BindingsManager {
   /* [ LIFECYCLE ] ================================================================================================ */
 
   /** Register lifecycle extender listener. */
-  public BindingsManager register(@Nullable final Lifecycle listener) {
+  public BindingsManager register(@NonNull final Lifecycle listener) {
     if (null != listener) {
       mListeners.add(listener);
     }
@@ -240,6 +265,32 @@ public class BindingsManager {
     }
 
     return this;
+  }
+
+  /* package */ void notifyOnViewChanged(@NonNull final Binder binder) {
+    mDispatcher.removeMessages(MSG_ON_VIEW_CHANGED);
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_VIEW_CHANGED, binder));
+  }
+
+  /* package */ void notifyOnModelChanged(@NonNull final Binder binder) {
+    mDispatcher.removeMessages(MSG_ON_MODEL_CHANGED);
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_MODEL_CHANGED, binder));
+  }
+
+  /* package */ void notifyOnValidation(@NonNull final Binder binder) {
+    // TODO: notify lifecycle on validation success or failure
+  }
+
+  /* package */ void notifyOnSuccess(@NonNull final Binder binder) {
+    if (null != binder.getOnSuccess()) {
+      mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_SUCCESS, binder));
+    }
+  }
+
+  /* package */ void notifyOnFailure(@NonNull final Binder binder) {
+    if (null != binder.getOnFailure()) {
+      mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_FAILURE, binder));
+    }
   }
 
 	/* [ PUSH AND POP ] ============================================================================================= */
@@ -354,20 +405,6 @@ public class BindingsManager {
     // TODO: can be executed only from MAIN thread!
 
     // TODO: force binding manager evaluate binding for each property
-  }
-
-  /* package */ void notifyOnViewChanged(@NonNull final Binder binder) {
-    mDispatcher.removeMessages(MSG_ON_VIEW_CHANGED);
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_VIEW_CHANGED, binder));
-  }
-
-  /* package */ void notifyOnModelChanged(@NonNull final Binder binder) {
-    mDispatcher.removeMessages(MSG_ON_MODEL_CHANGED);
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_MODEL_CHANGED, binder));
-  }
-
-  /* package */ void notifyOnValidation(@NonNull final Binder binder) {
-    // TODO: notify lifecycle on validation success or failure
   }
 
 	/* [ NESTED DECLARATIONS ] ====================================================================================== */

@@ -82,7 +82,7 @@ public class PlaceholderFragment extends Fragment implements BindingManager.Life
     // most robust syntax with all possible configuration chain calls
     final Binder bindPassword = bm
             .bind(view(withId(R.id.et_password), property("text")))
-            .model(pojo(mUser, property("password")))
+            .model(pojo(mUser, property("pin")))
             .formatter(direct())
             .validator(anything())
             .listenOnModel(none())

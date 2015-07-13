@@ -40,4 +40,8 @@ public final class Formatter {
       }
     };
   }
+
+  public static Formatting<String, Integer> asInteger() {
+    return asNumber();
+  }
 }

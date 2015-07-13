@@ -33,6 +33,10 @@ public class Binder<TLeft, TRight> {
   private TLeft mLastLeft;
   /** Value used in last evaluated/extracted/exchange operation. Model side. */
   private TRight mLastRight;
+  /** Callback that we raise on validation success. */
+  private Success mOnSuccess;
+  /** Callback that we raise on validation failure. */
+  private Failure mOnFailure;
 
   /* ============================================================================================================== */
 
@@ -50,6 +54,7 @@ public class Binder<TLeft, TRight> {
 
   /* ============================================================================================================== */
 
+  /** Assign View selector to a binder. */
   public Binder<TLeft, TRight> view(@NonNull final Selector<?, TLeft> view) {
     mView = view;
 
@@ -58,6 +63,7 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
+  /** Assign Model selector to a binder. */
   public Binder<TLeft, TRight> model(@NonNull final Selector<?, TRight> model) {
     mModel = model;
 
@@ -66,18 +72,21 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
+  /** Attach to binder a formatting provider. */
   public Binder<TLeft, TRight> format(@NonNull final Formatting<TLeft, TRight> formatting) {
     mFormatting = formatting;
 
     return this;
   }
 
+  /** Attach to binder a validation expression. */
   public Binder<TLeft, TRight> validate(@NonNull final org.hamcrest.Matcher<TRight> validator) {
     mValidation = validator;
 
     return this;
   }
 
+  /** Attach listener to View. Listener can force data exchange. */
   public Binder<TLeft, TRight> onView(@NonNull final Listener listener) {
     mOnView = listener;
 
@@ -97,6 +106,7 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
+  /** Attach listener to Model. Listener can force data exchange. */
   public Binder<TLeft, TRight> onModel(@NonNull final Listener listener) {
     mOnModel = listener;
 
@@ -116,14 +126,54 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
+  /**
+   * Attach callback/listener 'on validation success'.
+   *
+   * @param ok the instance of listener
+   * @return this binder, for chained calls
+   */
+  public Binder<TLeft, TRight> onSuccess(@NonNull final Success ok) {
+    mOnSuccess = ok;
+
+    return this;
+  }
+
+  /**
+   * Atach callback/listnere 'On validation failure'.
+   *
+   * @param failure the instance of listener
+   * @return this binder, for chained calls
+   */
+  public Binder<TLeft, TRight> onFailure(@NonNull final Failure failure) {
+    mOnFailure = failure;
+
+    return this;
+  }
+
+  /* ============================================================================================================== */
+
   /** Notify manager that binder detects view side changes. */
   protected void onViewChanged() {
-    mManager.notifyOnViewChanged(this);
+    if (null != mManager)
+      mManager.notifyOnViewChanged(this);
   }
 
   /** Notify manager that binder detects model side changes. */
   protected void onModelChanged() {
-    mManager.notifyOnModelChanged(this);
+    if (null != mManager)
+      mManager.notifyOnModelChanged(this);
+  }
+
+  /** Notify manager that validation successfully passed. */
+  protected void onValidationSuccess() {
+    if (null != mManager)
+      mManager.notifyOnSuccess(this);
+  }
+
+  /** Notify manager that validation failed. */
+  protected void onValidationFailure() {
+    if (null != mManager)
+      mManager.notifyOnFailure(this);
   }
 
   /* ============================================================================================================== */
@@ -140,9 +190,8 @@ public class Binder<TLeft, TRight> {
 
   @NonNull
   public Formatting<TLeft, TRight> resolveFormatting() {
-    if (null == mFormatting) {
+    if (null == mFormatting)
       mFormatting = Formatter.direct();
-    }
 
     return mFormatting;
   }
@@ -176,7 +225,12 @@ public class Binder<TLeft, TRight> {
     final TRight rValue = resolveFormatting().toIn(lValue);
 
     // validation
-    if (!resolveValidation().matches(rValue)) return;
+    if (resolveValidation().matches(rValue)) {
+      onValidationSuccess();
+    } else {
+      onValidationFailure();
+      return;  // no other steps needed in pop
+    }
 
     // if no changes since last request
     if (mLastRight == rValue) return;
@@ -186,7 +240,6 @@ public class Binder<TLeft, TRight> {
 
     // update Model
     resolveModel().set(getRuntimeModel(), rValue);
-
   }
 
   /**
@@ -205,7 +258,12 @@ public class Binder<TLeft, TRight> {
     mLastRight = rValue;
 
     // validation passed?
-    if (!resolveValidation().matches(rValue)) return;
+    if (resolveValidation().matches(rValue)) {
+      onValidationSuccess();
+    } else {
+      onValidationFailure();
+      return; // no other steps needed in push
+    }
 
     // do formatting
     final TLeft lValue = resolveFormatting().toOut(rValue);
@@ -228,6 +286,14 @@ public class Binder<TLeft, TRight> {
 
   public TRight getRuntimeView() {
     return (TRight) mView.getRuntimeInstance();
+  }
+
+  /* package */ Success getOnSuccess() {
+    return mOnSuccess;
+  }
+
+  /* package */ Failure getOnFailure() {
+    return mOnFailure;
   }
 
   protected final Class<TRight> getModelType() {
