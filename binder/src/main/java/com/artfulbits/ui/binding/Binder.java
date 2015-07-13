@@ -15,6 +15,23 @@ import org.hamcrest.CoreMatchers;
  */
 @SuppressWarnings("unused")
 public class Binder<TLeft, TRight> {
+  /* [ CONSTANTS ] ================================================================================================ */
+
+  /** POP operation validation passed. */
+  private static final int STATUS_OK_POP = 1;
+  /** POP operation validation failed. */
+  private static final int STATUS_FAIL_POP = 2;
+  /** PUSH operation validation passed. */
+  private static final int STATUS_OK_PUSH = 4;
+  /** PUSH operation validation failed. */
+  private static final int STATUS_FAIL_PUSH = 8;
+  /** Mask for filtering PUSH operation status. */
+  private static final int MASK_PUSH = STATUS_OK_PUSH | STATUS_FAIL_PUSH;
+  /** Mask for filtering POP operation status. */
+  private static final int MASK_POP = STATUS_OK_POP | STATUS_FAIL_POP;
+
+  /* ============================================================================================================== */
+
   /** Reference on binding owner. */
   private BindingsManager mManager;
   /** Reference on view instance. */
@@ -37,6 +54,8 @@ public class Binder<TLeft, TRight> {
   private Success mOnSuccess;
   /** Callback that we raise on validation failure. */
   private Failure mOnFailure;
+  /** Status of last push/pop operation. */
+  private int mStatus;
 
   /* ============================================================================================================== */
 
@@ -188,6 +207,7 @@ public class Binder<TLeft, TRight> {
     return null;
   }
 
+  /** Resolve formatting to instance that can be executed. */
   @NonNull
   public Formatting<TLeft, TRight> resolveFormatting() {
     if (null == mFormatting)
@@ -196,6 +216,7 @@ public class Binder<TLeft, TRight> {
     return mFormatting;
   }
 
+  /** Resolve validator to instance that can be executed. */
   @NonNull
   public org.hamcrest.Matcher<TRight> resolveValidation() {
     if (null == mValidation) {
@@ -226,8 +247,10 @@ public class Binder<TLeft, TRight> {
 
     // validation
     if (resolveValidation().matches(rValue)) {
+      mStatus &= MASK_PUSH; // save PUSH status, reset POP status
       onValidationSuccess();
     } else {
+      mStatus = (mStatus & MASK_PUSH) | STATUS_FAIL_POP;
       onValidationFailure();
       return;  // no other steps needed in pop
     }
@@ -259,8 +282,10 @@ public class Binder<TLeft, TRight> {
 
     // validation passed?
     if (resolveValidation().matches(rValue)) {
+      mStatus &= MASK_POP; // save POP status, reset PUSH status
       onValidationSuccess();
     } else {
+      mStatus = (mStatus & MASK_POP) | STATUS_FAIL_PUSH;
       onValidationFailure();
       return; // no other steps needed in push
     }
@@ -279,6 +304,16 @@ public class Binder<TLeft, TRight> {
   }
 
   /* ============================================================================================================== */
+
+  /** Is pop operation validation passed? */
+  public boolean isPopOk() {
+    return (mStatus & MASK_POP) == 0;
+  }
+
+  /** Is push operation validation passed? */
+  public boolean isPushOk() {
+    return (mStatus & MASK_PUSH) == 0;
+  }
 
   public TLeft getRuntimeModel() {
     return (TLeft) mModel.getRuntimeInstance();

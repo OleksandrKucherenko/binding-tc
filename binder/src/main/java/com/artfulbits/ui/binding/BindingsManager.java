@@ -50,7 +50,7 @@ public class BindingsManager {
   /** Facade For all types of the Views. */
   private final Selector<?, View> mFacade;
   /** Collection of all defined binding rules. */
-  private final List<Binder> mRules = new LinkedList<Binder>();
+  private final List<Binder> mRules = new LinkedList<>();
   /** Freeze counter. */
   private final AtomicInteger mFreezeCounter = new AtomicInteger(0);
   /** Set of binding exchange transactions. We store order, binder and direction (boolean: true - pop, false - push). */
@@ -157,6 +157,7 @@ public class BindingsManager {
 
   /* [ BINDING RULES DEFINING ] =================================================================================== */
 
+  /** Get list of all binding rules. */
   public List<Binder> getBindings() {
     return mRules;
   }
@@ -187,22 +188,35 @@ public class BindingsManager {
     return result;
   }
 
+  /** Is all rules successfully validated? */
   public boolean isAllValid() {
     return getFailedBindings().size() == 0;
   }
 
+  /** Get list of all successfully validated bindings. */
   public List<Binder> getSuccessBindings() {
     final List<Binder> result = new LinkedList<>();
 
-    // TODO: do the search
+    // if POP or PUSH operation never performed, than we assume that they are in OK state
+    for (final Binder b : mRules) {
+      if (b.isPopOk() && b.isPushOk()) {
+        result.add(b);
+      }
+    }
 
     return result;
   }
 
+  /** Get list of failed validated bindings. */
   public List<Binder> getFailedBindings() {
     final List<Binder> result = new LinkedList<>();
 
-    // TODO: do the search
+    // at least one operation should be in failed state
+    for (final Binder b : mRules) {
+      if (!b.isPopOk() || !b.isPushOk()) {
+        result.add(b);
+      }
+    }
 
     return result;
   }
@@ -215,8 +229,8 @@ public class BindingsManager {
     return result.attachToManager(this);
   }
 
-  public <TLeft, TRight> Binder<TLeft, TRight> bind(final Selector<?, TLeft> view,
-                                                    final Selector<?, TRight> model) {
+  public <TLeft, TRight> Binder<TLeft, TRight> bind(@NonNull final Selector<?, TLeft> view,
+                                                    @NonNull final Selector<?, TRight> model) {
     final Binder<TLeft, TRight> result = new Binder<>();
 
     return result
