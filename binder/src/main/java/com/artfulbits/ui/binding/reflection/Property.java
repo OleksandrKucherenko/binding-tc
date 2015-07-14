@@ -207,7 +207,7 @@ public class Property<T> {
     }
 
     // search required
-    if (null != result && null != mName) {
+    if (null == result && null != mName) {
       for (final String prefix : KNOWN_SETTERS) {
         final String name = prefix + mName;
         result = ReflectionUtils.find(methods, name);

@@ -302,6 +302,7 @@ android {
   applicationVariants.all { variant ->
     variant.outputs.each { output ->
       def String ANDROID_NAME_SPACE = "http://schemas.android.com/apk/res/android"
+      def String ANDROID_TOOLSNS = "http://schemas.android.com/tools"
 
       // for Debug:
       //        rootProject.logger.lifecycle('----------------------------------')
@@ -318,8 +319,14 @@ android {
         def packageName = manifestXml.getAttribute("package")
         def versionCode = manifestXml.getAttributeNS(ANDROID_NAME_SPACE, "versionCode")
         def versionName = manifestXml.getAttributeNS(ANDROID_NAME_SPACE, "versionName")
+        def isIgnoreMan = manifestXml.getAttributeNS(ANDROID_TOOLSNS, "ignore")
         def gitRevision = project.hasProperty("GIT_REVISION") ? project.properties["GIT_REVISION"] : "0"
         def versionType = output.name
+
+        // use versionCode & versionName from gradle
+        boolean isOverride = isIgnoreMan.contains("GradleOverrides");
+        if (isOverride || versionCode.length() == 0) versionCode = variant.versionCode
+        if (isOverride || versionName.length() == 0) versionName = variant.versionName
 
         // modify file name
         def file = output.outputFile
@@ -328,7 +335,7 @@ android {
         output.outputFile = new File(file.parent, newFilename)
 
         // dump into logs final filename
-        def log = "Application variant.outputs output file name: '${newFilename}'"
+        def log = "Application variant.outputs output file name (gradle overrides: ${isOverride}): '${newFilename}'"
         rootProject.logger.lifecycle(log)
       }
     }

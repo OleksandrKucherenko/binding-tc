@@ -18,17 +18,17 @@ public class Binder<TLeft, TRight> {
   /* [ CONSTANTS ] ================================================================================================ */
 
   /** POP operation validation passed. */
-  private static final int STATUS_OK_POP = 1;
+  private static final int STATUS_FAIL_GET_POP = 1;
   /** POP operation validation failed. */
   private static final int STATUS_FAIL_POP = 2;
   /** PUSH operation validation passed. */
-  private static final int STATUS_OK_PUSH = 4;
+  private static final int STATUS_FAIL_GET_PUSH = 4;
   /** PUSH operation validation failed. */
   private static final int STATUS_FAIL_PUSH = 8;
   /** Mask for filtering PUSH operation status. */
-  private static final int MASK_PUSH = STATUS_OK_PUSH | STATUS_FAIL_PUSH;
+  private static final int MASK_PUSH = STATUS_FAIL_GET_PUSH | STATUS_FAIL_PUSH;
   /** Mask for filtering POP operation status. */
-  private static final int MASK_POP = STATUS_OK_POP | STATUS_FAIL_POP;
+  private static final int MASK_POP = STATUS_FAIL_GET_POP | STATUS_FAIL_POP;
 
   /* ============================================================================================================== */
 
@@ -71,13 +71,20 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
+  @Override
+  public String toString() {
+    return "POP : " + mView.toString() + " ==> " + mModel.toString() + " / " +
+        "PUSH: " + mModel.toString() + " <== " + mView.toString();
+  }
+
   /* ============================================================================================================== */
 
   /** Assign View selector to a binder. */
   public Binder<TLeft, TRight> view(@NonNull final Selector<?, TLeft> view) {
     mView = view;
 
-    onView(mOnView);
+    if (null != mOnView)
+      onView(mOnView);
 
     return this;
   }
@@ -86,7 +93,8 @@ public class Binder<TLeft, TRight> {
   public Binder<TLeft, TRight> model(@NonNull final Selector<?, TRight> model) {
     mModel = model;
 
-    onModel(mOnModel);
+    if (null != mOnModel)
+      onModel(mOnModel);
 
     return this;
   }
@@ -185,26 +193,38 @@ public class Binder<TLeft, TRight> {
 
   /** Notify manager that validation successfully passed. */
   protected void onValidationSuccess() {
-    if (null != mManager)
+    if (null != mManager) {
       mManager.notifyOnSuccess(this);
+    } else {
+      // no one listen to us, ignore them too
+      if (null == mOnSuccess) return;
+
+      mOnSuccess.onValidationSuccess(null, this);
+    }
   }
 
   /** Notify manager that validation failed. */
   protected void onValidationFailure() {
-    if (null != mManager)
+    if (null != mManager) {
       mManager.notifyOnFailure(this);
+    } else {
+      // no one listen to us, ignore them too
+      if (null == mOnFailure) return;
+
+      mOnFailure.onValidationFailure(null, this);
+    }
   }
 
   /* ============================================================================================================== */
 
   @NonNull
   public Property<TLeft> resolveView() {
-    return null;
+    return mView.getProperty();
   }
 
   @NonNull
   public Property<TRight> resolveModel() {
-    return null;
+    return mModel.getProperty();
   }
 
   /** Resolve formatting to instance that can be executed. */
@@ -221,7 +241,7 @@ public class Binder<TLeft, TRight> {
   public org.hamcrest.Matcher<TRight> resolveValidation() {
     if (null == mValidation) {
       // by default we validating only data type
-      return CoreMatchers.isA(getModelType());
+      return CoreMatchers.isA(resolveModel().getDataType());
     }
 
     return mValidation;
@@ -229,12 +249,19 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: View --> Model.
-   * <p>
+   * <p/>
    * Data flow: View --> IsChanged --> Formatter --> Validator --> Is Changed --> Model;
    */
   public void pop() {
     // get value from View
     final TLeft lValue = resolveView().get(getRuntimeView());
+
+    // getter is not resolved,
+    if (null == resolveView().getGetterName()) {
+      mStatus = (mStatus & MASK_PUSH) | STATUS_FAIL_POP | STATUS_FAIL_GET_POP;
+      onValidationFailure();
+      return;
+    }
 
     // if no changes since last request
     if (mLastLeft == lValue) return;
@@ -267,12 +294,19 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: Model --> View.
-   * <p>
+   * <p/>
    * Data flow: Model --> Is Changed --> Validator --> Formatter --> Is Changed --> View.
    */
   public void push() {
     // extract the value
     final TRight rValue = resolveModel().get(getRuntimeModel());
+
+    // getter is not resolved,
+    if (null == resolveModel().getGetterName()) {
+      mStatus = (mStatus & MASK_PUSH) | STATUS_FAIL_POP | STATUS_FAIL_GET_PUSH;
+      onValidationFailure();
+      return;
+    }
 
     // is changed?
     if (mLastRight == rValue) return;
@@ -331,11 +365,11 @@ public class Binder<TLeft, TRight> {
     return mOnFailure;
   }
 
-  protected final Class<TRight> getModelType() {
-    return (Class<TRight>) mModel.getInstanceType();
+  protected final Class<?> getModelType() {
+    return mModel.getInstanceType();
   }
 
-  protected final Class<TLeft> getViewType() {
-    return (Class<TLeft>) mView.getInstanceType();
+  protected final Class<?> getViewType() {
+    return mView.getInstanceType();
   }
 }

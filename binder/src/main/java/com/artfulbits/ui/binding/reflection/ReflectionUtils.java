@@ -320,6 +320,11 @@ public final class ReflectionUtils {
 
       return mF.get(receiver);
     }
+
+    @Override
+    public String toString() {
+      return "field: " + getName();
+    }
   }
 
   /** Facade for method. */
@@ -347,6 +352,11 @@ public final class ReflectionUtils {
     @Override
     public Object invoke(final Object receiver, final Object... args) throws IllegalAccessException, InvocationTargetException {
       return mM.invoke(receiver, args);
+    }
+
+    @Override
+    public String toString() {
+      return "method: " + getName();
     }
   }
 }

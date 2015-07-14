@@ -11,7 +11,7 @@ import android.widget.Button;
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingsManager;
 
-import static com.artfulbits.ui.binding.toolbox.Formatter.asInteger;
+import static com.artfulbits.ui.binding.toolbox.Formatter.toInteger;
 import static com.artfulbits.ui.binding.toolbox.Listeners.anyOf;
 import static com.artfulbits.ui.binding.toolbox.Listeners.onFocusLost;
 import static com.artfulbits.ui.binding.toolbox.Listeners.onObservable;
@@ -72,7 +72,7 @@ public class PlaceholderFragment extends Fragment implements BindingsManager.Lif
         .onView(anyOf(onTextChanged(), onFocusLost()))
         .model(pojo(mUser, integer("Pin")))
         .onModel(onObservable("Pin"))
-        .format(asInteger())
+        .format(toInteger())
         .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
 
     // edit Text - validation password
