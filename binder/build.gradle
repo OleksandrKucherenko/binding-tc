@@ -1,5 +1,7 @@
 // Library: binding-tc, Android Easy Binding (AEB)
 
+import org.apache.tools.ant.taskdefs.condition.Os
+
 buildscript {
   repositories {
     jcenter()
@@ -115,6 +117,8 @@ dependencies {
 }
 
 android {
+  compileOptions.encoding = 'UTF-8' // force UTF-8 encoding
+
   compileSdkVersion androidCompileSdkVersion
   buildToolsVersion androidBuildToolsVersion
 
@@ -261,7 +265,7 @@ afterEvaluate {
   /* Patch classpath of the test tasks for using our own version of the mockable JAR */
   tasks.matching { it.name.startsWith("test") }.each { t ->
     def old = "mockable-android-${androidTargetSdkVersion}.jar"
-    def mock = "${project.buildDir}\\intermediates\\patched-mockable-android-${androidTargetSdkVersion}.jar"
+    def mock = adoptToOs("${project.buildDir}\\intermediates\\patched-mockable-android-${androidTargetSdkVersion}.jar")
 
     try {
       t.classpath = files(t.classpath.files, mock).filter { it.name != old }
@@ -284,7 +288,7 @@ def createTestResourcesTask(String f, String b) {
     group = 'Unit Testing'
 
     from project.android.sourceSets["test"].resources.srcDirs
-    into "${project.buildDir}/intermediates/classes/test/${f}/${b}"
+    into adoptToOs("${project.buildDir}/intermediates/classes/test/${f}/${b}")
   }
 
   tasks.matching { it.name.equalsIgnoreCase("test${flavor}${buildType}") }.each {
@@ -301,8 +305,8 @@ task copyMockableAndroidJar(type: Copy) {
   inputs.property "api", androidTargetSdkVersion
   outputs.files "mockable-android-${androidTargetSdkVersion}-original.jar"
 
-  from "${project.buildDir}/intermediates/mockable-android-${androidTargetSdkVersion}.jar"
-  into "${project.buildDir}/intermediates/"
+  from adoptToOs("${project.buildDir}/intermediates/mockable-android-${androidTargetSdkVersion}.jar")
+  into adoptToOs("${project.buildDir}/intermediates/")
 
   rename { String fileName ->
     fileName.replace("mockable-android-${androidTargetSdkVersion}.jar",
@@ -319,7 +323,7 @@ task patchMockableAndroidJar(type: Zip, dependsOn: copyMockableAndroidJar) {
   entryCompression = ZipEntryCompression.STORED  // speedup task by excluding compression
   destinationDir = file("${project.buildDir}/intermediates")
   archiveName = "patched-mockable-android-${androidTargetSdkVersion}.jar"
-  def source = "${project.buildDir}/intermediates/mockable-android-${androidTargetSdkVersion}-original.jar"
+  def source = adoptToOs("${project.buildDir}/intermediates/mockable-android-${androidTargetSdkVersion}-original.jar")
 
   // exclude from Mocks Jar classes which we replace by own implementation
   from(zipTree(source)) {
@@ -460,6 +464,22 @@ if (ALLOW_PUBLISHING) {
 }
 
 /* [ HELPERS ] ====================================================================================================== */
+
+def adoptToOs(String path) {
+  // remove doubled dir separators
+  path = path.replace("//", "/")
+  path = path.replace("\\\\", "\\")
+
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) { // windows
+    path = path.replace("/", "\\")
+  } else if (Os.isFamily(Os.FAMILY_UNIX)) { // linux
+    path = path.replace("\\", "/")
+  } else if (Os.isFamily(Os.FAMILY_MAC)) { // mac os
+    path = path.replace("\\", "/")
+  }
+
+  return path;
+}
 
 def iterateVariants(func) {
   if (project.android.productFlavors.size() > 0) {

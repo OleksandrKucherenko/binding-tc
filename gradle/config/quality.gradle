@@ -55,6 +55,10 @@ if (ENABLE_QUALITY && useTesting && useJacoco) {
 /* [ HELPERS ] ====================================================================================================== */
 
 def adoptToOs(String path) {
+  // remove doubled dir separators
+  path = path.replace("//", "/")
+  path = path.replace("\\\\", "\\")
+
   if (Os.isFamily(Os.FAMILY_WINDOWS)) { // windows
     path = path.replace("/", "\\")
   } else if (Os.isFamily(Os.FAMILY_UNIX)) { // linux
@@ -123,7 +127,7 @@ def createTestOpenResultsTask(String f, String b) {
   def buildType = b.capitalize()
   def taskName = "openTestReport${flavor}${buildType}"
 
-  project.task(taskName, type: Exec, dependsOn: ["test${flavor}${buildType}"]) {
+  project.task(taskName, type: Exec, dependsOn: ["test${flavor}${buildType}UnitTest"]) {
     // Task opens report file in default web-browser
     description = 'open Unit Tests results in current web browser'
     group = 'Reporting Routine'
@@ -146,7 +150,7 @@ def createJacocoOpenResultsTask(String f, String b) {
   def buildType = b.capitalize()
   def taskName = "generateJacocoReport${flavor}${buildType}"
 
-  project.task(taskName, type: JacocoReport, dependsOn: ["test${flavor}${buildType}"]) {
+  project.task(taskName, type: JacocoReport, dependsOn: ["test${flavor}${buildType}UnitTest"]) {
     description = 'Generates Jacoco coverage reports: XML and HTML'
     group = 'Reporting Routine'
 
@@ -193,7 +197,7 @@ def createJacocoOpenResultsTask(String f, String b) {
 
     def path = """${project.buildDir}/reports/jacoco/${flavor}/${buildType}/index.html"""
 
-    rootProject.logger.info('  report: ' + path)
+    rootProject.logger.info("  report: ${adoptToOs(path)}")
     commandLine openExternalBrowser(adoptToOs(path))
   }
 
