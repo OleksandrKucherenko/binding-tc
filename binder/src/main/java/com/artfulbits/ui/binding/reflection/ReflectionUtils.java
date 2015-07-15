@@ -316,6 +316,7 @@ public final class ReflectionUtils {
       // DONE: detect do we need Get or Set by number of parameters
       if (null != args && args.length > 0) {
         mF.set(receiver, args[0]);
+        return args[0];
       }
 
       return mF.get(receiver);
