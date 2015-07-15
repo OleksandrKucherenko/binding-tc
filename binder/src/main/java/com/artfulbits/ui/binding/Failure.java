@@ -11,5 +11,5 @@ public interface Failure {
    * @param bm the manager instance to which binder attached.
    * @param b  the binder instance that raise event
    */
-  void onValidationFailure(@Nullable final BindingsManager bm, @NonNull final Binder b);
+  void onValidationFailure(@Nullable final BindingsManager bm, @NonNull final Binder<?, ?> b);
 }

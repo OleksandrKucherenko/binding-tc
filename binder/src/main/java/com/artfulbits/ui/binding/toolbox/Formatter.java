@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import com.artfulbits.ui.binding.Formatting;
 
 /** Methods for construction of typical data type converter's. */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "unchecked"})
 public final class Formatter {
   /* [ CONSTRUCTORS ] ============================================================================================== */
 

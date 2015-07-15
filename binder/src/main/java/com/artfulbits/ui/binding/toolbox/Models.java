@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /** Helpers that simplify common operations with different data storage instances. */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "unchecked"})
 public final class Models {
 
   private Models() {

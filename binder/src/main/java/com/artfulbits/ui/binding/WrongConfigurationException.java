@@ -7,6 +7,8 @@ package com.artfulbits.ui.binding;
  * check.
  */
 public class WrongConfigurationException extends Error {
+  /** Serialization identifier. */
+  private static final long serialVersionUID = 498019655467980342L;
 
   public WrongConfigurationException(final String msg) {
     super(msg);

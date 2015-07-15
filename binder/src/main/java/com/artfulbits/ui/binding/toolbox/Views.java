@@ -21,7 +21,7 @@ import static com.artfulbits.ui.binding.toolbox.Models.integer;
 import static com.artfulbits.ui.binding.toolbox.Models.text;
 
 /** Methods for simplifying access to different types of View storage's. */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "unchecked"})
 public final class Views {
   /* [ VIEW SELECTOR ] ============================================================================================ */
 

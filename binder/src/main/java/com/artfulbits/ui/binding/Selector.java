@@ -36,10 +36,10 @@ public class Selector<I, V> implements Notifications {
   /**
    * Return human readable resolved to string selector. If runtime binding not happens yet, resolving to string may
    * provide 'incomplete' selector without correct properties names.
-   * <p>
+   * <p/>
    * Example 1: {View}.getText()/{View}.setText() | setText()<br/> Example 2: ({Activity}.findViewById(...)).getText() |
    * setText()<br/> Example 3: (({Data}.getSubItem()).getView()).getText() | setText()
-   * <p>
+   * <p/>
    * Syntax:<br/> {} - dynamic type, resolved in runtime<br/> &lt;&gt; - constant<br/> ... - arguments expected;
    */
   @Override
@@ -62,6 +62,7 @@ public class Selector<I, V> implements Notifications {
   }
 
   /** Return reference on associated instance. */
+  @SuppressWarnings({"unchecked"})
   public I getRuntimeInstance() {
     // late binding trick, allows to build a chain of calls
     if (mInstance instanceof Selector) {

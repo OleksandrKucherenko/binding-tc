@@ -93,13 +93,13 @@ public class BinderTests extends TestHolder {
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
-          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder b) {
+          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
             trace("success validation");
           }
         })
         .onFailure(new Failure() {
           @Override
-          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder b) {
+          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
             trace("failure validation");
           }
         });

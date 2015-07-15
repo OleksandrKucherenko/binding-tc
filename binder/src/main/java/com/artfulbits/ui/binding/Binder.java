@@ -13,7 +13,7 @@ import org.hamcrest.CoreMatchers;
  * @param <TLeft>  the type of View field
  * @param <TRight> the type of Model field
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "unchecked"})
 public class Binder<TLeft, TRight> {
   /* [ CONSTANTS ] ================================================================================================ */
 

@@ -50,11 +50,11 @@ public class BindingsManager {
   /** Facade For all types of the Views. */
   private final Selector<?, View> mFacade;
   /** Collection of all defined binding rules. */
-  private final List<Binder> mRules = new LinkedList<>();
+  private final List<Binder<?, ?>> mRules = new LinkedList<>();
   /** Freeze counter. */
   private final AtomicInteger mFreezeCounter = new AtomicInteger(0);
   /** Set of binding exchange transactions. We store order, binder and direction (boolean: true - pop, false - push). */
-  private final List<Pair<Binder, Integer>> mPending = new ArrayList<>();
+  private final List<Pair<Binder<?, ?>, Integer>> mPending = new ArrayList<>();
   /** Handler for forwarding processing to MAIN UI thread. */
   private final Handler mDispatcher = new Handler(new Handler.Callback() {
     @Override
@@ -118,7 +118,7 @@ public class BindingsManager {
 
   /** UI THREAD! processing of messages in UI thread. */
   protected boolean onHandleMessage(final Message msg) {
-    final Binder binder = (msg.obj instanceof Binder) ? (Binder) msg.obj : null;
+    final Binder<?, ?> binder = (msg.obj instanceof Binder) ? (Binder<?, ?>) msg.obj : null;
 
     switch (msg.what) {
       case MSG_ON_MODEL_CHANGED:
@@ -158,13 +158,13 @@ public class BindingsManager {
   /* [ BINDING RULES DEFINING ] =================================================================================== */
 
   /** Get list of all binding rules. */
-  public List<Binder> getBindings() {
+  public List<Binder<?, ?>> getBindings() {
     return mRules;
   }
 
   /** Get list of binder's that interact with specified model model. */
-  public List<Binder> getBindingsByModel(@NonNull final Object model) {
-    final List<Binder> result = new LinkedList<>();
+  public List<Binder<?, ?>> getBindingsByModel(@NonNull final Object model) {
+    final List<Binder<?, ?>> result = new LinkedList<>();
 
     for (Binder<?, ?> b : mRules) {
       if (model.equals(b.getRuntimeModel())) {
@@ -176,8 +176,8 @@ public class BindingsManager {
   }
 
   /** Get list of binder's that interact with specified view view. */
-  public List<Binder> getBindingsByView(@NonNull final Object view) {
-    final List<Binder> result = new LinkedList<>();
+  public List<Binder<?, ?>> getBindingsByView(@NonNull final Object view) {
+    final List<Binder<?, ?>> result = new LinkedList<>();
 
     for (Binder<?, ?> b : mRules) {
       if (view.equals(b.getRuntimeView())) {
@@ -194,11 +194,11 @@ public class BindingsManager {
   }
 
   /** Get list of all successfully validated bindings. */
-  public List<Binder> getSuccessBindings() {
-    final List<Binder> result = new LinkedList<>();
+  public List<Binder<?, ?>> getSuccessBindings() {
+    final List<Binder<?, ?>> result = new LinkedList<>();
 
     // if POP or PUSH operation never performed, than we assume that they are in OK state
-    for (final Binder b : mRules) {
+    for (final Binder<?, ?> b : mRules) {
       if (b.isPopOk() && b.isPushOk()) {
         result.add(b);
       }
@@ -208,11 +208,11 @@ public class BindingsManager {
   }
 
   /** Get list of failed validated bindings. */
-  public List<Binder> getFailedBindings() {
-    final List<Binder> result = new LinkedList<>();
+  public List<Binder<?, ?>> getFailedBindings() {
+    final List<Binder<?, ?>> result = new LinkedList<>();
 
     // at least one operation should be in failed state
-    for (final Binder b : mRules) {
+    for (final Binder<?, ?> b : mRules) {
       if (!b.isPopOk() || !b.isPushOk()) {
         result.add(b);
       }
@@ -281,27 +281,27 @@ public class BindingsManager {
     return this;
   }
 
-  /* package */ void notifyOnViewChanged(@NonNull final Binder binder) {
+  /* package */ void notifyOnViewChanged(@NonNull final Binder<?, ?> binder) {
     mDispatcher.removeMessages(MSG_ON_VIEW_CHANGED);
     mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_VIEW_CHANGED, binder));
   }
 
-  /* package */ void notifyOnModelChanged(@NonNull final Binder binder) {
+  /* package */ void notifyOnModelChanged(@NonNull final Binder<?, ?> binder) {
     mDispatcher.removeMessages(MSG_ON_MODEL_CHANGED);
     mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_MODEL_CHANGED, binder));
   }
 
-  /* package */ void notifyOnValidation(@NonNull final Binder binder) {
+  /* package */ void notifyOnValidation(@NonNull final Binder<?, ?> binder) {
     // TODO: notify lifecycle on validation success or failure
   }
 
-  /* package */ void notifyOnSuccess(@NonNull final Binder binder) {
+  /* package */ void notifyOnSuccess(@NonNull final Binder<?, ?> binder) {
     if (null != binder.getOnSuccess()) {
       mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_SUCCESS, binder));
     }
   }
 
-  /* package */ void notifyOnFailure(@NonNull final Binder binder) {
+  /* package */ void notifyOnFailure(@NonNull final Binder<?, ?> binder) {
     if (null != binder.getOnFailure()) {
       mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_FAILURE, binder));
     }
@@ -315,7 +315,7 @@ public class BindingsManager {
    * @param instance the instance of model
    */
   public BindingsManager pushByModel(@NonNull final Object instance) {
-    for (final Binder bind : getBindingsByModel(instance)) {
+    for (final Binder<?, ?> bind : getBindingsByModel(instance)) {
       push(bind);
     }
 
@@ -327,9 +327,9 @@ public class BindingsManager {
    *
    * @param binder binding rule.
    */
-  public BindingsManager push(@NonNull final Binder binder) {
+  public BindingsManager push(@NonNull final Binder<?, ?> binder) {
     if (isFrozen()) {
-      mPending.add(new Pair<>(binder, DO_PUSH));
+      mPending.add(new Pair<Binder<?, ?>, Integer>(binder, DO_PUSH));
     } else {
       binder.push();
     }
@@ -343,7 +343,7 @@ public class BindingsManager {
    * @param instance the instance of model
    */
   public BindingsManager popByModel(@NonNull final Object instance) {
-    for (final Binder bind : getBindingsByModel(instance)) {
+    for (final Binder<?, ?> bind : getBindingsByModel(instance)) {
       pop(bind);
     }
 
@@ -355,9 +355,9 @@ public class BindingsManager {
    *
    * @param binder binding rule.
    */
-  public BindingsManager pop(@NonNull final Binder binder) {
+  public BindingsManager pop(@NonNull final Binder<?, ?> binder) {
     if (isFrozen()) {
-      mPending.add(new Pair<>(binder, DO_POP));
+      mPending.add(new Pair<Binder<?, ?>, Integer>(binder, DO_POP));
     } else {
       binder.pop();
     }
@@ -387,7 +387,7 @@ public class BindingsManager {
 
       // execute pending data exchange requests
       if (!mPending.isEmpty()) {
-        for (Pair<Binder, Integer> p : mPending) {
+        for (Pair<Binder<?, ?>, Integer> p : mPending) {
           // update is possible only in UI thread
           if (View.class.isAssignableFrom(p.first.getViewType())) {
             mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_UNFREEZE, p.second, -1, p.first));
