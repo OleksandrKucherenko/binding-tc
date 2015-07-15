@@ -38,6 +38,8 @@ apply from: "${rootProject.rootDir}/gradle/config/quality.gradle"
 
 /* DEFINE REPOSITORY WITH LATEST ROBOLECTRIC VERSION */
 repositories {
+  jcenter()
+  mavenLocal()
   mavenCentral()
   maven {
     url 'https://oss.sonatype.org/content/repositories/snapshots/'
@@ -337,8 +339,7 @@ task patchMockableAndroidJar(type: Zip, dependsOn: copyMockableAndroidJar) {
 if (useJacoco) {
   /* be specific about JaCoCo version. */
   jacoco {
-    version JaCoCoVersion
-    //destinationFile = file("${project.buildDir}/jacoco/jacoco.exec")
+    toolVersion JaCoCoVersion
   }
 
   apply plugin: 'com.github.kt3k.coveralls'

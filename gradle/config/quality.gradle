@@ -159,8 +159,10 @@ def createJacocoOpenResultsTask(String f, String b) {
 
     // exclude auto-generated classes and tests
     def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*', '**/Mock*.*']
-    def testsTree = fileTree(dir: "${project.buildDir}/intermediates/classes/test/${flavor}/${buildType}", excludes: fileFilter)
-    def flavorTree = fileTree(dir: "${project.buildDir}/intermediates/classes/${flavor}/${buildType}", excludes: fileFilter)
+    def tstSrcDir = adoptToOs("${project.buildDir}/intermediates/classes/test/${flavor}/${b.toLowerCase()}")
+    def flavorSrcDir = adoptToOs("${project.buildDir}/intermediates/classes/${flavor}/${b.toLowerCase()}")
+    def testsTree = fileTree(dir: tstSrcDir, excludes: fileFilter)
+    def flavorTree = fileTree(dir: flavorSrcDir, excludes: fileFilter)
 
     // sources
     def testsSrc = "${project.projectDir}/src/test/java"

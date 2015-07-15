@@ -1,8 +1,4 @@
 // Application: Sample-01
-
-
-import org.apache.tools.ant.taskdefs.condition.Os
-
 buildscript {
   repositories {
     jcenter()
@@ -23,13 +19,30 @@ buildscript {
 
 // CONFIGURATION based on: http://tools.android.com/tech-docs/new-build-system/user-guide
 
+//region apply plugin: 'jacoco'
+if (useJacoco) {
+  // NOTE: very important to register JaCoCo plugin before the Android, otherwise XML
+  // coverage report will be impossible to generate. Will work only HTML reporting.
+
+  /* http://raptordigital.blogspot.se/2014/08/code-coverage-reports-using-robolectric.html */
+  apply plugin: 'jacoco'
+}
+//endregion
 apply plugin: 'com.android.application'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'com.github.ben-manes.versions'
 
-configurations.all {
-  /* Espresso v2.0 uses this module instead of jUnit v4.12... fix this !!! */
-  exclude group: 'junit', module: 'junit-dep'
+/* DEFINE REPOSITORY WITH LATEST ROBOLECTRIC VERSION */
+repositories {
+  jcenter()
+  mavenLocal()
+  mavenCentral()
+  maven {
+    url 'https://oss.sonatype.org/content/repositories/snapshots/'
+  }
+  maven {
+    url "http://dl.bintray.com/kucherenko-alex/android"
+  }
 }
 
 dependencies {
@@ -290,6 +303,11 @@ android {
     targetCompatibility JavaVersion.VERSION_1_7
   }
 
+  /* be specific about JaCoCo version. */
+  jacoco {
+    version JaCoCoVersion
+  }
+
   /* CUSTOMIZE UNIT TESTS */
   // UNCOMMENT for enabling 'custom manifest for unit tests' feature (part #2 of 2):
   // force Unit Tests use our own AndroidManifest.xml instead of auto-generated
@@ -297,6 +315,11 @@ android {
   //        variant.processResources.manifestFile = android.sourceSets["androidTest"].manifest.srcFile
   //        logger.info(">>>>>> Unit Tests new manifest: " + variant.processResources.manifestFile)
   //    }
+
+  /* https://sites.google.com/a/android.com/tools/tech-docs/unit-testing-support */
+  testOptions {
+    unitTests.returnDefaultValues = true
+  }
 
   /* CUSTOMIZE OUTPUT FILE NAME */
   applicationVariants.all { variant ->
@@ -350,58 +373,16 @@ idea {
   }
 }
 
+if (useJacoco) {
+  /* be specific about JaCoCo version. */
+  jacoco {
+    toolVersion JaCoCoVersion
+  }
+}
+
 /* ---------------------------------------------------------------------------------------------  */
 /* CUSTOM TASKS                                                                                   */
 /* ---------------------------------------------------------------------------------------------  */
-
-task openResults(dependsOn: ["openLintResults"]) {
-  description = 'open Tools results in current web browser'
-  group = 'Code Quality'
-
-  logger.lifecycle(":openResults");
-}
-
-if (useRobolectric) {
-  // Task opens robolectric report file in default web-browser
-  task openTestResults(type: Exec, dependsOn: ["test"]) {
-    description = 'open Robolectric results in current web browser'
-    group = 'Code Quality'
-
-    logger.lifecycle(":openTestResults")
-
-    // done: force open of HTML file
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-      // path is relative to current project path:
-      //      {project}\\samples\\sample-01
-      def path = """.\\build\\test-report\\index.html"""
-      commandLine "cmd.exe", '/C', path
-
-    } else {
-      // this build server, or Mac OS, or Linux - ignore this call
-    }
-  }
-
-  openResults.dependsOn openTestResults
-}
-
-// Task opens LINT utility report file in default web browser
-task openLintResults(type: Exec, dependsOn: ["lint"]) {
-  description = 'open Android Lint results in current web browser'
-  group = 'Code Quality'
-
-  logger.lifecycle(":openLintResults")
-
-  // done: force open of HTML file
-  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-    // path is relative to current project path:
-    //      {project}\\samples\\sample-01
-    def path = """.\\build\\lint-results.html"""
-    commandLine "cmd.exe", '/C', path
-
-  } else {
-    // this build server, or Mac OS, or Linux - ignore this call
-  }
-}
 
 if (useMultiDex) {
   afterEvaluate {
