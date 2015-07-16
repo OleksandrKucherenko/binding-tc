@@ -146,6 +146,26 @@ public final class Models {
     return new Property<>(String.class, getName, setName);
   }
 
+  @NonNull
+  public static Property<Byte> bytes(@NonNull final String name) {
+    return new Property<>(Byte.class, name);
+  }
+
+  @NonNull
+  public static Property<Byte> bytes(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(Byte.class, getName, setName);
+  }
+
+  @NonNull
+  public static Property<Short> shorts(@NonNull final String name) {
+    return new Property<>(Short.class, name);
+  }
+
+  @NonNull
+  public static Property<Short> shorts(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(Short.class, getName, setName);
+  }
+
   /** Hack interface for making possible anonymous classes creation. */
   private interface Trick {
   }

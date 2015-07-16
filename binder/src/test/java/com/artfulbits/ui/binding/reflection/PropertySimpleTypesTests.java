@@ -5,7 +5,7 @@ import com.artfulbits.junit.Sampling;
 import com.artfulbits.junit.TestHolder;
 import com.artfulbits.ui.binding.toolbox.Models;
 
-import org.junit.*;
+import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 public class PropertySimpleTypesTests extends TestHolder {
 
   @Test
-  public void test_Reflection_vs_Access() throws Exception {
+  public void test_00_Reflection_vs_Access() {
     final Meter m = getMeter();
 
     m.start("Reflection performance");
@@ -71,7 +71,7 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_Short() throws Exception {
+  public void test_01_Properties_Binding_Short() {
     final Property<Short> property = Models.from("fieldSht");
 
     final DummyClass instance = new DummyClass();
@@ -81,7 +81,7 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_Integer() throws Exception {
+  public void test_02_Properties_Binding_Integer() {
     final Property<Integer> property = Models.integer("fieldInt");
 
     final DummyClass instance = new DummyClass();
@@ -91,7 +91,7 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_Long() throws Exception {
+  public void test_03_Properties_Binding_Long() {
     final Property<Long> property = Models.number("fieldLng");
 
     final DummyClass instance = new DummyClass();
@@ -101,7 +101,7 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_Boolean() throws Exception {
+  public void test_04_Properties_Binding_Boolean() {
     final Property<Boolean> property = Models.bool("fieldBool");
 
     final DummyClass instance = new DummyClass();
@@ -111,7 +111,7 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_Float() throws Exception {
+  public void test_05_Properties_Binding_Float() {
     final Property<Float> property = Models.decimal("fieldFlt");
 
     final DummyClass instance = new DummyClass();
@@ -121,7 +121,7 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_Double() throws Exception {
+  public void test_06_Properties_Binding_Double() {
     final Property<Double> property = Models.real("fieldDbl");
 
     final DummyClass instance = new DummyClass();
@@ -131,7 +131,7 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_Char() throws Exception {
+  public void test_07_Properties_Binding_Char() {
     final Property<Character> property = Models.letter("fieldChr");
 
     final DummyClass instance = new DummyClass();
@@ -141,7 +141,7 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_String() throws Exception {
+  public void test_08_Properties_Binding_String() {
     final Property<String> property = Models.text("fieldStr");
 
     final DummyClass instance = new DummyClass();
@@ -151,7 +151,7 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_Enum() throws Exception {
+  public void test_09_Properties_Binding_Enum() {
     final Property<DummyEnum> property = Models.from("fieldEnum");
 
     final DummyClass instance = new DummyClass();
@@ -161,13 +161,42 @@ public class PropertySimpleTypesTests extends TestHolder {
   }
 
   @Test
-  public void test_Properties_Binding_Object() throws Exception {
+  public void test_10_Properties_Binding_Object() {
     final Property<Object> property = Models.from("fieldObj");
 
     final DummyClass instance = new DummyClass();
     instance.fieldObj = this;
 
     assertThat(property.get(instance), equalTo((Object) this));
+  }
+
+  @Test
+  public void test_11_Properties_Defaults() {
+    // create properties with names that cannot be resolved
+    final Property<Boolean> propertyBoolean = Models.bool("getget", "setset");
+    final Property<Byte> propertyByte = Models.bytes("getget", "setset");
+    final Property<Short> propertyShort = Models.shorts("getget", "setset");
+    final Property<Integer> propertyInteger = Models.integer("getget", "setset");
+    final Property<Long> propertyLong = Models.number("getget", "setset");
+    final Property<Float> propertyFloat = Models.decimal("getget", "setset");
+    final Property<Double> propertyDouble = Models.real("getget", "setset");
+    final Property<Character> propertyChar = Models.letter("getget", "setset");
+    final Property<String> propertyString = Models.text("getget", "setset");
+    final Property<DummyEnum> propertyEnum = Models.from("getget", "setset");
+    final Property<Object> propertyObject = Models.from("getget", "setset");
+
+    final DummyClass instance = new DummyClass();
+    assertThat(propertyBoolean.get(instance), equalTo(false));
+    assertThat(propertyByte.get(instance), equalTo((byte) 0));
+    assertThat(propertyShort.get(instance), equalTo((short) 0));
+    assertThat(propertyInteger.get(instance), equalTo(0));
+    assertThat(propertyLong.get(instance), equalTo(0L));
+    assertThat(propertyFloat.get(instance), equalTo(0.0f));
+    assertThat(propertyDouble.get(instance), equalTo(0.0));
+    assertThat(propertyChar.get(instance), equalTo('\0'));
+    assertThat(propertyString.get(instance), nullValue());
+    assertThat(propertyEnum.get(instance), nullValue());
+    assertThat(propertyObject.get(instance), nullValue());
   }
 
   /* [ NESTED DECLARATIONS ] ======================================================================================== */

@@ -147,21 +147,14 @@ public class Property<T> {
 
   /** Extract default value based on class type. */
   protected Object primitiveDefault(@NonNull final Class<T> clazz) {
-    if (int.class == clazz || short.class == clazz || long.class == clazz || byte.class == clazz) {
-      return (byte) 0;
-    }
-
-    if (float.class == clazz || double.class == clazz) {
-      return 0.0f;
-    }
-
-    if (char.class == clazz) {
-      return '\0';
-    }
-
-    if (boolean.class == clazz) {
-      return false;
-    }
+    if (byte.class == clazz || Byte.class == clazz) return (byte) 0;
+    if (short.class == clazz || Short.class == clazz) return (short) 0;
+    if (int.class == clazz || Integer.class == clazz) return 0;
+    if (long.class == clazz || Long.class == clazz) return 0L;
+    if (float.class == clazz || Float.class == clazz) return 0.0f;
+    if (double.class == clazz || Double.class == clazz) return 0.0;
+    if (char.class == clazz || Character.class == clazz) return '\0';
+    if (boolean.class == clazz || Boolean.class == clazz) return false;
 
     return null;
   }

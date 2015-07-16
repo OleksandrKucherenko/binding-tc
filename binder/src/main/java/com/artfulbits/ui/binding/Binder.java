@@ -254,7 +254,7 @@ public class Binder<TLeft, TRight> {
    */
   public void pop() {
     // get value from View
-    final TLeft lValue = resolveView().get(getRuntimeView());
+    final TLeft lValue = mView.get();
 
     // getter is not resolved,
     if (null == resolveView().getGetterName()) {
@@ -289,7 +289,7 @@ public class Binder<TLeft, TRight> {
     mLastRight = rValue;
 
     // update Model
-    resolveModel().set(getRuntimeModel(), rValue);
+    mModel.set(rValue);
   }
 
   /**
@@ -299,7 +299,7 @@ public class Binder<TLeft, TRight> {
    */
   public void push() {
     // extract the value
-    final TRight rValue = resolveModel().get(getRuntimeModel());
+    final TRight rValue = mModel.get();
 
     // getter is not resolved,
     if (null == resolveModel().getGetterName()) {
@@ -334,7 +334,7 @@ public class Binder<TLeft, TRight> {
     mLastLeft = lValue;
 
     // update View
-    resolveView().set(getRuntimeView(), lValue);
+    mView.set(lValue);
   }
 
   /* ============================================================================================================== */
@@ -349,26 +349,32 @@ public class Binder<TLeft, TRight> {
     return (mStatus & MASK_PUSH) == 0;
   }
 
-  public TLeft getRuntimeModel() {
-    return (TLeft) mModel.getRuntimeInstance();
+  /** Get reference on model instance. */
+  public <T> T getRuntimeModel() {
+    return (T) mModel.getRuntimeInstance();
   }
 
-  public TRight getRuntimeView() {
-    return (TRight) mView.getRuntimeInstance();
+  /** Get reference on view instance. */
+  public <T> T getRuntimeView() {
+    return (T) mView.getRuntimeInstance();
   }
 
+  /** Get access to validation success listener. */
   /* package */ Success getOnSuccess() {
     return mOnSuccess;
   }
 
+  /** Get access to validation failure listener. */
   /* package */ Failure getOnFailure() {
     return mOnFailure;
   }
 
+  /** Get model instance reflection type information. */
   protected final Class<?> getModelType() {
     return mModel.getInstanceType();
   }
 
+  /** Get view instance reflection type information. */
   protected final Class<?> getViewType() {
     return mView.getInstanceType();
   }
