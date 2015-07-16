@@ -136,7 +136,7 @@ def createTestOpenResultsTask(String f, String b) {
 
     // path is relative to current project path: {project}\\samples\\sample-01
     // file:///C:/Android/_projects_/meter/library/build/reports/tests/index.html
-    def path = """${project.buildDir}\\reports\\tests\\${flavor}${buildType}\\index.html"""
+    def path = adoptToOs("""${project.buildDir}\\reports\\tests\\${flavor}${b.toLowerCase()}\\index.html""")
 
     project.logger.info("  report: ${adoptToOs(path)}")
     commandLine openExternalBrowser(adoptToOs(path))
