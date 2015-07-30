@@ -4,6 +4,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -51,11 +53,9 @@ public class Property<T> {
     mConfirmedSet = setName;
   }
 
-	/* [ GETTER / SETTER METHODS ] =================================================================================== */
-
   /**
    * Resolve property logic to human readable string.
-   * <p/>
+   * <p>
    * Example 1: .getText() | setText()<br/> Example 2: .findViewById(...) | &lt;none&gt;()<br/> Example 3: .{Text}(...)
    * | &lt;none&gt;()<br/>
    */
@@ -71,6 +71,8 @@ public class Property<T> {
         getter, argsGetter,
         setter, argsSetter);
   }
+
+	/* [ GETTER / SETTER METHODS ] =================================================================================== */
 
   public final Class<T> getDataType() {
     return mType;
@@ -98,6 +100,10 @@ public class Property<T> {
         mCachedGet = extractGetter(instance);
       }
 
+      if (null == mCachedGet)
+        throw new WrongConfigurationError("Cannot resolve GET to real method/field." +
+            " Name: " + mName + ", Getter: " + mConfirmedGet);
+
       return (T) mCachedGet.invoke(instance, args);
     } catch (final Throwable ignored) {
       // TODO: log exception
@@ -113,12 +119,41 @@ public class Property<T> {
         mCachedSet = extractSetter(instance);
       }
 
+      if (null == mCachedSet)
+        throw new WrongConfigurationError("Cannot resolve SET to real method/field." +
+            " Name: " + mName + ", Setter: " + mConfirmedSet);
+
       mCachedSet.invoke(instance, setterArguments(value));
     } catch (final Throwable ignored) {
+      // TODO: log exception
       return false;
     }
 
     return true;
+  }
+
+  /** Resolve 'binding by name' to real instances. Allows to validate configuration. */
+  public void resolve(@NonNull final Object instance) throws WrongConfigurationError {
+    if (null == mCachedGet) {
+      mCachedGet = extractGetter(instance);
+    }
+
+    if (null == mCachedSet) {
+      mCachedSet = extractSetter(instance);
+    }
+
+    // validate results
+    if (null == mCachedGet && null == mCachedSet)
+      throw new WrongConfigurationError("Cannot resolve GET and SET to real method(s)/field(s)." +
+          " Name: " + mName + ", Getter: " + mConfirmedGet + ", Setter: " + mConfirmedSet);
+
+    if (null == mCachedGet)
+      throw new WrongConfigurationError("Cannot resolve GET to real method/field." +
+          " Name: " + mName + ", Getter: " + mConfirmedGet);
+
+    if (null == mCachedSet)
+      throw new WrongConfigurationError("Cannot resolve SET to real method/field." +
+          " Name: " + mName + ", Setter: " + mConfirmedSet);
   }
 
   /* [ OVERRIDES ] ================================================================================================= */
@@ -136,12 +171,12 @@ public class Property<T> {
   }
 
   /** Resolve 'getter' entry. */
-  protected Entry extractGetter(final Object instance) throws Exception {
+  protected Entry extractGetter(final Object instance) {
     return reflectGetter(instance);
   }
 
   /** Resolve 'setter' entry. */
-  protected Entry extractSetter(final Object instance) throws Exception {
+  protected Entry extractSetter(final Object instance) {
     return reflectSetter(instance);
   }
 
@@ -162,7 +197,7 @@ public class Property<T> {
 	/* [ IMPLEMENTATION & HELPERS ] ================================================================================== */
 
   /** find 'getter' using reflection. */
-  private Entry reflectGetter(final Object instance) throws NoSuchMethodException {
+  protected Entry reflectGetter(final Object instance) {
     Entry result = null;
 
     final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
@@ -189,7 +224,7 @@ public class Property<T> {
   }
 
   /** find 'setter' using reflection. */
-  private Entry reflectSetter(final Object instance) throws NoSuchMethodException {
+  protected Entry reflectSetter(final Object instance) {
     Entry result = null;
 
     final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());

@@ -11,7 +11,11 @@ import static org.junit.Assert.*;
 
 /** Tests for {@link Views} class. */
 public class ViewsTests extends TestHolder {
+  /* [ CONSTANTS ] ================================================================================================= */
+
   public static final int MOCK_ID = 1;
+
+	/* [ IMPLEMENTATION & HELPERS ] ================================================================================== */	
 
   @Test
   public void test_00_Binding_To_findByViewId() throws Exception {
@@ -35,6 +39,8 @@ public class ViewsTests extends TestHolder {
     // any other call with different arguments should return NULL
     assertThat(find.get(activity, 0), is(nullValue()));
   }
+
+	/* [ NESTED DECLARATIONS ] ======================================================================================= */	
 
   public static class ActivityMock {
     public IView findViewById(int id) {

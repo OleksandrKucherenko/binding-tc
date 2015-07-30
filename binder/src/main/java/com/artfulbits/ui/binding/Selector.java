@@ -2,6 +2,7 @@ package com.artfulbits.ui.binding;
 
 import android.support.annotation.NonNull;
 
+import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
 import com.artfulbits.ui.binding.reflection.Property;
 
 import java.util.Locale;
@@ -31,15 +32,13 @@ public class Selector<I, V> implements Notifications {
     mProperty = property;
   }
 
-  /* ============================================================================================================== */
-
   /**
    * Return human readable resolved to string selector. If runtime binding not happens yet, resolving to string may
    * provide 'incomplete' selector without correct properties names.
-   * <p/>
+   * <p>
    * Example 1: {View}.getText()/{View}.setText() | setText()<br/> Example 2: ({Activity}.findViewById(...)).getText() |
    * setText()<br/> Example 3: (({Data}.getSubItem()).getView()).getText() | setText()
-   * <p/>
+   * <p>
    * Syntax:<br/> {} - dynamic type, resolved in runtime<br/> &lt;&gt; - constant<br/> ... - arguments expected;
    */
   @Override
@@ -50,6 +49,8 @@ public class Selector<I, V> implements Notifications {
 
     return String.format(Locale.US, "%s.%s", subSelector, mProperty.toString());
   }
+
+  /* ============================================================================================================== */
 
   /** Get instance reflection type. */
   public Class<?> getInstanceType() {
@@ -82,9 +83,14 @@ public class Selector<I, V> implements Notifications {
     getProperty().set(getRuntimeInstance(), value);
   }
 
+  /** Force property to resolve bindings now. Allows to validate configuration of instance. */
+  public void resolve() throws WrongConfigurationError {
+    getProperty().resolve(getRuntimeInstance());
+  }
+
   @Override
   public final void onChanged() {
-    // TODO:  notify all about property change.
+    // leave for inheritors
   }
 
   /* [ INITIALIZATION HELPERS ] =================================================================================== */

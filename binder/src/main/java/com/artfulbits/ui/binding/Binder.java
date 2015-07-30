@@ -2,6 +2,8 @@ package com.artfulbits.ui.binding;
 
 import android.support.annotation.NonNull;
 
+import com.artfulbits.ui.binding.exceptions.ConfigurationError;
+import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
 import com.artfulbits.ui.binding.reflection.Property;
 import com.artfulbits.ui.binding.toolbox.Formatter;
 
@@ -13,7 +15,6 @@ import org.hamcrest.CoreMatchers;
  * @param <TLeft>  the type of View field
  * @param <TRight> the type of Model field
  */
-@SuppressWarnings({"unused", "unchecked"})
 public class Binder<TLeft, TRight> {
   /* [ CONSTANTS ] ================================================================================================ */
 
@@ -249,10 +250,17 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: View --> Model.
-   * <p/>
+   * <p>
    * Data flow: View --> IsChanged --> Formatter --> Validator --> Is Changed --> Model;
    */
   public void pop() {
+    // validate instance state
+    if (null == mView)
+      throw new WrongConfigurationError("View part is not defined.");
+
+    if (null == mModel)
+      throw new WrongConfigurationError("Model part is not defined.");
+
     // get value from View
     final TLeft lValue = mView.get();
 
@@ -294,10 +302,17 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: Model --> View.
-   * <p/>
+   * <p>
    * Data flow: Model --> Is Changed --> Validator --> Formatter --> Is Changed --> View.
    */
   public void push() {
+    // validate instance state
+    if (null == mView)
+      throw new WrongConfigurationError("View part is not defined.");
+
+    if (null == mModel)
+      throw new WrongConfigurationError("Model part is not defined.");
+
     // extract the value
     final TRight rValue = mModel.get();
 
@@ -335,6 +350,39 @@ public class Binder<TLeft, TRight> {
 
     // update View
     mView.set(lValue);
+  }
+
+  /** Validate instance configuration. */
+  public void resolve() throws ConfigurationError {
+    if (null == mView)
+      throw new WrongConfigurationError("View part is not defined.");
+
+    if (null == mModel)
+      throw new WrongConfigurationError("Model part is not defined.");
+
+    Throwable exModel = null, exView = null;
+
+    try {
+      mModel.resolve();
+    } catch (final Throwable ignored) {
+      exModel = ignored;
+    }
+
+    try {
+      mView.resolve();
+    } catch (final Throwable ignored) {
+      exView = ignored;
+    }
+
+    // merge exceptions, if we have more than one
+    if (null != exModel || null != exView) {
+      if (null != exModel && null != exView)
+        throw new ConfigurationError("Model and View has wrong bindings.", exModel, exView);
+      else if (null == exModel)
+        throw new WrongConfigurationError("View issue", exView);
+      else
+        throw new WrongConfigurationError("Model issue", exModel);
+    }
   }
 
   /* ============================================================================================================== */

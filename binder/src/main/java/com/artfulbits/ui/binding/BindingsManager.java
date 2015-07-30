@@ -5,10 +5,12 @@ import android.app.Fragment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.annotation.UiThread;
 import android.util.Pair;
 import android.view.View;
 import android.widget.BaseAdapter;
 
+import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
 import com.artfulbits.ui.binding.toolbox.Views;
 
 import java.util.ArrayList;
@@ -239,8 +241,6 @@ public class BindingsManager {
         .attachToManager(this);
   }
 
-  /* [ COMMON BINDERS ] =========================================================================================== */
-
   public Binder<String, String> texts() {
     return bind();
   }
@@ -265,18 +265,14 @@ public class BindingsManager {
 
   /** Register lifecycle extender listener. */
   public BindingsManager register(@NonNull final Lifecycle listener) {
-    if (null != listener) {
-      mListeners.add(listener);
-    }
+    mListeners.add(listener);
 
     return this;
   }
 
   /** Unregister lifecycle extender listener. */
-  public BindingsManager unregister(final Lifecycle listener) {
-    if (null != listener) {
-      mListeners.remove(listener);
-    }
+  public BindingsManager unregister(@NonNull final Lifecycle listener) {
+    mListeners.remove(listener);
 
     return this;
   }
@@ -413,12 +409,13 @@ public class BindingsManager {
    * Method force binding between data model and view without data exchange. This is useful for binding verification on
    * initial phase. It allows to check that all fields in data model and view exists and can be associated.
    *
-   * @throws WrongConfigurationException - found mismatch.
+   * @throws WrongConfigurationError - found mismatch. Raised on first found mismatch.
    */
-  public void associate() throws WrongConfigurationException {
-    // TODO: can be executed only from MAIN thread!
-
-    // TODO: force binding manager evaluate binding for each property
+  @UiThread
+  public void associate() throws WrongConfigurationError {
+    for (Binder<?, ?> binder : mRules) {
+      binder.resolve();
+    }
   }
 
 	/* [ NESTED DECLARATIONS ] ====================================================================================== */

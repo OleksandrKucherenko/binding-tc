@@ -3,6 +3,7 @@ package com.artfulbits.ui.binding;
 import android.support.annotation.NonNull;
 
 import com.artfulbits.junit.TestHolder;
+import com.artfulbits.ui.binding.exceptions.ConfigurationError;
 import com.artfulbits.ui.binding.toolbox.Formatter;
 
 import org.junit.Test;
@@ -137,6 +138,166 @@ public class BinderTests extends TestHolder {
 
     // trace expression for validation
     trace(bss.toString());
+  }
+
+  @Test
+  public void test_03_Resolve_Common() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final PojoLoginPassword modelInstance = new PojoLoginPassword();
+    final Binder<String, String> bss = new Binder<>();
+
+    bss
+        .view(pojo(viewInstance, text("Name")))
+        .model(pojo(modelInstance, text("Login")))
+        .validate(allOf(notNullValue(), containsString("-set")))
+        .onSuccess(new Success() {
+          @Override
+          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("success validation");
+          }
+        })
+        .onFailure(new Failure() {
+          @Override
+          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("failure validation");
+          }
+        });
+
+    // correct configuration, no Exceptions
+    bss.resolve();
+  }
+
+  @Test(expected = ConfigurationError.class)
+  public void test_04_Resolve_NoView() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final PojoLoginPassword modelInstance = new PojoLoginPassword();
+    final Binder<String, String> bss = new Binder<>();
+
+    bss
+//        .view(pojo(viewInstance, text("Name")))
+        .model(pojo(modelInstance, text("Login")))
+        .validate(allOf(notNullValue(), containsString("-set")))
+        .onSuccess(new Success() {
+          @Override
+          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("success validation");
+          }
+        })
+        .onFailure(new Failure() {
+          @Override
+          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("failure validation");
+          }
+        });
+
+    bss.resolve();
+  }
+
+  @Test(expected = ConfigurationError.class)
+  public void test_05_Resolve_NoModel() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final PojoLoginPassword modelInstance = new PojoLoginPassword();
+    final Binder<String, String> bss = new Binder<>();
+
+    bss
+        .view(pojo(viewInstance, text("Name")))
+//        .model(pojo(modelInstance, text("Login")))
+        .validate(allOf(notNullValue(), containsString("-set")))
+        .onSuccess(new Success() {
+          @Override
+          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("success validation");
+          }
+        })
+        .onFailure(new Failure() {
+          @Override
+          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("failure validation");
+          }
+        });
+
+    bss.resolve();
+  }
+
+  @Test(expected = ConfigurationError.class)
+  public void test_06_Resolve_View_BrokenBinding() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final PojoLoginPassword modelInstance = new PojoLoginPassword();
+    final Binder<String, String> bss = new Binder<>();
+
+    bss
+        .view(pojo(viewInstance, text("Something")))
+        .model(pojo(modelInstance, text("Login")))
+        .validate(allOf(notNullValue(), containsString("-set")))
+        .onSuccess(new Success() {
+          @Override
+          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("success validation");
+          }
+        })
+        .onFailure(new Failure() {
+          @Override
+          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("failure validation");
+          }
+        });
+
+    // expected exception, "Something" field/method does not exists in View
+    bss.resolve();
+  }
+
+  @Test(expected = ConfigurationError.class)
+  public void test_07_Resolve_Model_BrokenBinding() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final PojoLoginPassword modelInstance = new PojoLoginPassword();
+    final Binder<String, String> bss = new Binder<>();
+
+    bss
+        .view(pojo(viewInstance, text("Name")))
+        .model(pojo(modelInstance, text("Something")))
+        .validate(allOf(notNullValue(), containsString("-set")))
+        .onSuccess(new Success() {
+          @Override
+          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("success validation");
+          }
+        })
+        .onFailure(new Failure() {
+          @Override
+          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("failure validation");
+          }
+        });
+
+    // expected exception, "Something" field/method does not exists in Model
+    bss.resolve();
+  }
+
+  @Test(expected = ConfigurationError.class)
+  public void test_08_Resolve_ModelAndView_BrokenBinding() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final PojoLoginPassword modelInstance = new PojoLoginPassword();
+    final Binder<String, String> bss = new Binder<>();
+
+    bss
+        .view(pojo(viewInstance, text("Something")))
+        .model(pojo(modelInstance, text("Something")))
+        .validate(allOf(notNullValue(), containsString("-set")))
+        .onSuccess(new Success() {
+          @Override
+          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("success validation");
+          }
+        })
+        .onFailure(new Failure() {
+          @Override
+          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            trace("failure validation");
+          }
+        });
+
+    // expected exception, "Something" field/method does not exists in Model and View
+    bss.resolve();
   }
 
 	/* [ NESTED DECLARATIONS ] ======================================================================================= */
