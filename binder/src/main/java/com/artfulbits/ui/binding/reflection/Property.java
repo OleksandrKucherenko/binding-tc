@@ -55,21 +55,17 @@ public class Property<T> {
 
   /**
    * Resolve property logic to human readable string.
-   * <p>
+   * <p/>
    * Example 1: .getText() | setText()<br/> Example 2: .findViewById(...) | &lt;none&gt;()<br/> Example 3: .{Text}(...)
    * | &lt;none&gt;()<br/>
    */
   @Override
   public String toString() {
-    final String argsGetter = "(" + (null != getterArguments() ? "..." : "") + ")";
-    final String argsSetter = "(" + (setterArguments(null).length > 1 ? "..." : "") + ")";
     final String search = (TextUtils.isEmpty(mName)) ? "<none>" : "{" + mName + "}";
-    final String getter = (TextUtils.isEmpty(getGetterName())) ? search : getGetterName();
-    final String setter = (TextUtils.isEmpty(getSetterName())) ? search : getSetterName();
+    final String getter = (null == mCachedGet) ? search : mCachedGet.toString();
+    final String setter = (null == mCachedSet) ? search : mCachedSet.toString();
 
-    return String.format(Locale.US, "%s%s | %s%s",
-        getter, argsGetter,
-        setter, argsSetter);
+    return String.format(Locale.US, "%s | %s", getter, setter);
   }
 
 	/* [ GETTER / SETTER METHODS ] =================================================================================== */

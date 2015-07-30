@@ -61,14 +61,14 @@ public class ReflectionUtilsTests extends TestHolder {
     assertThat(method.getRawType(), instanceOf(Method.class));
 
     trace(method.toString());
-    assertThat(getRawLogger().toString(), containsString("method:"));
+    assertThat(getRawLogger().toString(), containsString("setString()"));
 
     final Entry field = ReflectionUtils.find(all, "mInteger");
     assertThat(field, notNullValue());
     assertThat(field.getRawType(), instanceOf(Field.class));
 
     trace(field.toString());
-    assertThat(getRawLogger().toString(), containsString("field:"));
+    assertThat(getRawLogger().toString(), containsString("mInteger"));
   }
 
   /* [ NESTED DECLARATIONS ] ======================================================================================= */

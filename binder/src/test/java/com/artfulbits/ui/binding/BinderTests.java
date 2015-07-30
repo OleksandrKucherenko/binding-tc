@@ -5,11 +5,16 @@ import android.support.annotation.NonNull;
 import com.artfulbits.junit.TestHolder;
 import com.artfulbits.ui.binding.exceptions.ConfigurationError;
 import com.artfulbits.ui.binding.toolbox.Formatter;
+import com.artfulbits.ui.binding.toolbox.Listeners;
 
 import org.junit.Test;
 
+import java.util.Observable;
+
 import static com.artfulbits.ui.binding.toolbox.Models.integer;
+import static com.artfulbits.ui.binding.toolbox.Models.number;
 import static com.artfulbits.ui.binding.toolbox.Models.pojo;
+import static com.artfulbits.ui.binding.toolbox.Models.real;
 import static com.artfulbits.ui.binding.toolbox.Models.text;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -300,11 +305,43 @@ public class BinderTests extends TestHolder {
     bss.resolve();
   }
 
+  @Test(expected = ConfigurationError.class)
+  public void test_09_Resolve_GetSet_BrokenBinding() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final PojoLoginPassword modelInstance = new PojoLoginPassword();
+    final Binder<Double, Long> bss = new Binder<>();
+
+    bss
+        .view(pojo(viewInstance, real("Amount")))
+        .model(pojo(modelInstance, number("Timestamp")))
+        .onView(Listeners.onObservable())
+        .onModel(Listeners.onObservable());
+
+    // expected exception, "Something" field/method does not exists in Model and View
+    bss.resolve();
+  }
+
+  @Test
+  public void test_10_Listeners() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final PojoObserve modelInstance = new PojoObserve();
+    final Binder<Double, Long> bss = new Binder<>();
+
+    bss
+        .view(pojo(viewInstance, real("getAmount", "mAmounts")))
+        .model(pojo(modelInstance, number("Timestamp")))
+        .onView(Listeners.onObservable())
+        .onModel(Listeners.onObservable());
+
+    bss.resolve();
+  }
+
 	/* [ NESTED DECLARATIONS ] ======================================================================================= */
 
   public static class PojoNamePin {
     private String mName;
     private int mPin;
+    private double mAmounts;
 
     public String getName() {
       return mName;
@@ -321,12 +358,18 @@ public class BinderTests extends TestHolder {
     public void setPin(final int pin) {
       mPin = pin;
     }
+
+    public double getAmount() {
+      return mAmounts;
+    }
   }
 
   public static class PojoLoginPassword {
     private String mLogin;
 
     private String mPassword;
+
+    private long mTimestamp;
 
     public String getLogin() {
       return mLogin;
@@ -342,6 +385,24 @@ public class BinderTests extends TestHolder {
 
     public void setPassword(final String password) {
       mPassword = password;
+    }
+
+    public void setTimestamp(final long time) {
+      mTimestamp = time;
+    }
+  }
+
+  public static class PojoObserve extends Observable {
+    private long mTimestampL;
+
+    public long getTimestamp() {
+      return mTimestampL;
+    }
+
+    public void setTimestamp(final long value) {
+      mTimestampL = value;
+
+      notifyObservers("timestamp");
     }
   }
 }

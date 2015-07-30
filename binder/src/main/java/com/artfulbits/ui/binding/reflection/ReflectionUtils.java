@@ -324,7 +324,7 @@ public final class ReflectionUtils {
 
     @Override
     public String toString() {
-      return "field: " + getName();
+      return getName();
     }
   }
 
@@ -357,7 +357,8 @@ public final class ReflectionUtils {
 
     @Override
     public String toString() {
-      return "method: " + getName();
+      final String params = (mM.getParameterTypes().length > 1) ? "..." : "";
+      return getName() + "(" + params + ")";
     }
   }
 }
