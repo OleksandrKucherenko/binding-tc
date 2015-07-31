@@ -3,6 +3,7 @@ package com.artfulbits.ui.binding;
 import android.support.annotation.NonNull;
 
 import com.artfulbits.ui.binding.exceptions.ConfigurationError;
+import com.artfulbits.ui.binding.exceptions.OneWayBindingError;
 import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
 import com.artfulbits.ui.binding.reflection.Property;
 import com.artfulbits.ui.binding.toolbox.Formatter;
@@ -250,7 +251,7 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: View --> Model.
-   * <p>
+   * <p/>
    * Data flow: View --> IsChanged --> Formatter --> Validator --> Is Changed --> Model;
    */
   public void pop() {
@@ -277,8 +278,13 @@ public class Binder<TLeft, TRight> {
     // store Value in cache
     mLastLeft = lValue;
 
-    // formatter
-    final TRight rValue = resolveFormatting().toIn(lValue);
+    // formatter, with respect to ONE-WAY binding
+    final TRight rValue;
+    try {
+      rValue = resolveFormatting().toIn(lValue);
+    } catch (final OneWayBindingError ignored) {
+      return;
+    }
 
     // validation
     if (resolveValidation().matches(rValue)) {
@@ -302,7 +308,7 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: Model --> View.
-   * <p>
+   * <p/>
    * Data flow: Model --> Is Changed --> Validator --> Formatter --> Is Changed --> View.
    */
   public void push() {
@@ -339,8 +345,13 @@ public class Binder<TLeft, TRight> {
       return; // no other steps needed in push
     }
 
-    // do formatting
-    final TLeft lValue = resolveFormatting().toOut(rValue);
+    // do formatting with respect to ONE-WAY binding
+    final TLeft lValue;
+    try {
+      lValue = resolveFormatting().toOut(rValue);
+    } catch (final OneWayBindingError ignored) {
+      return;
+    }
 
     // is changed?
     if (mLastLeft == lValue) return;
