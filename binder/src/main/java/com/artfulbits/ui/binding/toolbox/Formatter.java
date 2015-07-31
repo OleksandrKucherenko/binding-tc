@@ -3,6 +3,7 @@ package com.artfulbits.ui.binding.toolbox;
 import android.support.annotation.NonNull;
 
 import com.artfulbits.ui.binding.Formatting;
+import com.artfulbits.ui.binding.exceptions.OneWayBindingError;
 
 /** Methods for construction of typical data type converter's. */
 @SuppressWarnings({"unused", "unchecked"})
@@ -44,6 +45,38 @@ public final class Formatter {
       @Override
       public V toIn(final T value) {
         return f.toOut(value);
+      }
+    };
+  }
+
+  /** Create one way binding - allowed only POP operation, from MODEL to VIEW. */
+  @NonNull
+  public static <T, V> Formatting<T, V> onlyPop(@NonNull final Formatting<T, V> f) {
+    return new Formatting<T, V>() {
+      @Override
+      public T toOut(final V value) {
+        return f.toOut(value);
+      }
+
+      @Override
+      public V toIn(final T value) {
+        throw new OneWayBindingError();
+      }
+    };
+  }
+
+  /** Create one way binding - allowed only PUSH operation, from VIEW to MODEL. */
+  @NonNull
+  public static <T, V> Formatting<T, V> onlyPush(@NonNull final Formatting<T, V> f) {
+    return new Formatting<T, V>() {
+      @Override
+      public T toOut(final V value) {
+        throw new OneWayBindingError();
+      }
+
+      @Override
+      public V toIn(final T value) {
+        return f.toIn(value);
       }
     };
   }

@@ -1,5 +1,13 @@
 package com.artfulbits.ui.binding.toolbox;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.SystemClock;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -10,10 +18,15 @@ import com.artfulbits.ui.binding.Listener;
 import com.artfulbits.ui.binding.Notifications;
 import com.artfulbits.ui.binding.Selector;
 
+import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /** Implementation of common listeners. */
 @SuppressWarnings("unused")
@@ -38,6 +51,19 @@ public final class Listeners {
       // do nothing
     }
   };
+  /** Extra key used for delivering listener ID to broadcast processing class. */
+  private final static String EXT_KEY = "key";
+  /** Action name used for timer based data exchange scheduling. */
+  private final static String ACTION_TIME = "action_time_comes";
+
+  /* [ STATIC MEMBERS ] ============================================================================================ */
+
+  /** Broadcasts updates synchronization guard. */
+  private static final Object sSync = new Object();
+  /** Global map for alarm manager pending intents processing. */
+  private static final Map<Integer, WeakReference<Listener>> sBroadcast = new HashMap<>();
+  /** Instance of broadcast receiver that will process our timer based data exchange requests. */
+  private static AlarmReceiver sReceiver;
 
 	/* [ CONSTRUCTORS ] ============================================================================================== */
 
@@ -92,23 +118,73 @@ public final class Listeners {
   }
 
   /** Raise notification on any change from Observable side. */
+  @NonNull
   public static Listener onObservable() {
     return new ObserverListener();
   }
 
   /** Listen to notifications from Observable instance and raise notification only if filter matched. */
+  @NonNull
   public static Listener onObservable(final Object filter) {
     return new ObserverListener(filter);
   }
 
   /** Detect text changes and raise data exchange on that. */
+  @NonNull
   public static Listener onTextChanged() {
     return new TextWatcherListener();
   }
 
   /** Detect focus loss and raise data exchange on that. */
+  @NonNull
   public static Listener onFocusLost() {
     return new FocusLostListener();
+  }
+
+  /** Timer based raiser of data exchange. */
+  @NonNull
+  public static Listener onTimer(@IntRange(from = 0) final long delay,
+                                 @IntRange(from = 0) final long interval) {
+    return new TimerListener(delay, interval);
+  }
+
+  /** Timer based raiser of data exchange. Based on more resource effective Alarm Manager. */
+  @NonNull
+  public static Listener onAlarm(@NonNull final Context context,
+                                 @IntRange(from = 0) final long delay,
+                                 @IntRange(from = 0) final long interval) {
+    return new AlarmListener(context, delay, interval);
+  }
+
+  /* [ IMPLEMENTATION ] ============================================================================================ */
+
+  /** Register listener and if needed create Receiver for events processing. */
+  private static void register(@NonNull final Context context, @NonNull final Listener listener) {
+    // register our instance as a broadcast listener
+    sBroadcast.put(listener.hashCode(), new WeakReference<>(listener));
+
+    // create instance of Broadcast receiver
+    if (null == sReceiver) {
+      synchronized (sSync) {
+        if (null == sReceiver) {
+          context.registerReceiver(sReceiver = new AlarmReceiver(), new IntentFilter(ACTION_TIME));
+        }
+      }
+    }
+  }
+
+  /** Unregister the listener and release OS resources. */
+  private static void unregister(@NonNull final Context context, @NonNull final Listener listener) {
+    sBroadcast.remove(listener.hashCode());
+
+    if (sBroadcast.isEmpty()) {
+      synchronized (sSync) {
+        if (sBroadcast.isEmpty()) {
+          context.unregisterReceiver(sReceiver);
+          sReceiver = null;
+        }
+      }
+    }
   }
 
 	/* [ NESTED DECLARATIONS ] ======================================================================================= */
@@ -246,6 +322,143 @@ public final class Listeners {
         for (Notifications selector : mKnown) {
           selector.onChanged();
         }
+      }
+    }
+  }
+
+  /** Raise event by timer. */
+  private static class TimerListener extends TimerTask implements Listener {
+    /** Create instance of timer for countdown. Timer is created with daemon flag. */
+    private final Timer mCountDown = new Timer(true);
+    /** Set of notifiers. */
+    private final Set<Notifications> mKnown = new HashSet<>();
+    /** Delay in milliseconds. */
+    private final long mDelay;
+    /** Period of repeat. */
+    private final long mPeriod;
+
+    /** new instance with delay and period settings defining. */
+    public TimerListener(@IntRange(from = 0) final long delay, @IntRange(from = 0) final long period) {
+      mDelay = delay;
+      mPeriod = period;
+    }
+
+    @Override
+    public void run() {
+      for (Notifications selector : mKnown) {
+        selector.onChanged();
+      }
+    }
+
+    @Override
+    public Listener binding(@NonNull final Selector<?, ?> instance) {
+      mCountDown.schedule(this, mDelay, mPeriod);
+
+      return this;
+    }
+
+    @Override
+    public void willNotify(@NonNull final Notifications listener) {
+      mKnown.add(listener);
+    }
+
+    @Override
+    public void detach(@NonNull final Notifications listener) {
+      mKnown.remove(listener);
+    }
+  }
+
+  /** Broadcast receiver for processing the AlarmListener requests. */
+  private static class AlarmReceiver extends BroadcastReceiver {
+
+    @Override
+    public void onReceive(final Context context, final Intent intent) {
+      // ignore wrong calls
+      if (null == context || null == intent) return;
+
+      // get listener that request the processing
+      final int key = intent.getIntExtra(EXT_KEY, -1);
+      final WeakReference<Listener> wrl = sBroadcast.get(key);
+      final Listener l;
+
+      // nothing to process
+      if (null == wrl || null == (l = wrl.get())) return;
+
+      // if listener is a known to us type, than raise the changed state
+      if (l instanceof AlarmListener) {
+        ((AlarmListener) l).raise();
+      }
+    }
+  }
+
+  /**
+   * Timer based listener, but instead of separated thread used AlarmManager which is more battery effective in compare
+   * to background thread.
+   */
+  private static class AlarmListener implements Listener {
+    /** Application context. */
+    private final Context mContext;
+    /** Set of notifiers. */
+    private final Set<Notifications> mKnown = new HashSet<>();
+    /** Delay in milliseconds. */
+    private final long mDelay;
+    /** Period of repeat. */
+    private final long mPeriod;
+    /** pending operation. */
+    private PendingIntent mOperation;
+
+    /** Create instance that will start raising 'changed' state in specified delay and with specified interval. */
+    public AlarmListener(@NonNull final Context context,
+                         @IntRange(from = 0) final long delay,
+                         @IntRange(from = 0) final long interval) {
+      mContext = context;
+      mDelay = delay;
+      mPeriod = interval;
+    }
+
+    @Override
+    public Listener binding(@NonNull final Selector<?, ?> instance) {
+      // register our instance as a broadcast listener
+      register(mContext, this);
+
+      // create intent that will be delivered by Alarm Manager
+      final Intent intent = new Intent(mContext, AlarmReceiver.class)
+          .setAction(ACTION_TIME)
+          .putExtra(EXT_KEY, hashCode());
+
+      final PendingIntent operation = PendingIntent.getBroadcast(mContext, hashCode(),
+          intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+      // set the timer
+      final AlarmManager manager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+      manager.setRepeating(AlarmManager.ELAPSED_REALTIME,
+          SystemClock.elapsedRealtime() + mDelay, mPeriod,
+          operation);
+
+      return this;
+    }
+
+    /** Notify all listeners that its time for data exchange. */
+    public void raise() {
+      for (Notifications selector : mKnown) {
+        selector.onChanged();
+      }
+    }
+
+    @Override
+    public void willNotify(@NonNull final Notifications listener) {
+      mKnown.add(listener);
+    }
+
+    @Override
+    public void detach(@NonNull final Notifications listener) {
+      mKnown.remove(listener);
+
+      if (mKnown.isEmpty() && null != mOperation) {
+        final AlarmManager manager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+        manager.cancel(mOperation);
+
+        unregister(mContext, this);
       }
     }
   }

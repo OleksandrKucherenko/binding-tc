@@ -177,7 +177,7 @@ android {
   sourceSets {
     test {
       // include library sources into tests
-      java.srcDirs android.sourceSets.main.java.srcDirs
+      //java.srcDirs android.sourceSets.main.java.srcDirs
 
       resources.srcDir file('src/test/resources')
     }

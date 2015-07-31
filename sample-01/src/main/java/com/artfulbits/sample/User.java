@@ -1,6 +1,7 @@
 package com.artfulbits.sample;
 
 import java.util.Observable;
+import java.util.concurrent.TimeUnit;
 
 /** Typical POJO class. */
 public class User extends Observable {
@@ -24,6 +25,8 @@ public class User extends Observable {
   private boolean mSelectNewGroup;
   /** Is 'Continue from Last Point' chosen? */
   private boolean mContinueFromLastPoint;
+  /** Active time in seconds. */
+  private long mStartTime = System.currentTimeMillis();
 
   public int getGroupSpin() {
     return mGroupSpin;
@@ -102,5 +105,9 @@ public class User extends Observable {
 
   public void setContinueFromLastPoint(final boolean continueFromLastPoint) {
     mContinueFromLastPoint = continueFromLastPoint;
+  }
+
+  public int getActiveTime() {
+    return (int) TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - mStartTime);
   }
 }

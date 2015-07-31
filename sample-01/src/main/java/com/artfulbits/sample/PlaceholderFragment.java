@@ -10,12 +10,15 @@ import android.widget.Button;
 
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingsManager;
+import com.artfulbits.ui.binding.Formatting;
 
+import static com.artfulbits.ui.binding.toolbox.Formatter.onlyPop;
 import static com.artfulbits.ui.binding.toolbox.Formatter.toInteger;
 import static com.artfulbits.ui.binding.toolbox.Listeners.anyOf;
 import static com.artfulbits.ui.binding.toolbox.Listeners.onFocusLost;
 import static com.artfulbits.ui.binding.toolbox.Listeners.onObservable;
 import static com.artfulbits.ui.binding.toolbox.Listeners.onTextChanged;
+import static com.artfulbits.ui.binding.toolbox.Listeners.onTimer;
 import static com.artfulbits.ui.binding.toolbox.Models.bool;
 import static com.artfulbits.ui.binding.toolbox.Models.integer;
 import static com.artfulbits.ui.binding.toolbox.Models.pojo;
@@ -74,6 +77,23 @@ public class PlaceholderFragment extends Fragment implements BindingsManager.Lif
         .onModel(onObservable("Pin"))
         .format(toInteger())
         .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
+
+    // one way binding with timer thread
+    bm.numeric()
+        .view(textView(getView(), R.id.tv_login))
+        .model(pojo(mUser, integer("ActiveTime")))
+        .onModel(onTimer(1000, 1000)) // update every second
+        .format(onlyPop(new Formatting<String, Integer>() {
+          @Override
+          public String toOut(final Integer value) {
+            return getString(R.string.labelLogin).replace(":", " [" + value + " sec]:");
+          }
+
+          @Override
+          public Integer toIn(final String value) {
+            return null;
+          }
+        }));
 
     // edit Text - validation password
     bm.numeric()
