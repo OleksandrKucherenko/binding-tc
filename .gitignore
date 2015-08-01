@@ -10,6 +10,7 @@
 
 # Java class files
 *.class
+*.ex
 
 # Local configs
 local.properties
@@ -24,12 +25,15 @@ generated
 
 # Android Studio
 .idea/
+.navigation/
+captures/
 build/
-**/build
-.gradle
+.gradle/
 /*/local.properties
 /*/out
+**/build
 **/production
+
 *.iml
 *.iws
 *.ipr
