@@ -89,6 +89,7 @@ dependencies {
     testCompile 'org.mockito:mockito-core:+'
     testCompile 'com.artfulbits:meter:+'
     testCompile('junit:junit:4.12') { exclude group: 'org.hamcrest' }
+
     //region testCompile('org.robolectric:robolectric:+')
     /* Robolectric (v3.0) */
     if (useRobolectric) {

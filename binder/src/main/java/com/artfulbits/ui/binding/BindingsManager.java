@@ -40,12 +40,14 @@ public class BindingsManager {
   private final static int MSG_ON_MODEL_CHANGED = 2;
   /** Request unfreeze operation execution in UI thread. */
   private final static int MSG_UNFREEZE = 4;
-  /** Request validation report delivery in UI thread. */
-  private final static int MSG_VALIDATION = 8;
   /** Request validation success report delivery in UI thread. */
-  private final static int MSG_SUCCESS = 16;
+  private final static int MSG_SUCCESS = 8;
   /** Request validation failure report delivery in UI thread. */
-  private final static int MSG_FAILURE = 32;
+  private final static int MSG_FAILURE = 16;
+  /** Request validation report delivery in UI thread. */
+  private final static int MSG_LIFE_VALIDATION = 32;
+  /** Do create binding. */
+  private final static int MSG_LIFE_BINDING = 64;
 
   /** Weak references on lifecycle listeners. */
   private final Set<Lifecycle> mListeners = new WeakHashMap<Lifecycle, Void>().keySet();
@@ -120,7 +122,7 @@ public class BindingsManager {
 
   /** UI THREAD! processing of messages in UI thread. */
   protected boolean onHandleMessage(final Message msg) {
-    final Binder<?, ?> binder = (msg.obj instanceof Binder) ? (Binder<?, ?>) msg.obj : null;
+    final Binder<?, ?> binder = (msg.obj instanceof Binder) ? (Binder<?, ?>) msg.obj : Binder.EMPTY;
 
     switch (msg.what) {
       case MSG_ON_MODEL_CHANGED:
@@ -147,7 +149,13 @@ public class BindingsManager {
         binder.getOnFailure().onValidationFailure(this, binder);
         return true;
 
-      case MSG_VALIDATION:
+      case MSG_LIFE_BINDING:
+        for (Lifecycle lf : mListeners) {
+          lf.onCreateBinding(this);
+        }
+        return true;
+
+      case MSG_LIFE_VALIDATION:
         for (Lifecycle lf : mListeners) {
           lf.onValidationResult(this, isAllValid());
         }
@@ -277,6 +285,42 @@ public class BindingsManager {
     return this;
   }
 
+  /**
+   * Execute from: {@link Activity#onStart()} or {@link android.support.v4.app.Fragment#onStart()}, {@link
+   * Fragment#onStart()}.
+   */
+  public void doStart() {
+    notifyOnCreateBinding();
+  }
+
+  /**
+   * Execute from: {@link Activity#onResume()} or {@link android.support.v4.app.Fragment#onResume()}, {@link
+   * Fragment#onResume()}.
+   */
+  public void doResume() {
+    pop();
+  }
+
+  /**
+   * Execute from: {@link Activity#onPause()} or {@link android.support.v4.app.Fragment#onPause()}, {@link
+   * Fragment#onPause()}.
+   */
+  public void doPause() {
+    push();
+  }
+
+  /**
+   * Execute from: {@link Activity#onDestroy()} or {@link android.support.v4.app.Fragment#onDestroy()}, {@link
+   * Fragment#onDestroy()}.
+   */
+  public void doDestroy() {
+    mRules.clear();
+  }
+
+  /* package */ void notifyOnCreateBinding() {
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_LIFE_BINDING));
+  }
+
   /* package */ void notifyOnViewChanged(@NonNull final Binder<?, ?> binder) {
     mDispatcher.removeMessages(MSG_ON_VIEW_CHANGED);
     mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_VIEW_CHANGED, binder));
@@ -288,7 +332,7 @@ public class BindingsManager {
   }
 
   /* package */ void notifyOnValidation(@NonNull final Binder<?, ?> binder) {
-    // TODO: notify lifecycle on validation success or failure
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_LIFE_VALIDATION));
   }
 
   /* package */ void notifyOnSuccess(@NonNull final Binder<?, ?> binder) {
@@ -306,12 +350,28 @@ public class BindingsManager {
 	/* [ PUSH AND POP ] ============================================================================================= */
 
   /**
-   * Force model instance update by values from view's.
+   * Evaluate all bindings. Perform on each PUSH. VIEW data delivered to MODEL.<br/> Keep in mind that this is
+   * <b>ASYNC</b> operation. Results of binding you will receive in specially designed callbacks/listeners: {@link
+   * BindingsManager.Lifecycle}, {@link Success} or {@link Failure}.
    *
-   * @param instance the instance of model
+   * @return this instance.
    */
-  public BindingsManager pushByModel(@NonNull final Object instance) {
-    for (final Binder<?, ?> bind : getBindingsByModel(instance)) {
+  public BindingsManager push() {
+    for (Binder<?, ?> b : mRules) {
+      push(b);
+    }
+
+    return this;
+  }
+
+  /**
+   * Force model modelInstance update by values from view's.
+   *
+   * @param modelInstance the modelInstance of model
+   * @return this modelInstance.
+   */
+  public BindingsManager pushTo(@NonNull final Object modelInstance) {
+    for (final Binder<?, ?> bind : getBindingsByModel(modelInstance)) {
       push(bind);
     }
 
@@ -322,6 +382,7 @@ public class BindingsManager {
    * Force model instance update by value from view with respect to 'Freeze mode'.
    *
    * @param binder binding rule.
+   * @return this instance.
    */
   public BindingsManager push(@NonNull final Binder<?, ?> binder) {
     if (isFrozen()) {
@@ -337,6 +398,7 @@ public class BindingsManager {
    * Force views updates that are bind to the provided model instance.
    *
    * @param instance the instance of model
+   * @return this instance.
    */
   public BindingsManager popByModel(@NonNull final Object instance) {
     for (final Binder<?, ?> bind : getBindingsByModel(instance)) {
@@ -346,10 +408,34 @@ public class BindingsManager {
     return this;
   }
 
+  public BindingsManager popTo(@NonNull final Object viewInstance) {
+    for (Binder<?, ?> b : getBindingsByView(viewInstance)) {
+      pop(b);
+    }
+
+    return this;
+  }
+
+  /**
+   * Evaluate all bindings. Perform on each POP. MODEL data delivered to VIEW.<br/> Keep in mind that this is
+   * <b>ASYNC</b> operation. Results of binding you will receive in specially designed callbacks/listeners: {@link
+   * BindingsManager.Lifecycle}, {@link Success} or {@link Failure}.
+   *
+   * @return this instance.
+   */
+  public BindingsManager pop() {
+    for (Binder<?, ?> b : mRules) {
+      pop(b);
+    }
+
+    return this;
+  }
+
   /**
    * Force views updates that are bind to the provided model instance with respect to 'Freeze mode'.
    *
    * @param binder binding rule.
+   * @return this instance.
    */
   public BindingsManager pop(@NonNull final Binder<?, ?> binder) {
     if (isFrozen()) {
@@ -370,13 +456,26 @@ public class BindingsManager {
     return mFreezeCounter.get() > 0;
   }
 
-  /** Stop triggering of all data push/pop operations. */
+  /** Get number of pending POP/PUSH actions. */
+  public int getPendingQueueSize() {
+    return mPending.size();
+  }
+
+  /**
+   * Stop triggering of all data push/pop operations.
+   *
+   * @return this instance.
+   */
   public BindingsManager freeze() {
     mFreezeCounter.incrementAndGet();
     return this;
   }
 
-  /** Recover triggering of all data push/pop operations. */
+  /**
+   * Recover triggering of all data push/pop operations.
+   *
+   * @return this instance.
+   */
   public BindingsManager unfreeze() {
     if (0 >= mFreezeCounter.decrementAndGet()) {
       mFreezeCounter.set(0);
@@ -425,10 +524,10 @@ public class BindingsManager {
    * binding operation is the most suitable.
    */
   public interface Lifecycle {
-    /** Raised on moment when is the best to create bindings. */
+    /** Raised on moment when is the best to create bindings. Execute in MAIN thread. */
     void onCreateBinding(final BindingsManager bm);
 
-    /** Raised on moment of validation. */
+    /** Raised on moment of validation. Executed in MAIN thread. */
     void onValidationResult(final BindingsManager bm, final boolean success);
   }
 }

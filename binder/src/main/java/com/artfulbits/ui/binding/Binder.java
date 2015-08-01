@@ -13,11 +13,14 @@ import org.hamcrest.CoreMatchers;
 /**
  * Base class for all binding rules keeping.
  *
- * @param <TLeft>  the type of View field
+ * @param <TLeft> the type of View field
  * @param <TRight> the type of Model field
  */
 public class Binder<TLeft, TRight> {
   /* [ CONSTANTS ] ================================================================================================ */
+
+  /** Empty instance. Can be  used instead of NULL. */
+  public static final Binder<Void, Void> EMPTY = new Binder<>();
 
   /** POP operation validation passed. */
   private static final int STATUS_FAIL_GET_PUSH = 1;
@@ -85,8 +88,9 @@ public class Binder<TLeft, TRight> {
   public Binder<TLeft, TRight> view(@NonNull final Selector<?, TLeft> view) {
     mView = view;
 
-    if (null != mOnView)
+    if (null != mOnView) {
       onView(mOnView);
+    }
 
     return this;
   }
@@ -95,8 +99,9 @@ public class Binder<TLeft, TRight> {
   public Binder<TLeft, TRight> model(@NonNull final Selector<?, TRight> model) {
     mModel = model;
 
-    if (null != mOnModel)
+    if (null != mOnModel) {
       onModel(mOnModel);
+    }
 
     return this;
   }
@@ -183,14 +188,16 @@ public class Binder<TLeft, TRight> {
 
   /** Notify manager that binder detects view side changes. */
   protected void onViewChanged() {
-    if (null != mManager)
+    if (null != mManager) {
       mManager.notifyOnViewChanged(this);
+    }
   }
 
   /** Notify manager that binder detects model side changes. */
   protected void onModelChanged() {
-    if (null != mManager)
+    if (null != mManager) {
       mManager.notifyOnModelChanged(this);
+    }
   }
 
   /** Notify manager that validation successfully passed. */
@@ -232,8 +239,9 @@ public class Binder<TLeft, TRight> {
   /** Resolve formatting to instance that can be executed. */
   @NonNull
   public Formatting<TLeft, TRight> resolveFormatting() {
-    if (null == mFormatting)
+    if (null == mFormatting) {
       mFormatting = Formatter.direct();
+    }
 
     return mFormatting;
   }
@@ -251,17 +259,19 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: View --> Model.
-   * <p>
+   * <p/>
    * Data flow: View --> IsChanged --> Formatter --> Validator --> Is Changed --> Model;<br/> Logic is: 'on button push
    * do model update, from higher level to lower'.
    */
   public void push() {
     // validate instance state
-    if (null == mView)
+    if (null == mView) {
       throw new WrongConfigurationError("View part is not defined.");
+    }
 
-    if (null == mModel)
+    if (null == mModel) {
       throw new WrongConfigurationError("Model part is not defined.");
+    }
 
     // get value from View
     final TLeft lValue = mView.get();
@@ -309,17 +319,19 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: Model --> View.
-   * <p>
+   * <p/>
    * Data flow: Model --> Is Changed --> Validator --> Formatter --> Is Changed --> View.<br/> Logic is: 'on data change
    * do pop of updates from lower level to upper'.
    */
   public void pop() {
     // validate instance state
-    if (null == mView)
+    if (null == mView) {
       throw new WrongConfigurationError("View part is not defined.");
+    }
 
-    if (null == mModel)
+    if (null == mModel) {
       throw new WrongConfigurationError("Model part is not defined.");
+    }
 
     // extract the value
     final TRight rValue = mModel.get();
@@ -367,11 +379,13 @@ public class Binder<TLeft, TRight> {
 
   /** Validate instance configuration. */
   public void resolve() throws ConfigurationError {
-    if (null == mView)
+    if (null == mView) {
       throw new WrongConfigurationError("View part is not defined.");
+    }
 
-    if (null == mModel)
+    if (null == mModel) {
       throw new WrongConfigurationError("Model part is not defined.");
+    }
 
     Throwable exModel = null, exView = null;
 
@@ -389,12 +403,13 @@ public class Binder<TLeft, TRight> {
 
     // merge exceptions, if we have more than one
     if (null != exModel || null != exView) {
-      if (null != exModel && null != exView)
+      if (null != exModel && null != exView) {
         throw new ConfigurationError("Model and View has wrong bindings.", exModel, exView);
-      else if (null == exModel)
+      } else if (null == exModel) {
         throw new WrongConfigurationError("View issue", exView);
-      else
+      } else {
         throw new WrongConfigurationError("Model issue", exModel);
+      }
     }
   }
 

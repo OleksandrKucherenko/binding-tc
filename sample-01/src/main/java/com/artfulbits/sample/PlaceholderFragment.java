@@ -1,7 +1,6 @@
 package com.artfulbits.sample;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +9,7 @@ import android.widget.Button;
 
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingsManager;
+import com.artfulbits.ui.binding.toolbox.BindingFragment;
 import com.artfulbits.ui.binding.toolbox.ToView;
 
 import static com.artfulbits.ui.binding.toolbox.Formatter.onlyPop;
@@ -33,9 +33,7 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.AllOf.allOf;
 
 /** Login fragment with simplest UI. */
-public class PlaceholderFragment extends Fragment implements BindingsManager.Lifecycle {
-  /** instance that extends Fragment lifecycle. */
-  private final BindingsManager mBinding = BindingsManager.newInstance(this, this);
+public class PlaceholderFragment extends BindingFragment implements BindingsManager.Lifecycle {
   /** model instance. */
   private final User mUser = new User();
   /** reference on Proceed button. */
@@ -47,15 +45,15 @@ public class PlaceholderFragment extends Fragment implements BindingsManager.Lif
     final View view = inflater.inflate(R.layout.fragment_main, container, false);
 
     // create binding to Login
-    final Binder bindLogin = mBinding.texts()
+    final Binder bindLogin = getBindingsManager().texts()
         .view(textView(view, R.id.et_login))
         .model(pojo(mUser, text("login")));
 
     // update view by model values
-    mBinding.pop(bindLogin);
+    getBindingsManager().pop(bindLogin);
 
     // update model by views values (can be executed more than one rule!)
-    mBinding.pushByModel(mUser);
+    getBindingsManager().pushTo(mUser);
 
     btnProceed = (Button) view.findViewById(R.id.bt_proceed);
 
@@ -65,8 +63,9 @@ public class PlaceholderFragment extends Fragment implements BindingsManager.Lif
   /** {@inheritDoc} */
   @Override
   public void onCreateBinding(final BindingsManager bm) {
-    if (null == getView())
+    if (null == getView()) {
       throw new AssertionError("That should never happens. Lifecycle expects existence of View.");
+    }
 
     // #1: worst case scenario: verbose syntax for edit text
     // #2: limit user input by NUMBERS for PIN style password, 4 digits in length
