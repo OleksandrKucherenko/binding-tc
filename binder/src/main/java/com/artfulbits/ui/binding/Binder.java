@@ -20,17 +20,17 @@ public class Binder<TLeft, TRight> {
   /* [ CONSTANTS ] ================================================================================================ */
 
   /** POP operation validation passed. */
-  private static final int STATUS_FAIL_GET_POP = 1;
+  private static final int STATUS_FAIL_GET_PUSH = 1;
   /** POP operation validation failed. */
-  private static final int STATUS_FAIL_POP = 2;
+  private static final int STATUS_FAIL_PUSH = 2;
   /** PUSH operation validation passed. */
-  private static final int STATUS_FAIL_GET_PUSH = 4;
+  private static final int STATUS_FAIL_GET_POP = 4;
   /** PUSH operation validation failed. */
-  private static final int STATUS_FAIL_PUSH = 8;
+  private static final int STATUS_FAIL_POP = 8;
   /** Mask for filtering PUSH operation status. */
-  private static final int MASK_PUSH = STATUS_FAIL_GET_PUSH | STATUS_FAIL_PUSH;
-  /** Mask for filtering POP operation status. */
   private static final int MASK_POP = STATUS_FAIL_GET_POP | STATUS_FAIL_POP;
+  /** Mask for filtering POP operation status. */
+  private static final int MASK_PUSH = STATUS_FAIL_GET_PUSH | STATUS_FAIL_PUSH;
 
   /* ============================================================================================================== */
 
@@ -251,10 +251,11 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: View --> Model.
-   * <p/>
-   * Data flow: View --> IsChanged --> Formatter --> Validator --> Is Changed --> Model;
+   * <p>
+   * Data flow: View --> IsChanged --> Formatter --> Validator --> Is Changed --> Model;<br/> Logic is: 'on button push
+   * do model update, from higher level to lower'.
    */
-  public void pop() {
+  public void push() {
     // validate instance state
     if (null == mView)
       throw new WrongConfigurationError("View part is not defined.");
@@ -267,7 +268,7 @@ public class Binder<TLeft, TRight> {
 
     // getter is not resolved,
     if (null == resolveView().getGetterName()) {
-      mStatus = (mStatus & MASK_PUSH) | STATUS_FAIL_POP | STATUS_FAIL_GET_POP;
+      mStatus = (mStatus & MASK_POP) | STATUS_FAIL_PUSH | STATUS_FAIL_GET_PUSH;
       onValidationFailure();
       return;
     }
@@ -281,17 +282,17 @@ public class Binder<TLeft, TRight> {
     // formatter, with respect to ONE-WAY binding
     final TRight rValue;
     try {
-      rValue = resolveFormatting().toIn(lValue);
+      rValue = resolveFormatting().toModel(lValue);
     } catch (final OneWayBindingError ignored) {
       return;
     }
 
     // validation
     if (resolveValidation().matches(rValue)) {
-      mStatus &= MASK_PUSH; // save PUSH status, reset POP status
+      mStatus &= MASK_POP; // save PUSH status, reset POP status
       onValidationSuccess();
     } else {
-      mStatus = (mStatus & MASK_PUSH) | STATUS_FAIL_POP;
+      mStatus = (mStatus & MASK_POP) | STATUS_FAIL_PUSH;
       onValidationFailure();
       return;  // no other steps needed in pop
     }
@@ -308,10 +309,11 @@ public class Binder<TLeft, TRight> {
 
   /**
    * Do data exchange in direction: Model --> View.
-   * <p/>
-   * Data flow: Model --> Is Changed --> Validator --> Formatter --> Is Changed --> View.
+   * <p>
+   * Data flow: Model --> Is Changed --> Validator --> Formatter --> Is Changed --> View.<br/> Logic is: 'on data change
+   * do pop of updates from lower level to upper'.
    */
-  public void push() {
+  public void pop() {
     // validate instance state
     if (null == mView)
       throw new WrongConfigurationError("View part is not defined.");
@@ -324,7 +326,7 @@ public class Binder<TLeft, TRight> {
 
     // getter is not resolved,
     if (null == resolveModel().getGetterName()) {
-      mStatus = (mStatus & MASK_PUSH) | STATUS_FAIL_POP | STATUS_FAIL_GET_PUSH;
+      mStatus = (mStatus & MASK_POP) | STATUS_FAIL_PUSH | STATUS_FAIL_GET_POP;
       onValidationFailure();
       return;
     }
@@ -337,10 +339,10 @@ public class Binder<TLeft, TRight> {
 
     // validation passed?
     if (resolveValidation().matches(rValue)) {
-      mStatus &= MASK_POP; // save POP status, reset PUSH status
+      mStatus &= MASK_PUSH; // save POP status, reset PUSH status
       onValidationSuccess();
     } else {
-      mStatus = (mStatus & MASK_POP) | STATUS_FAIL_PUSH;
+      mStatus = (mStatus & MASK_PUSH) | STATUS_FAIL_POP;
       onValidationFailure();
       return; // no other steps needed in push
     }
@@ -348,7 +350,7 @@ public class Binder<TLeft, TRight> {
     // do formatting with respect to ONE-WAY binding
     final TLeft lValue;
     try {
-      lValue = resolveFormatting().toOut(rValue);
+      lValue = resolveFormatting().toView(rValue);
     } catch (final OneWayBindingError ignored) {
       return;
     }
@@ -400,12 +402,12 @@ public class Binder<TLeft, TRight> {
 
   /** Is pop operation validation passed? */
   public boolean isPopOk() {
-    return (mStatus & MASK_POP) == 0;
+    return (mStatus & MASK_PUSH) == 0;
   }
 
   /** Is push operation validation passed? */
   public boolean isPushOk() {
-    return (mStatus & MASK_PUSH) == 0;
+    return (mStatus & MASK_POP) == 0;
   }
 
   /** Get reference on model instance. */

@@ -4,6 +4,7 @@ import java.util.Observable;
 import java.util.concurrent.TimeUnit;
 
 /** Typical POJO class. */
+@SuppressWarnings("unused")
 public class User extends Observable {
   /** User name. */
   private String mLogin;

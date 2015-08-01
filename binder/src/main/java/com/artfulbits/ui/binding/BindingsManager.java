@@ -133,9 +133,9 @@ public class BindingsManager {
 
       case MSG_UNFREEZE:
         if (DO_POP == msg.arg1) {
-          binder.pop();
-        } else {
           binder.push();
+        } else {
+          binder.pop();
         }
         return true;
 
@@ -327,7 +327,7 @@ public class BindingsManager {
     if (isFrozen()) {
       mPending.add(new Pair<Binder<?, ?>, Integer>(binder, DO_PUSH));
     } else {
-      binder.push();
+      binder.pop();
     }
 
     return this;
@@ -355,7 +355,7 @@ public class BindingsManager {
     if (isFrozen()) {
       mPending.add(new Pair<Binder<?, ?>, Integer>(binder, DO_POP));
     } else {
-      binder.pop();
+      binder.push();
     }
 
     return this;
@@ -392,9 +392,9 @@ public class BindingsManager {
 
           // do data exchange
           if (DO_POP == p.second) {
-            p.first.pop();
-          } else {
             p.first.push();
+          } else {
+            p.first.pop();
           }
         }
 

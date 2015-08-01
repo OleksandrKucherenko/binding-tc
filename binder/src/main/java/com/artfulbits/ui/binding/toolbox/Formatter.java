@@ -15,19 +15,19 @@ public final class Formatter {
     throw new AssertionError();
   }
 
-	/* [ STATIC METHODS ] ============================================================================================ */
+	/* [ STATIC METHODS - GENERIC ] ================================================================================== */
 
   /** No formatting. Input and Output is the same value. */
   @NonNull
   public static <T, V> Formatting<T, V> direct() {
     return new Formatting<T, V>() {
       @Override
-      public T toOut(V value) {
+      public T toView(V value) {
         return (T) value;
       }
 
       @Override
-      public V toIn(T value) {
+      public V toModel(T value) {
         return (V) value;
       }
     };
@@ -38,45 +38,85 @@ public final class Formatter {
   public static <T, V> Formatting<T, V> reverse(@NonNull final Formatting<V, T> f) {
     return new Formatting<T, V>() {
       @Override
-      public T toOut(final V value) {
-        return f.toIn(value);
+      public T toView(final V value) {
+        return f.toModel(value);
       }
 
       @Override
-      public V toIn(final T value) {
-        return f.toOut(value);
+      public V toModel(final T value) {
+        return f.toView(value);
       }
     };
   }
 
-  /** Create one way binding - allowed only POP operation, from MODEL to VIEW. */
+  /**
+   * Create one way binding - allowed only POP operation, from MODEL to VIEW. VIEW to MODEL - not allowed.
+   */
   @NonNull
   public static <T, V> Formatting<T, V> onlyPop(@NonNull final Formatting<T, V> f) {
     return new Formatting<T, V>() {
       @Override
-      public T toOut(final V value) {
-        return f.toOut(value);
+      public T toView(final V value) {
+        return f.toView(value);
       }
 
       @Override
-      public V toIn(final T value) {
+      public V toModel(final T value) {
         throw new OneWayBindingError();
       }
     };
   }
 
-  /** Create one way binding - allowed only PUSH operation, from VIEW to MODEL. */
+  /**
+   * Create one way binding - allowed only POP operation, from MODEL to VIEW. VIEW to MODEL - not allowed.
+   */
+  @NonNull
+  public static <T, V> Formatting<T, V> onlyPop(@NonNull final ToView<T, V> f) {
+    return new Formatting<T, V>() {
+      @Override
+      public T toView(final V value) {
+        return f.toView(value);
+      }
+
+      @Override
+      public V toModel(final T value) {
+        throw new OneWayBindingError();
+      }
+    };
+  }
+
+  /**
+   * Create one way binding - allowed only PUSH operation, from VIEW to MODEL. MODEL to VIEW - not allowed.
+   */
   @NonNull
   public static <T, V> Formatting<T, V> onlyPush(@NonNull final Formatting<T, V> f) {
     return new Formatting<T, V>() {
       @Override
-      public T toOut(final V value) {
+      public T toView(final V value) {
         throw new OneWayBindingError();
       }
 
       @Override
-      public V toIn(final T value) {
-        return f.toIn(value);
+      public V toModel(final T value) {
+        return f.toModel(value);
+      }
+    };
+  }
+
+  /**
+   * Create one way binding - allowed only PUSH operation, from VIEW to MODEL. MODEL to VIEW - not allowed.
+   */
+  @NonNull
+  public static <T, V> Formatting<T, V> onlyPush(@NonNull final ToModel<V, T> f) {
+    return new Formatting<T, V>() {
+      @Override
+      public T toView(final V value) {
+        throw new OneWayBindingError();
+      }
+
+      @Override
+      public V toModel(final T value) {
+        return f.toModel(value);
       }
     };
   }
@@ -86,12 +126,12 @@ public final class Formatter {
   private static <T extends Number> Formatting<String, T> toNumber(@NonNull final Class<T> type) {
     return new Formatting<String, T>() {
       @Override
-      public String toOut(final T value) {
+      public String toView(final T value) {
         return value.toString();
       }
 
       @Override
-      public T toIn(final String value) {
+      public T toModel(final String value) {
         if (Byte.class.equals(type)) {
           return (T) Byte.valueOf(value);
         } else if (Short.class.equals(type)) {
@@ -117,6 +157,8 @@ public final class Formatter {
     final Formatting<String, T> left;
     return reverse(left = toNumber(type));
   }
+
+  /* [ CONCRETE IMPLEMENTATIONS ] ================================================================================== */
 
   /** String to Integer. */
   @NonNull

@@ -10,7 +10,7 @@ import android.widget.Button;
 
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingsManager;
-import com.artfulbits.ui.binding.Formatting;
+import com.artfulbits.ui.binding.toolbox.ToView;
 
 import static com.artfulbits.ui.binding.toolbox.Formatter.onlyPop;
 import static com.artfulbits.ui.binding.toolbox.Formatter.toInteger;
@@ -83,15 +83,10 @@ public class PlaceholderFragment extends Fragment implements BindingsManager.Lif
         .view(textView(getView(), R.id.tv_login))
         .model(pojo(mUser, integer("ActiveTime")))
         .onModel(onTimer(1000, 1000)) // update every second
-        .format(onlyPop(new Formatting<String, Integer>() {
+        .format(onlyPop(new ToView<String, Integer>() {
           @Override
-          public String toOut(final Integer value) {
+          public String toView(final Integer value) {
             return getString(R.string.labelLogin).replace(":", " [" + value + " sec]:");
-          }
-
-          @Override
-          public Integer toIn(final String value) {
-            return null;
           }
         }));
 

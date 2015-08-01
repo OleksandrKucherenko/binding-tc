@@ -34,13 +34,13 @@ public class BinderTests extends TestHolder {
         .model(pojo(model, text("Name"))); // PojoNamePin.getName()
 
     model.setName("name-set");
-    bss.push(); // from ONE --> TWO
+    bss.pop(); // from ONE --> TWO
 
     assertThat(view.getLogin(), equalTo("name-set"));
     assertThat(bss.isPushOk(), equalTo(true));
 
     view.setLogin("login-set");
-    bss.pop(); // from TWO --> ONE
+    bss.push(); // from TWO --> ONE
 
     assertThat(model.getName(), equalTo("login-set"));
     assertThat(bss.isPopOk(), equalTo(true));
@@ -75,13 +75,13 @@ public class BinderTests extends TestHolder {
         .format(Formatter.toInteger());
 
     modelInstance.setPin(1234);
-    bss.push(); // from MODEL --> VIEW
+    bss.pop(); // from MODEL --> VIEW
 
     assertThat(viewInstance.getPassword(), equalTo("1234"));
     assertThat(bss.isPushOk(), equalTo(true));
 
     viewInstance.setPassword("4321");
-    bss.pop(); // from VIEW --> MODEL
+    bss.push(); // from VIEW --> MODEL
 
     assertThat(modelInstance.getPin(), equalTo(4321));
     assertThat(bss.isPopOk(), equalTo(true));
@@ -112,21 +112,21 @@ public class BinderTests extends TestHolder {
 
     // Step #1: validation ok - POP
     modelInstance.setLogin("login-set");
-    bss.push(); // from MODEL --> VIEW
+    bss.pop(); // from MODEL --> VIEW
     assertThat(modelInstance.getLogin(), equalTo("login-set"));
     assertThat(bss.isPushOk(), equalTo(true));
     assertThat(getRawLogger().toString(), containsString("success validation"));
 
     // Step #1: validation ok - PUSH
     viewInstance.setName("name-set");
-    bss.pop(); // from VIEW --> MODEL
+    bss.push(); // from VIEW --> MODEL
     assertThat(viewInstance.getName(), equalTo("name-set"));
     assertThat(bss.isPopOk(), equalTo(true));
 
     // Step #2: validation failed - POP
     final boolean wasPushOk = bss.isPushOk();
     modelInstance.setLogin("dummy");
-    bss.push();
+    bss.pop();
     assertThat(bss.isPushOk(), equalTo(false));
     assertThat(bss.isPushOk(), not(equalTo(wasPushOk)));
     assertThat(bss.isPopOk(), equalTo(true)); // state from prev call
@@ -136,7 +136,7 @@ public class BinderTests extends TestHolder {
     // Step #2: validation failed - PUSH
     final boolean wasPopOk = bss.isPopOk();
     viewInstance.setName("dummy2");
-    bss.pop();
+    bss.push();
     assertThat(bss.isPopOk(), equalTo(false));
     assertThat(bss.isPopOk(), not(equalTo(wasPopOk)));
     assertThat(modelInstance.getLogin(), not(equalTo("dummy2")));
