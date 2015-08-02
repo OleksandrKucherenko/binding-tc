@@ -368,7 +368,7 @@ public class BindingsManager {
    * Force model modelInstance update by values from view's.
    *
    * @param modelInstance the modelInstance of model
-   * @return this modelInstance.
+   * @return this instance.
    */
   public BindingsManager pushTo(@NonNull final Object modelInstance) {
     for (final Binder<?, ?> bind : getBindingsByModel(modelInstance)) {
@@ -395,13 +395,13 @@ public class BindingsManager {
   }
 
   /**
-   * Force views updates that are bind to the provided model instance.
+   * Force views updates that are bind to the provided model modelInstance.
    *
-   * @param instance the instance of model
+   * @param modelInstance the modelInstance of model
    * @return this instance.
    */
-  public BindingsManager popByModel(@NonNull final Object instance) {
-    for (final Binder<?, ?> bind : getBindingsByModel(instance)) {
+  public BindingsManager popByModel(@NonNull final Object modelInstance) {
+    for (final Binder<?, ?> bind : getBindingsByModel(modelInstance)) {
       pop(bind);
     }
 
