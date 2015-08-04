@@ -123,7 +123,7 @@ public final class Formatter {
 
   /** Convert String to Number and vise verse. */
   @NonNull
-  private static <T extends Number> Formatting<String, T> toNumber(@NonNull final Class<T> type) {
+  /* package */ static <T extends Number> Formatting<String, T> toNumber(@NonNull final Class<T> type) {
     return new Formatting<String, T>() {
       @Override
       public String toView(final T value) {
@@ -171,4 +171,20 @@ public final class Formatter {
   public static Formatting<Integer, String> fromInteger() {
     return reverse(toInteger());
   }
+
+  @NonNull
+  public static Formatting<Integer, Boolean> fromBoolean() {
+    return new Formatting<Integer, Boolean>() {
+      @Override
+      public Boolean toModel(final Integer value) {
+        return value > 0;
+      }
+
+      @Override
+      public Integer toView(final Boolean value) {
+        return value ? 1 : 0;
+      }
+    };
+  }
+
 }

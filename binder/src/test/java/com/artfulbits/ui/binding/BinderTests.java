@@ -1,6 +1,7 @@
 package com.artfulbits.ui.binding;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.artfulbits.junit.TestHolder;
 import com.artfulbits.ui.binding.exceptions.ConfigurationError;
@@ -184,18 +185,20 @@ public class BinderTests extends TestHolder {
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
-          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+          public void onValidationSuccess(@Nullable final BindingsManager bm, @NonNull final Binder<?, ?> b) {
             trace("success validation");
           }
         })
         .onFailure(new Failure() {
           @Override
-          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+          public void onValidationFailure(@Nullable final BindingsManager bm, @NonNull final Binder<?, ?> b) {
             trace("failure validation");
           }
         });
 
     bss.resolve();
+
+    fail("exception expected!");
   }
 
   @Test(expected = ConfigurationError.class)
@@ -210,18 +213,20 @@ public class BinderTests extends TestHolder {
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
-          public void onValidationSuccess(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+          public void onValidationSuccess(@Nullable final BindingsManager bm, @NonNull final Binder<?, ?> b) {
             trace("success validation");
           }
         })
         .onFailure(new Failure() {
           @Override
-          public void onValidationFailure(@NonNull final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+          public void onValidationFailure(@Nullable final BindingsManager bm, @NonNull final Binder<?, ?> b) {
             trace("failure validation");
           }
         });
 
     bss.resolve();
+
+    fail("exception expected!");
   }
 
   @Test(expected = ConfigurationError.class)
@@ -249,6 +254,8 @@ public class BinderTests extends TestHolder {
 
     // expected exception, "Something" field/method does not exists in View
     bss.resolve();
+
+    fail("exception expected!");
   }
 
   @Test(expected = ConfigurationError.class)
@@ -276,6 +283,8 @@ public class BinderTests extends TestHolder {
 
     // expected exception, "Something" field/method does not exists in Model
     bss.resolve();
+
+    fail("exception expected!");
   }
 
   @Test(expected = ConfigurationError.class)
@@ -303,6 +312,8 @@ public class BinderTests extends TestHolder {
 
     // expected exception, "Something" field/method does not exists in Model and View
     bss.resolve();
+
+    fail("exception expected!");
   }
 
   @Test(expected = ConfigurationError.class)
@@ -319,6 +330,8 @@ public class BinderTests extends TestHolder {
 
     // expected exception, "Something" field/method does not exists in Model and View
     bss.resolve();
+
+    fail("exception expected!");
   }
 
   @Test
@@ -336,7 +349,67 @@ public class BinderTests extends TestHolder {
     bss.resolve();
   }
 
-	/* [ NESTED DECLARATIONS ] ======================================================================================= */
+  @Test(expected = ConfigurationError.class)
+  public void test_11_BadConfiguration_NoView_Push() {
+    final PojoLoginPassword modelInstance = new PojoLoginPassword();
+    final Binder<Double, Long> bss = new Binder<>();
+
+    bss
+        .model(pojo(modelInstance, number("Timestamp")))
+        .onView(Listeners.onObservable())
+        .onModel(Listeners.onObservable());
+
+    bss.push(); // raise exception! No View
+
+    fail("exception expected!");
+  }
+
+  @Test(expected = ConfigurationError.class)
+  public void test_12_BadConfiguration_NoModel_Push() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final Binder<Double, Long> bss = new Binder<>();
+
+    bss
+        .view(pojo(viewInstance, real("Amount")))
+        .onView(Listeners.onObservable())
+        .onModel(Listeners.onObservable());
+
+    bss.push(); // raise exception! No Model
+
+    fail("exception expected!");
+  }
+
+  @Test(expected = ConfigurationError.class)
+  public void test_13_BadConfiguration_NoView_Pop() {
+    final PojoLoginPassword modelInstance = new PojoLoginPassword();
+    final Binder<Double, Long> bss = new Binder<>();
+
+    bss
+        .model(pojo(modelInstance, number("Timestamp")))
+        .onView(Listeners.onObservable())
+        .onModel(Listeners.onObservable());
+
+    bss.pop(); // raise exception! No View
+
+    fail("exception expected!");
+  }
+
+  @Test(expected = ConfigurationError.class)
+  public void test_14_BadConfiguration_NoModel_Pop() {
+    final PojoNamePin viewInstance = new PojoNamePin();
+    final Binder<Double, Long> bss = new Binder<>();
+
+    bss
+        .view(pojo(viewInstance, real("Amount")))
+        .onView(Listeners.onObservable())
+        .onModel(Listeners.onObservable());
+
+    bss.pop(); // raise exception! No Model
+
+    fail("exception expected!");
+  }
+
+  /* [ NESTED DECLARATIONS ] ======================================================================================= */
 
   public static class PojoNamePin {
     private String mName;
