@@ -16,7 +16,7 @@ import com.artfulbits.ui.binding.toolbox.Views;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -27,30 +27,35 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @SuppressWarnings("unused")
 public class BindingsManager {
-  /* [ CONSTANTS AND MEMBERS ] ==================================================================================== */
+  /* [ CONSTANTS ] =============================================================================================== */
 
   /** Associated with POP action constant. */
   private final static int DO_POP = 1;
   /** Associated with PUSH action constant. */
   private final static int DO_PUSH = 0;
 
-  /** Detected View change. */
-  private final static int MSG_ON_VIEW_CHANGED = 1;
-  /** Detected Model change. */
-  private final static int MSG_ON_MODEL_CHANGED = 2;
-  /** Request unfreeze operation execution in UI thread. */
-  private final static int MSG_UNFREEZE = 4;
-  /** Request validation success report delivery in UI thread. */
-  private final static int MSG_SUCCESS = 8;
-  /** Request validation failure report delivery in UI thread. */
-  private final static int MSG_FAILURE = 16;
-  /** Request validation report delivery in UI thread. */
-  private final static int MSG_LIFE_VALIDATION = 32;
-  /** Do create binding. */
-  private final static int MSG_LIFE_BINDING = 64;
+  /** Internal messages. */
+  private interface Messages {
+    /** Detected View change. */
+    int ON_VIEW_CHANGED = 1;
+    /** Detected Model change. */
+    int ON_MODEL_CHANGED = 2;
+    /** Request unfreeze operation execution in UI thread. */
+    int UNFREEZE = 4;
+    /** Request validation success report delivery in UI thread. */
+    int SUCCESS = 8;
+    /** Request validation failure report delivery in UI thread. */
+    int FAILURE = 16;
+    /** Request validation report delivery in UI thread. */
+    int LIFECYCLE_VALIDATION = 32;
+    /** Do create binding. */
+    int LIFECYCLE_BINDING = 64;
+  }
+
+  /* [ MEMBERS ] ================================================================================================= */
 
   /** Weak references on lifecycle listeners. */
-  private final Set<Lifecycle> mListeners = new WeakHashMap<Lifecycle, Void>().keySet();
+  private final Map<Lifecycle, Void> mListeners = new WeakHashMap<>();
   /** Facade For all types of the Views. */
   private final Selector<?, View> mFacade;
   /** Collection of all defined binding rules. */
@@ -125,38 +130,38 @@ public class BindingsManager {
     final Binder<?, ?> binder = (msg.obj instanceof Binder) ? (Binder<?, ?>) msg.obj : Binder.EMPTY;
 
     switch (msg.what) {
-      case MSG_ON_MODEL_CHANGED:
+      case Messages.ON_MODEL_CHANGED:
         pop(binder);
         return true;
 
-      case MSG_ON_VIEW_CHANGED:
+      case Messages.ON_VIEW_CHANGED:
         push(binder);
         return true;
 
-      case MSG_UNFREEZE:
+      case Messages.UNFREEZE:
         if (DO_POP == msg.arg1) {
-          binder.push();
-        } else {
           binder.pop();
+        } else {
+          binder.push();
         }
         return true;
 
-      case MSG_SUCCESS:
+      case Messages.SUCCESS:
         binder.getOnSuccess().onValidationSuccess(this, binder);
         return true;
 
-      case MSG_FAILURE:
+      case Messages.FAILURE:
         binder.getOnFailure().onValidationFailure(this, binder);
         return true;
 
-      case MSG_LIFE_BINDING:
-        for (Lifecycle lf : mListeners) {
+      case Messages.LIFECYCLE_BINDING:
+        for (Lifecycle lf : mListeners.keySet()) {
           lf.onCreateBinding(this);
         }
         return true;
 
-      case MSG_LIFE_VALIDATION:
-        for (Lifecycle lf : mListeners) {
+      case Messages.LIFECYCLE_VALIDATION:
+        for (Lifecycle lf : mListeners.keySet()) {
           lf.onValidationResult(this, isAllValid());
         }
         return true;
@@ -273,7 +278,7 @@ public class BindingsManager {
 
   /** Register lifecycle extender listener. */
   public BindingsManager register(@NonNull final Lifecycle listener) {
-    mListeners.add(listener);
+    mListeners.put(listener, null);
 
     return this;
   }
@@ -314,36 +319,41 @@ public class BindingsManager {
    * Fragment#onDestroy()}.
    */
   public void doDestroy() {
-    mRules.clear();
+    for (int i = mRules.size() - 1; i >= 0; i--) {
+      final Binder<?, ?> b = mRules.get(i);
+
+      // self de-registration from Binding Manager happens
+      b.destroy();
+    }
   }
 
   /* package */ void notifyOnCreateBinding() {
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_LIFE_BINDING));
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.LIFECYCLE_BINDING));
   }
 
   /* package */ void notifyOnViewChanged(@NonNull final Binder<?, ?> binder) {
-    mDispatcher.removeMessages(MSG_ON_VIEW_CHANGED);
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_VIEW_CHANGED, binder));
+    mDispatcher.removeMessages(Messages.ON_VIEW_CHANGED);
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.ON_VIEW_CHANGED, binder));
   }
 
   /* package */ void notifyOnModelChanged(@NonNull final Binder<?, ?> binder) {
-    mDispatcher.removeMessages(MSG_ON_MODEL_CHANGED);
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_ON_MODEL_CHANGED, binder));
+    mDispatcher.removeMessages(Messages.ON_MODEL_CHANGED);
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.ON_MODEL_CHANGED, binder));
   }
 
   /* package */ void notifyOnValidation(@NonNull final Binder<?, ?> binder) {
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_LIFE_VALIDATION));
+    mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.LIFECYCLE_VALIDATION));
   }
 
   /* package */ void notifyOnSuccess(@NonNull final Binder<?, ?> binder) {
     if (null != binder.getOnSuccess()) {
-      mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_SUCCESS, binder));
+      mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.SUCCESS, binder));
     }
   }
 
   /* package */ void notifyOnFailure(@NonNull final Binder<?, ?> binder) {
     if (null != binder.getOnFailure()) {
-      mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_FAILURE, binder));
+      mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.FAILURE, binder));
     }
   }
 
@@ -408,6 +418,7 @@ public class BindingsManager {
     return this;
   }
 
+  /** Pop data from Model to view instance. */
   public BindingsManager popTo(@NonNull final Object viewInstance) {
     for (Binder<?, ?> b : getBindingsByView(viewInstance)) {
       pop(b);
@@ -485,15 +496,15 @@ public class BindingsManager {
         for (Pair<Binder<?, ?>, Integer> p : mPending) {
           // update is possible only in UI thread
           if (View.class.isAssignableFrom(p.first.getViewType())) {
-            mDispatcher.sendMessage(mDispatcher.obtainMessage(MSG_UNFREEZE, p.second, -1, p.first));
+            mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.UNFREEZE, p.second, -1, p.first));
             continue;
           }
 
           // do data exchange
           if (DO_POP == p.second) {
-            p.first.push();
-          } else {
             p.first.pop();
+          } else {
+            p.first.push();
           }
         }
 

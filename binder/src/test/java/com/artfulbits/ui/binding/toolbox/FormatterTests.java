@@ -56,7 +56,28 @@ public class FormatterTests extends TestHolder {
   }
 
   @Test(expected = OneWayBindingError.class)
-  public void test_03_onlyPush() {
+  public void test_03_onlyPop_Partial() {
+    final Formatting<String, Integer> convert = Formatter.toInteger();
+    final Formatting<String, Integer> onlyPop = Formatter.onlyPop(new ToView<String, Integer>() {
+      @Override
+      public String toView(final Integer value) {
+        return convert.toView(value);
+      }
+    });
+
+    // should PASS!
+    assertThat(onlyPop.toView(10), equalTo("10"));
+
+    trace("toView() PASSED!");
+
+    // will work only from model to View, line should raise exception
+    assertThat(onlyPop.toModel("10"), equalTo(11));
+
+    fail("exception expected!");
+  }
+
+  @Test(expected = OneWayBindingError.class)
+  public void test_04_onlyPush() {
     final Formatting<String, Integer> convert = Formatter.toInteger();
     final Formatting<String, Integer> onlyPush = Formatter.onlyPush(convert);
 
@@ -69,8 +90,27 @@ public class FormatterTests extends TestHolder {
     fail("exception expected!");
   }
 
+  @Test(expected = OneWayBindingError.class)
+  public void test_05_onlyPush_Partial() {
+    final Formatting<String, Integer> convert = Formatter.toInteger();
+    final Formatting<String, Integer> onlyPush = Formatter.onlyPush(new ToModel<Integer, String>() {
+      @Override
+      public Integer toModel(final String value) {
+        return convert.toModel(value);
+      }
+    });
+
+    // should Pass
+    assertThat(onlyPush.toModel("10"), equalTo(10));
+
+    // will work only from model to View, line should raise exception
+    assertThat(onlyPush.toView(10), equalTo("10"));
+
+    fail("exception expected!");
+  }
+
   @Test
-  public void test_04_toNumbers() {
+  public void test_06_toNumbers() {
     Formatting<String, Byte> bytes = Formatter.toNumber(Byte.class);
     Formatting<String, Short> shorts = Formatter.toNumber(Short.class);
     Formatting<String, Integer> integers = Formatter.toNumber(Integer.class);
@@ -98,7 +138,7 @@ public class FormatterTests extends TestHolder {
   }
 
   @Test
-  public void test_05_Boolean() throws Exception {
+  public void test_07_Boolean() throws Exception {
     Formatting<Integer, Boolean> converter = Formatter.fromBoolean();
 
     assertThat(converter.toModel(2), equalTo(true));

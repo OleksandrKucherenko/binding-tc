@@ -13,7 +13,7 @@ import org.hamcrest.CoreMatchers;
 /**
  * Base class for all binding rules keeping.
  *
- * @param <TLeft> the type of View field
+ * @param <TLeft>  the type of View field
  * @param <TRight> the type of Model field
  */
 public class Binder<TLeft, TRight> {
@@ -61,6 +61,22 @@ public class Binder<TLeft, TRight> {
   private Failure mOnFailure;
   /** Status of last push/pop operation. */
   private int mStatus;
+  /** reference on internal instance that redirects calls to Model and BindingManager. */
+  private Notifications mModelNotify = new Notifications() {
+    @Override
+    public void onChanged() {
+      mModel.onChanged();
+      onModelChanged();
+    }
+  };
+  /** reference on internal instance that redirects calls to View and BindingManager. */
+  private final Notifications mViewNotify = new Notifications() {
+    @Override
+    public void onChanged() {
+      mView.onChanged();
+      onViewChanged();
+    }
+  };
 
   /* ============================================================================================================== */
 
@@ -124,18 +140,10 @@ public class Binder<TLeft, TRight> {
   public Binder<TLeft, TRight> onView(@NonNull final Listener listener) {
     mOnView = listener;
 
+    // --> Binding Manager --> MAIN thread --> this.push()
     if (null != mView) {
       listener.binding(mView);
-
-      // --> Binding Manager --> MAIN thread --> this.push()
-      listener.willNotify(new Notifications() {
-        @Override
-        public void onChanged() {
-          mView.onChanged();
-
-          onViewChanged();
-        }
-      });
+      listener.willNotify(mViewNotify);
     }
 
     return this;
@@ -145,18 +153,10 @@ public class Binder<TLeft, TRight> {
   public Binder<TLeft, TRight> onModel(@NonNull final Listener listener) {
     mOnModel = listener;
 
+    // --> Binding Manager --> MAIN thread --> this.pop()
     if (null != mModel) {
       listener.binding(mModel);
-
-      // --> Binding Manager --> MAIN thread --> this.pop()
-      listener.willNotify(new Notifications() {
-        @Override
-        public void onChanged() {
-          mModel.onChanged();
-
-          onModelChanged();
-        }
-      });
+      listener.willNotify(mModelNotify);
     }
 
     return this;
@@ -412,6 +412,24 @@ public class Binder<TLeft, TRight> {
       } else {
         throw new WrongConfigurationError("Model issue", exModel);
       }
+    }
+  }
+
+  /** Destroy all internal associations, cleanup. Optional. */
+  public void destroy() {
+    if (null != mOnModel) {
+      mOnModel.detach(mModelNotify);
+      mOnModel = null;
+    }
+
+    if (null != mOnView) {
+      mOnView.detach(mViewNotify);
+      mOnView = null;
+    }
+
+    if (null != mManager) {
+      mManager.getBindings().remove(this);
+      mManager = null;
     }
   }
 

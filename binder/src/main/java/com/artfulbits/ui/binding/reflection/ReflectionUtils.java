@@ -221,7 +221,7 @@ public final class ReflectionUtils {
     /** Single instance. */
     public final static SearchByExecutableNameComparator INSTANCE = new SearchByExecutableNameComparator();
 
-    /** private consructor. */
+    /** private constructor. */
     private SearchByExecutableNameComparator() {
     }
 

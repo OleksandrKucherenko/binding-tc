@@ -151,25 +151,12 @@ public final class Formatter {
     };
   }
 
-  /** Convert Number to String. */
-  @NonNull
-  private static <T extends Number> Formatting<T, String> fromNumber(final Class<T> type) {
-    final Formatting<String, T> left;
-    return reverse(left = toNumber(type));
-  }
-
   /* [ CONCRETE IMPLEMENTATIONS ] ================================================================================== */
 
   /** String to Integer. */
   @NonNull
   public static Formatting<String, Integer> toInteger() {
     return toNumber(Integer.class);
-  }
-
-  /** Integer to String. */
-  @NonNull
-  public static Formatting<Integer, String> fromInteger() {
-    return reverse(toInteger());
   }
 
   @NonNull

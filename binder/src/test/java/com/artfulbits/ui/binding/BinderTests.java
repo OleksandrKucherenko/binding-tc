@@ -337,12 +337,12 @@ public class BinderTests extends TestHolder {
 
   @Test
   public void test_10_Listeners() {
-    final PojoNamePin viewInstance = new PojoNamePin();
+    final PojoStringObserve viewInstance = new PojoStringObserve();
     final PojoObserve modelInstance = new PojoObserve();
-    final Binder<Double, Long> bss = new Binder<>();
+    final Binder<String, Long> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, real("getAmount", "mAmounts")))
+        .view(pojo(viewInstance, text("Time")))
         .model(pojo(modelInstance, number("Timestamp")))
         .onView(Listeners.onObservable())
         .onModel(Listeners.onObservable());
@@ -354,11 +354,13 @@ public class BinderTests extends TestHolder {
     // listeners works only when binder attached to manager
     bss.attachToManager(bmMocked);
 
-    // test observable listeners
+    // manager should receive one call - onModel
     modelInstance.setTimestamp(System.currentTimeMillis());
-
-    // manager should receive one call
     verify(bmMocked, times(1)).notifyOnModelChanged(bss);
+
+    // manager should receive one call - onView
+    viewInstance.setTime("2015-08-06");
+    verify(bmMocked, times(1)).notifyOnViewChanged(bss);
   }
 
   @Test(expected = ConfigurationError.class)
@@ -489,6 +491,21 @@ public class BinderTests extends TestHolder {
 
       setChanged();
       notifyObservers("timestamp");
+    }
+  }
+
+  public static class PojoStringObserve extends Observable {
+    private String mTime;
+
+    public String getTime() {
+      return mTime;
+    }
+
+    public void setTime(final String value) {
+      mTime = value;
+
+      setChanged();
+      notifyObservers("pojotime");
     }
   }
 }

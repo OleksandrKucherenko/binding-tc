@@ -47,7 +47,7 @@ public class PlaceholderFragment extends BindingFragment implements BindingsMana
     // create binding to Login
     final Binder bindLogin = getBindingsManager().texts()
         .view(textView(view, R.id.et_login))
-        .model(pojo(mUser, text("login")));
+        .model(pojo(mUser, text("Login")));
 
     // update view by model values
     getBindingsManager().pop(bindLogin);
@@ -80,7 +80,7 @@ public class PlaceholderFragment extends BindingFragment implements BindingsMana
     // one way binding with timer thread
     bm.numeric()
         .view(textView(getView(), R.id.tv_login))
-        .model(pojo(mUser, integer("ActiveTime")))
+        .model(pojo(mUser, integer("getActiveTime")))
         .onModel(onTimer(1000, 1000)) // update every second
         .format(onlyPop(new ToView<String, Integer>() {
           @Override

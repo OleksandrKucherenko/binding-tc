@@ -140,7 +140,9 @@ public final class Views {
    * @return the selector of "text" property from TextView inheritor
    */
   public static <T extends TextView> Selector<T, String> textView(@NonNull final Selector<?, T> selector) {
-    final Property<String> property = text("text");
+    // final T v; v.getText(); v.setText();
+
+    final Property<String> property = text("Text");
     return (Selector<T, String>) view(selector, property);
   }
 
@@ -152,20 +154,24 @@ public final class Views {
    * @return the selector
    */
   public static <T extends CompoundButton> Selector<T, Boolean> checkedView(@NonNull final Selector<?, T> selector) {
-    final Property<Boolean> property = bool("checked");
+    // final T v; v.isChecked(); v.setChecked();
+
+    final Property<Boolean> property = bool("Checked");
     return (Selector<T, Boolean>) view(selector, property);
   }
 
   /** 'Checked Radio Button Id' property binding. */
   public static <T extends RadioGroup> Selector<T, Integer> radioGroup(@NonNull final Selector<?, T> selector) {
-    final Property<Integer> property = integer("checkedRadioButtonId");
+    // final T v; v.getCheckedRadioButtonId()
 
+    final Property<Integer> property = integer("getCheckedRadioButtonId");
     return (Selector<T, Integer>) view(selector, property);
   }
 
   public static <T extends AdapterView<?>> Selector<T, Integer> adapterView(@NonNull final Selector<?, T> selector) {
-    final Property<Integer> property = integer("getSelectedItemPosition", "setSelection");
+    // final T a; a.getSelectedItemPosition(); a.setSelection();
 
+    final Property<Integer> property = integer("getSelectedItemPosition", "setSelection");
     return (Selector<T, Integer>) view(selector, property);
   }
 }
