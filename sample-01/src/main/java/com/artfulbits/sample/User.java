@@ -52,6 +52,7 @@ public class User extends Observable {
   public void setPin(final int pin) {
     mPin = pin;
 
+    setChanged();
     notifyObservers("Pin");
   }
 
@@ -62,6 +63,7 @@ public class User extends Observable {
   public void setConfirmPin(final int confirmPin) {
     mConfirmPin = confirmPin;
 
+    setChanged();
     notifyObservers("ConfirmPin");
 
     if (mConfirmPin == mPin && mPin != 0)

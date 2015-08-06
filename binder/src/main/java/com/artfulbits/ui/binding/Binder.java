@@ -127,6 +127,7 @@ public class Binder<TLeft, TRight> {
     if (null != mView) {
       listener.binding(mView);
 
+      // --> Binding Manager --> MAIN thread --> this.push()
       listener.willNotify(new Notifications() {
         @Override
         public void onChanged() {
@@ -147,6 +148,7 @@ public class Binder<TLeft, TRight> {
     if (null != mModel) {
       listener.binding(mModel);
 
+      // --> Binding Manager --> MAIN thread --> this.pop()
       listener.willNotify(new Notifications() {
         @Override
         public void onChanged() {

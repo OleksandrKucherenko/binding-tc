@@ -19,6 +19,7 @@ import static com.artfulbits.ui.binding.toolbox.Models.real;
 import static com.artfulbits.ui.binding.toolbox.Models.text;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 /** Unit tests for class {@link Binder}. */
 public class BinderTests extends TestHolder {
@@ -347,6 +348,17 @@ public class BinderTests extends TestHolder {
         .onModel(Listeners.onObservable());
 
     bss.resolve();
+
+    final BindingsManager bmMocked = mock(BindingsManager.class);
+
+    // listeners works only when binder attached to manager
+    bss.attachToManager(bmMocked);
+
+    // test observable listeners
+    modelInstance.setTimestamp(System.currentTimeMillis());
+
+    // manager should receive one call
+    verify(bmMocked, times(1)).notifyOnModelChanged(bss);
   }
 
   @Test(expected = ConfigurationError.class)
@@ -475,6 +487,7 @@ public class BinderTests extends TestHolder {
     public void setTimestamp(final long value) {
       mTimestampL = value;
 
+      setChanged();
       notifyObservers("timestamp");
     }
   }

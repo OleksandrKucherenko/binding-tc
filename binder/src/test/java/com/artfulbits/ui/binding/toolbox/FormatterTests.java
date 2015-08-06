@@ -47,8 +47,12 @@ public class FormatterTests extends TestHolder {
     // should PASS!
     assertThat(onlyPop.toView(10), equalTo("10"));
 
+    trace("toView() PASSED!");
+
     // will work only from model to View, line should raise exception
     assertThat(onlyPop.toModel("10"), equalTo(11));
+
+    fail("exception expected!");
   }
 
   @Test(expected = OneWayBindingError.class)
@@ -61,6 +65,8 @@ public class FormatterTests extends TestHolder {
 
     // will work only from model to View, line should raise exception
     assertThat(onlyPush.toView(10), equalTo("10"));
+
+    fail("exception expected!");
   }
 
   @Test

@@ -14,6 +14,7 @@ Active development, started at: 2014-05-15
 * minimalistic approach, 
 * highly customizable,
 * hamcrest validation syntax,
+* serializable binding configuration
 * 100% covered by unit tests, TDD
 
 #Binding In Details
@@ -35,17 +36,12 @@ Typical Business Object declared in POJO way:
 Fragment binding:
 
 ```java
-import com.artfulbits.ui.binding.Binder;
-import com.artfulbits.ui.binding.BindingsManager;
+import com.artfulbits.ui.binding.*;
 
-import static com.artfulbits.ui.binding.toolbox.Formatter.direct;
-import static com.artfulbits.ui.binding.toolbox.Listeners.none;
-import static com.artfulbits.ui.binding.toolbox.Models.pojo;
-import static com.artfulbits.ui.binding.toolbox.Models.property;
-import static com.artfulbits.ui.binding.toolbox.Views.matches;
-import static com.artfulbits.ui.binding.toolbox.Views.root;
-import static com.artfulbits.ui.binding.toolbox.Views.view;
-import static com.artfulbits.ui.binding.toolbox.Views.withId;
+import static com.artfulbits.ui.binding.toolbox.Formatter.*;
+import static com.artfulbits.ui.binding.toolbox.Listeners.*;
+import static com.artfulbits.ui.binding.toolbox.Models.*;
+import static com.artfulbits.ui.binding.toolbox.Views.*;
 import static org.hamcrest.core.IsAnything.anything;
 
 /** Login fragment with simplest UI. */
@@ -103,31 +99,53 @@ AEB adding a new step into lifecycle ```onCreateBinding()``` it executed after t
 
 # Entities, Responsibilities
 
-| Binder | Formatter |
-|--------|-----------|
-| extract getter and setter by reflection; | convert storage data type to view data type; |
-| push and pop value into/from view; | apply formatting during convert operation; |
-| attach/detach listeners; | extract value from view data type and \'reverse\' it to storage data type; |
-| Trigger value push on change capture by listener. | |
+| Storage |
+|---------------------------------|
+| store value in specific format; |
+| hide storage specifics; |
 
-| Validation | Storage |
-|------------|---------|
-| pre-process data before storing it; | store value in specific format; |
-| validate data limits; | hide storage specifics; |
+| Binder |
+|---------------------------------------------------|
+| define connection between model and view. |
+| push and pop value into/from view; |
+| attach/detach listeners; |
+| Trigger value push on change capture by listener. |
+
+| Formatter |
+|----------------------------------------------------------------------------|
+| convert storage data type to view data type; |
+| apply formatting during convert operation; |
+| one-way binding |
+| extract value from view data type and \'reverse\' it to storage data type; |
+
+| Validation |
+|--------------------------------------------------------------------|
+| pre-process data before storing it; |
+| validate data limits; |
 | attach custom listeners that needs binding results; |
+| easy attachable custom logic: master-details, data processing etc. |
 
-| Listeners | Extractor |
-|-----------|-----------|
-| attach specific listeners to the view or storage, for runtime event based binding triggering; | reflect properties by name. Recognizing names: has\*, is\*, get\*, set\*, exceeds\*; |
+| Listeners |
+|-----------------------------------------------------------------------------------------------|
+| attach specific listeners to the view or storage, for runtime event based binding triggering; |
+| ask binding manager for exchange operation |
+| time or 'changed' state listeners |
 
-| Manager |
-|---------|
+| Property |
+|----------------------------------------------------------|
+| reflect properties by name. |
+| Recognizing names: has\*, is\*, get\*, set\*, exceeds\*; |
+
+| BindingManager |
+|----------------------------------------|
 | find bindings by view reference; |
 | find bindings by storage reference;  |
 | force binding push; |
 | force validation; |
 | force binding pop; |
-| global listeners; |
+| freeze/unfreeze binding operations; |
+| MAIN/background threads connections; |
+| maintain additional lifecycle states; |
 
 # License
 

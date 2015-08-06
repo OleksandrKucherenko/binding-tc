@@ -388,7 +388,7 @@ public class BindingsManager {
     if (isFrozen()) {
       mPending.add(new Pair<Binder<?, ?>, Integer>(binder, DO_PUSH));
     } else {
-      binder.pop();
+      binder.push();
     }
 
     return this;
@@ -441,7 +441,7 @@ public class BindingsManager {
     if (isFrozen()) {
       mPending.add(new Pair<Binder<?, ?>, Integer>(binder, DO_POP));
     } else {
-      binder.push();
+      binder.pop();
     }
 
     return this;
