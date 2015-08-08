@@ -35,7 +35,7 @@ before_install:
   # display list of all possible components
   - android list sdk --no-ui --all --extended | grep -E '^id:' | awk -F '"' '{$1=""; print $2}'
   # display list of installed emulators
-  - android list targets | grep -e '^\(\(id:\)\|\( Tag\)\)'
+  - android list targets | grep -e 'id:' -e 'Tag'
   # make scripts executable for linux CI
   - chmod +x gradlew
 
@@ -55,8 +55,10 @@ branches:
     - master
 
 script:
-    - ./gradlew test --info --no-color
-    # - ./gradlew connectedAndroidTest --no-color
+  - ./gradlew test --console=plain
+  # - ./gradlew connectedAndroidTest --console=plain
+  # cleanup a little for better caching reuse
+  - rm $HOME/.gradle/caches/2.4/scripts
 
 notifications:
   email: false
