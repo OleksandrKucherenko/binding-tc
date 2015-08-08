@@ -45,7 +45,7 @@ public class PlaceholderFragment extends BindingFragment implements BindingsMana
     final View view = inflater.inflate(R.layout.fragment_main, container, false);
 
     // create binding to Login
-    final Binder bindLogin = getBindingsManager().texts()
+    final Binder<String, String> bindLogin = getBindingsManager().texts()
         .view(textView(view, R.id.et_login))
         .model(pojo(mUser, text("Login")));
 
@@ -134,7 +134,7 @@ public class PlaceholderFragment extends BindingFragment implements BindingsMana
     btnProceed.setEnabled(success);
 
     if (!success) {
-      for (Binder binder : bm.getFailedBindings()) {
+      for (Binder<?, ?> binder : bm.getFailedBindings()) {
         Log.i("BINDING", "Result of validation: " + binder.toString());
       }
     }
