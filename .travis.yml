@@ -73,5 +73,16 @@ after_success:
   # Coverage report
   - ./gradlew :binder:coveralls
 
+# https://github.com/Bartvds/demo-travis-gh-pages
+# http://docs.travis-ci.com/user/deployment/releases/
+deploy:
+  provider: releases
+  api_key: $GITHUB_OAUTH_TOKEN
+  file:
+    - "binder/build/outputs/aar/binder-*-release.aar"
+  skip_cleanup: true
+  on:
+    tags: true
+
 notifications:
   email: false
