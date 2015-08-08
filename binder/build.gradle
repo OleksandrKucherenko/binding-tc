@@ -341,7 +341,7 @@ if (useJacoco) {
 
   apply plugin: 'com.github.kt3k.coveralls'
   coveralls.jacocoReportPath = "${project.buildDir}/reports/jacoco/jacoco.xml"
-  tasks.coveralls.dependsOn 'jacocoResults'
+  tasks.coveralls.dependsOn 'generateJacocoReportDebug'
 }
 
 /* [ ARTIFACTS ] ==================================================================================================== */
