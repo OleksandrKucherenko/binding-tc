@@ -17,6 +17,10 @@ cache:
     - $HOME/.gradle
     - $HOME/.m2
 
+# ask travic ci to download all revisions
+git:
+  depth: 10000
+  
 # list of available components https://github.com/travis-ci/travis-ci/issues/2301
 android:
   components:
