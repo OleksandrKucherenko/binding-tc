@@ -64,5 +64,9 @@ script:
   # cleanup a little for better caching reuse
   - rm -rf $HOME/.gradle/caches/2.4/scripts
 
+after_success:
+  ############# coverage report
+  #- ./gradlew :binder:coveralls
+
 notifications:
   email: false
