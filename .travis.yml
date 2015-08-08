@@ -58,7 +58,7 @@ script:
   - ./gradlew test --console=plain
   # - ./gradlew connectedAndroidTest --console=plain
   # cleanup a little for better caching reuse
-  - rm $HOME/.gradle/caches/2.4/scripts
+  - rm -rf $HOME/.gradle/caches/2.4/scripts
 
 notifications:
   email: false
