@@ -36,12 +36,8 @@ repositories {
   jcenter()
   mavenLocal()
   mavenCentral()
-  maven {
-    url 'https://oss.sonatype.org/content/repositories/snapshots/'
-  }
-  maven {
-    url "http://dl.bintray.com/kucherenko-alex/android"
-  }
+//  maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+  maven { url "http://dl.bintray.com/kucherenko-alex/android" }
 }
 
 dependencies {
@@ -130,7 +126,8 @@ dependencies {
       testCompile 'org.hamcrest:hamcrest-library:+'
       testCompile 'org.hamcrest:hamcrest-integration:+'
 
-      /* Robolectric (v2.4) */
+      /* Robolectric (v3.0) */
+      testCompile 'org.robolectric:shadows-core:+'
       testCompile('org.robolectric:robolectric:+') {
         exclude module: 'classworlds'
         exclude module: 'commons-logging'

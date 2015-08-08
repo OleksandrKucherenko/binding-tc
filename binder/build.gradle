@@ -41,12 +41,8 @@ repositories {
   jcenter()
   mavenLocal()
   mavenCentral()
-  maven {
-    url 'https://oss.sonatype.org/content/repositories/snapshots/'
-  }
-  maven {
-    url "http://dl.bintray.com/kucherenko-alex/android"
-  }
+//  maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+  maven { url "http://dl.bintray.com/kucherenko-alex/android" }
 }
 
 dependencies {
