@@ -16,6 +16,12 @@ cache:
   directories:
     - $HOME/.gradle
     - $HOME/.m2
+  
+before_cache:  
+  # cleanup a little for better caching reuse
+  - rm -rf $HOME/.gradle/caches/2.4/scripts
+  - rm -rf $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -rf $HOME/.gradle/daemon
 
 # ask travic ci to download all revisions, we use revisions for version defining
 git:
@@ -43,15 +49,15 @@ before_install:
   # make scripts executable for linux CI
   - chmod +x gradlew
 
+install:
+  - true
+
 before_script:
   # Create and start emulator
   #- echo no | android create avd --force -n test -t $ANDROID_TARGET --abi $ANDROID_ABI
   #- emulator -avd test -no-skin -no-audio -no-window &
   #- adb wait-for-device
   #- adb shell input keyevent 82 &
-
-install:
-  - true
 
 branches:
   only:
@@ -62,8 +68,6 @@ script:
   - ./gradlew test :binder:generateJacocoReportDebug --console=plain
   # Espresso/emulator tests
   # - ./gradlew connectedAndroidTest --console=plain
-  # cleanup a little for better caching reuse
-  - rm -rf $HOME/.gradle/caches/2.4/scripts
 
 after_success:
   # Coverage report
