@@ -3,7 +3,7 @@ jdk: oraclejdk7
 
 env:
   matrix:
-    - ANDROID_TARGET=android-19  ANDROID_ABI=armeabi-v7a
+    - ANDROID_TARGET=android-22  ANDROID_ABI=armeabi-v7a
 
 # list of available components https://github.com/travis-ci/travis-ci/issues/2301
 android:
