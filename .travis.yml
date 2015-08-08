@@ -66,7 +66,7 @@ script:
 
 after_success:
   ############# coverage report
-  #- ./gradlew :binder:coveralls
+  - ./gradlew :binder:coveralls
 
 notifications:
   email: false
