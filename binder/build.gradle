@@ -339,8 +339,9 @@ if (useJacoco) {
     toolVersion JaCoCoVersion
   }
 
+  // We are doing binding to DEBUG build Type!
   apply plugin: 'com.github.kt3k.coveralls'
-  coveralls.jacocoReportPath = "${project.buildDir}/reports/jacoco/jacoco.xml"
+  coveralls.jacocoReportPath = "${project.buildDir}/reports/jacoco/Debug/jacoco.xml"
   tasks.coveralls.dependsOn 'generateJacocoReportDebug'
 }
 
