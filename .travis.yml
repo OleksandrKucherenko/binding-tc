@@ -17,7 +17,7 @@ cache:
     - $HOME/.gradle
     - $HOME/.m2
 
-# ask travic ci to download all revisions
+# ask travic ci to download all revisions, we use revisions for version defining
 git:
   depth: 10000
   
@@ -44,12 +44,11 @@ before_install:
   - chmod +x gradlew
 
 before_script:
-    #- chmod +x gradlew
-    # Create and start emulator
-    #- echo no | android create avd --force -n test -t $ANDROID_TARGET --abi $ANDROID_ABI
-    #- emulator -avd test -no-skin -no-audio -no-window &
-    #- adb wait-for-device
-    #- adb shell input keyevent 82 &
+  # Create and start emulator
+  #- echo no | android create avd --force -n test -t $ANDROID_TARGET --abi $ANDROID_ABI
+  #- emulator -avd test -no-skin -no-audio -no-window &
+  #- adb wait-for-device
+  #- adb shell input keyevent 82 &
 
 install:
   - true
@@ -59,13 +58,15 @@ branches:
     - master
 
 script:
-  - ./gradlew test --console=plain
+  # Execute Unit tests for all modules, generate report for library
+  - ./gradlew test :binder:generateJacocoReportDebug --console=plain
+  # Espresso/emulator tests
   # - ./gradlew connectedAndroidTest --console=plain
   # cleanup a little for better caching reuse
   - rm -rf $HOME/.gradle/caches/2.4/scripts
 
 after_success:
-  ############# coverage report
+  # Coverage report
   - ./gradlew :binder:coveralls
 
 notifications:
