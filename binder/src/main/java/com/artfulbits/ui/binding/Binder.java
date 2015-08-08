@@ -13,7 +13,7 @@ import org.hamcrest.CoreMatchers;
 /**
  * Base class for all binding rules keeping.
  *
- * @param <TLeft>  the type of View field
+ * @param <TLeft> the type of View field
  * @param <TRight> the type of Model field
  */
 public class Binder<TLeft, TRight> {
@@ -446,11 +446,13 @@ public class Binder<TLeft, TRight> {
   }
 
   /** Get reference on model instance. */
+  @SuppressWarnings("unchecked")
   public <T> T getRuntimeModel() {
     return (T) mModel.getRuntimeInstance();
   }
 
   /** Get reference on view instance. */
+  @SuppressWarnings("unchecked")
   public <T> T getRuntimeView() {
     return (T) mView.getRuntimeInstance();
   }

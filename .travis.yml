@@ -19,11 +19,11 @@ cache:
   
 before_cache:  
   # cleanup a little for better caching reuse
-  - rm -rf $HOME/.gradle/caches/2.4/scripts
-  - rm -rf $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -rf $HOME/.gradle/daemon
+  - rm -rfv $HOME/.gradle/caches/2.4/scripts
+  - rm -rfv $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -rfv $HOME/.gradle/daemon/
 
-# ask travic ci to download all revisions, we use revisions for version defining
+# ask travis-ci to download all revisions, we use revisions for version defining
 git:
   depth: 10000
   
