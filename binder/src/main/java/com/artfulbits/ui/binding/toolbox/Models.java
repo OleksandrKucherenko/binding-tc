@@ -13,6 +13,7 @@ import java.util.Map;
 @SuppressWarnings({"unused", "unchecked"})
 public final class Models {
 
+  /** hidden constructor. */
   private Models() {
     throw new AssertionError();
   }
@@ -50,6 +51,7 @@ public final class Models {
   /* [ GENERICS ] ================================================================================================= */
 
   /** Extract generic type information in tricky way. */
+  @NonNull
   public static <T> Class<T> typeTrick() {
     final Object t = new Trick() {
       Class<T> typeT;
@@ -63,7 +65,8 @@ public final class Models {
       // do nothing
     }
 
-    return null;
+    // should never happens
+    throw new AssertionError("Type trick does not work. Via reflection is impossible to identify generic type.");
   }
 
   @NonNull
