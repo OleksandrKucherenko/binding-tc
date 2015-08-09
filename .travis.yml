@@ -26,6 +26,10 @@ before_cache:
 # ask travis-ci to download all revisions, we use revisions for version defining
 git:
   depth: 10000
+
+#branches:
+#  only:
+#    - master
   
 # list of available components https://github.com/travis-ci/travis-ci/issues/2301
 android:
@@ -58,10 +62,6 @@ before_script:
   #- emulator -avd test -no-skin -no-audio -no-window &
   #- adb wait-for-device
   #- adb shell input keyevent 82 &
-
-branches:
-  only:
-    - master
 
 script:
   # Execute Unit tests for all modules, generate report for library
