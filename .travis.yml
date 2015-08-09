@@ -77,7 +77,7 @@ after_success:
 # http://stackoverflow.com/questions/25929225/how-to-deploy-to-github-with-file-pattern-on-travis
 before_deploy:
   - export LIB_FILE=$(ls binder/build/outputs/aar/binder-*-release.aar)
-  - echo "release file: $LIB_FILE"
+  - echo "release file $LIB_FILE"
 
 # https://github.com/Bartvds/demo-travis-gh-pages
 # http://docs.travis-ci.com/user/deployment/releases/
