@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
+import com.artfulbits.ui.binding.toolbox.Models;
 
 import java.util.List;
 import java.util.Locale;
@@ -96,9 +97,10 @@ public class Property<T> {
         mCachedGet = extractGetter(instance);
       }
 
-      if (null == mCachedGet)
+      if (null == mCachedGet) {
         throw new WrongConfigurationError("Cannot resolve GET to real method/field." +
             " Name: " + mName + ", Getter: " + mConfirmedGet);
+      }
 
       return (T) mCachedGet.invoke(instance, args);
     } catch (final Throwable ignored) {
@@ -115,9 +117,10 @@ public class Property<T> {
         mCachedSet = extractSetter(instance);
       }
 
-      if (null == mCachedSet)
+      if (null == mCachedSet) {
         throw new WrongConfigurationError("Cannot resolve SET to real method/field." +
             " Name: " + mName + ", Setter: " + mConfirmedSet);
+      }
 
       mCachedSet.invoke(instance, setterArguments(value));
     } catch (final Throwable ignored) {
@@ -139,17 +142,20 @@ public class Property<T> {
     }
 
     // validate results
-    if (null == mCachedGet && null == mCachedSet)
+    if (null == mCachedGet && null == mCachedSet) {
       throw new WrongConfigurationError("Cannot resolve GET and SET to real method(s)/field(s)." +
           " Name: " + mName + ", Getter: " + mConfirmedGet + ", Setter: " + mConfirmedSet);
+    }
 
-    if (null == mCachedGet)
+    if (null == mCachedGet) {
       throw new WrongConfigurationError("Cannot resolve GET to real method/field." +
           " Name: " + mName + ", Getter: " + mConfirmedGet);
+    }
 
-    if (null == mCachedSet)
+    if (null == mCachedSet) {
       throw new WrongConfigurationError("Cannot resolve SET to real method/field." +
           " Name: " + mName + ", Setter: " + mConfirmedSet);
+    }
   }
 
   /* [ OVERRIDES ] ================================================================================================= */
@@ -244,5 +250,19 @@ public class Property<T> {
     }
 
     return result;
+  }
+
+  /** Compute array of reflection types for setter method. */
+  private Class<?>[] setterTypes() {
+    final Object[] args = setterArguments(null);
+    final Class<?>[] types = new Class<?>[args.length];
+
+    types[0] = Models.<T>typeTrick();
+
+    for (int i = 1; i < args.length; i++) {
+      types[i] = args[i].getClass();
+    }
+
+    return types;
   }
 }

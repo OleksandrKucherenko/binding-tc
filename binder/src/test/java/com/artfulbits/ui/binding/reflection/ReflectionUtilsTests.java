@@ -2,10 +2,11 @@ package com.artfulbits.ui.binding.reflection;
 
 import android.util.Log;
 import android.util.SparseArray;
+import android.widget.TextView;
 
 import com.artfulbits.junit.TestHolder;
 
-import org.junit.Test;
+import org.junit.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -61,7 +62,7 @@ public class ReflectionUtilsTests extends TestHolder {
     assertThat(method.getRawType(), instanceOf(Method.class));
 
     trace(method.toString());
-    assertThat(getRawLogger().toString(), containsString("setString()"));
+    assertThat(getRawLogger().toString(), containsString("setString(...)"));
 
     final Entry field = ReflectionUtils.find(all, "mInteger");
     assertThat(field, notNullValue());
@@ -71,8 +72,33 @@ public class ReflectionUtilsTests extends TestHolder {
     assertThat(getRawLogger().toString(), containsString("mInteger"));
   }
 
+  @Test
+  public void test_03_FindOverloadedMethod() {
+    final List<Entry> all = ReflectionUtils.getAll(Overloads.class);
+    assertThat(all, hasSize(6));
+
+    final Entry method = ReflectionUtils.find(all, "setText");
+    assertThat(method, notNullValue());
+    assertThat(method.getRawType(), instanceOf(Method.class));
+
+    final int index = all.indexOf(method);
+    assertThat(index, greaterThanOrEqualTo(0));
+
+    trace("Found index: " + index);
+
+    for (int i = 0; i < all.size(); i++) {
+      final Entry e = all.get(i);
+      trace(e.getFullName());
+    }
+
+    final Method m = (Method) method.getRawType();
+    assertThat(m.getParameterTypes(), arrayWithSize(1));
+
+  }
+
   /* [ NESTED DECLARATIONS ] ======================================================================================= */
 
+  @SuppressWarnings("unused")
   public static class Dummy {
     private String mString;
 
@@ -85,6 +111,7 @@ public class ReflectionUtilsTests extends TestHolder {
     }
   }
 
+  @SuppressWarnings("unused")
   public static class First extends Dummy {
     private int mInteger;
 
@@ -99,6 +126,30 @@ public class ReflectionUtilsTests extends TestHolder {
     public First setString(final int integer) {
       setString(String.valueOf(integer));
       return this;
+    }
+  }
+
+  @SuppressWarnings("unused")
+  public static class DummyOverloads {
+    public final void setText(int resid) {
+    }
+  }
+
+  @SuppressWarnings("unused")
+  public static class Overloads extends DummyOverloads {
+    public void setText(CharSequence text, TextView.BufferType type) {
+    }
+
+    private void setText(CharSequence text, TextView.BufferType type, boolean notifyBefore, int oldlen) {
+    }
+
+    public final void setText(CharSequence text) {
+    }
+
+    public final void setText(char[] text, int start, int len) {
+    }
+
+    public final void setText(int resid, TextView.BufferType type) {
     }
   }
 }

@@ -6,8 +6,11 @@ import java.lang.reflect.InvocationTargetException;
 /** Generic facade interface. */
 @SuppressWarnings("unused")
 public interface Entry {
-  /** Accessable instance name. */
+  /** Entry name. */
   String getName();
+
+  /** Entry name with all data types. */
+  String getFullName();
 
   /** Raw type that we wrap. */
   AccessibleObject getRawType();

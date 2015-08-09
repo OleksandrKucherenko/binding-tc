@@ -31,7 +31,7 @@ public final class ReflectionUtils {
    * Find in list of fields specific one by its name.
    *
    * @param fields list of fields. Should be sorted by name!
-   * @param name   field name which we want to find.
+   * @param name field name which we want to find.
    * @return found field, otherwise {@code null}.
    */
   @Nullable
@@ -50,7 +50,7 @@ public final class ReflectionUtils {
    * Find in list of methods specific one by its name.
    *
    * @param methods list of methods. Should be sorted by name!
-   * @param name    field name which we want to find.
+   * @param name field name which we want to find.
    * @return found field, otherwise {@code null}.
    */
   @Nullable
@@ -59,7 +59,7 @@ public final class ReflectionUtils {
 
     // method found
     if (index >= 0 && index < methods.size()) {
-      return methods.get(index);
+      return firstMethod(methods, index);
     }
 
     return null;
@@ -69,7 +69,7 @@ public final class ReflectionUtils {
    * Find in list of methods specific one by its name.
    *
    * @param methods list of methods. Should be sorted by name!
-   * @param name    field name which we want to find.
+   * @param name field name which we want to find.
    * @return found field, otherwise {@code null}.
    */
   @Nullable
@@ -78,7 +78,7 @@ public final class ReflectionUtils {
 
     // entry found
     if (index >= 0 && index < methods.size()) {
-      return methods.get(index);
+      return firstEntry(methods, index);
     }
 
     return null;
@@ -167,6 +167,80 @@ public final class ReflectionUtils {
     return results;
   }
 
+  /**
+   * Compares two {@code int} values.
+   *
+   * @return 0 if lhs = rhs, less than 0 if lhs &lt; rhs, and greater than 0 if lhs &gt; rhs.
+   */
+  private static int compare(final int lhs, final int rhs) {
+    return lhs < rhs ? -1 : (lhs == rhs ? 0 : 1);
+  }
+
+  /** Compose string with method parameters types. */
+  @NonNull
+  private static String toStringWithTypes(@NonNull final Method m) {
+    final StringBuilder sb = new StringBuilder(128);
+    sb.append(m.getName()).append("(");
+
+    String separator = "";
+    for (final Class<?> c : m.getParameterTypes()) {
+      sb.append(separator).append(c.toString());
+      separator = ", ";
+    }
+
+    return sb.append(")").toString();
+  }
+
+  /**
+   * Find first entry with the same name.
+   *
+   * @param methods list of reflected type entries.
+   * @param index index of found entry.
+   */
+  private static Entry firstEntry(@NonNull final List<Entry> methods, final int index) {
+    final Entry start = methods.get(index);
+    final int firstCandidate = index - 1;
+
+    Entry prev, result = start;
+
+    for (int position = firstCandidate; position >= 0; position--) {
+      prev = methods.get(position);
+
+      if (!start.getName().equals(prev.getName())) {
+        break;
+      }
+
+      result = prev;
+    }
+
+    return result;
+  }
+
+  /**
+   * Find first entry with the same name.
+   *
+   * @param methods list of reflected type entries.
+   * @param index index of found entry.
+   */
+  private static Method firstMethod(@NonNull final List<Method> methods, final int index) {
+    final Method start = methods.get(index);
+    final int firstCandidate = index - 1;
+
+    Method prev, result = start;
+
+    for (int position = firstCandidate; position >= 0; position--) {
+      prev = methods.get(position);
+
+      if (!start.getName().equals(prev.getName())) {
+        break;
+      }
+
+      result = prev;
+    }
+
+    return result;
+  }
+
 	/* [ NESTED DECLARATIONS ] ======================================================================================= */
 
   private static final class ByExecutableName implements Comparator<Entry> {
@@ -212,7 +286,13 @@ public final class ReflectionUtils {
     /** {@inheritDoc} */
     @Override
     public int compare(final Method lhs, final Method rhs) {
-      return lhs.getName().compareTo(rhs.getName());
+      final String left = lhs.getName();
+      final String right = rhs.getName();
+      final int result = left.compareTo(right);
+
+      // compare by name, and than by quantity of arguments
+      return (result != 0) ? result :
+          ReflectionUtils.compare(lhs.getParameterTypes().length, rhs.getParameterTypes().length);
     }
   }
 
@@ -306,6 +386,11 @@ public final class ReflectionUtils {
     }
 
     @Override
+    public String getFullName() {
+      return mF.getType().toString() + " " + mF.getName();
+    }
+
+    @Override
     public AccessibleObject getRawType() {
       return mF;
     }
@@ -346,6 +431,11 @@ public final class ReflectionUtils {
     }
 
     @Override
+    public String getFullName() {
+      return toStringWithTypes(mM);
+    }
+
+    @Override
     public AccessibleObject getRawType() {
       return mM;
     }
@@ -357,8 +447,10 @@ public final class ReflectionUtils {
 
     @Override
     public String toString() {
-      final String params = (mM.getParameterTypes().length > 1) ? "..." : "";
+      final int length = mM.getParameterTypes().length;
+      final String params = (length > 0) ? "..." : "";
       return getName() + "(" + params + ")";
     }
+
   }
 }

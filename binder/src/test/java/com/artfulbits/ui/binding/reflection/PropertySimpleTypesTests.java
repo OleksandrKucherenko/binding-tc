@@ -3,9 +3,10 @@ package com.artfulbits.ui.binding.reflection;
 import com.artfulbits.benchmark.Meter;
 import com.artfulbits.junit.Sampling;
 import com.artfulbits.junit.TestHolder;
+import com.artfulbits.ui.binding.exceptions.ConfigurationError;
 import com.artfulbits.ui.binding.toolbox.Models;
 
-import org.junit.Test;
+import org.junit.*;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -197,6 +198,17 @@ public class PropertySimpleTypesTests extends TestHolder {
     assertThat(propertyString.get(instance), nullValue());
     assertThat(propertyEnum.get(instance), nullValue());
     assertThat(propertyObject.get(instance), nullValue());
+  }
+
+  @Test(expected = ConfigurationError.class)
+  public void test_12_Properties_NoGet() {
+    final DummyClass instance = new DummyClass();
+    final Property<Boolean> propertyBoolean = Models.bool("getget", "fieldBool");
+
+    assertThat(propertyBoolean.get(instance), equalTo(false));
+
+    // expected exception!
+    propertyBoolean.resolve(instance);
   }
 
   /* [ NESTED DECLARATIONS ] ======================================================================================== */
