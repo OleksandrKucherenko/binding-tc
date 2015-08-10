@@ -19,6 +19,9 @@ import java.util.Map;
 public final class ReflectionUtils {
   /* [ CONSTANTS ] ================================================================================================= */
 
+  /** Guard that protects sCache* fields updates. */
+  private static final Object sSync = new Object();
+
   /** Caching of the reflected information. Class-to-fields. */
   private static final Map<Class<?>, List<Field>> sCacheFields = new HashMap<>();
 
@@ -28,10 +31,25 @@ public final class ReflectionUtils {
   /* [ STATIC METHODS ] ============================================================================================ */
 
   /**
+   * Convert array of parameters into array of there data types.
+   *
+   * @param args call parameters.
+   */
+  public static Class<?>[] toTypes(@NonNull final Object... args) {
+    final Class<?>[] types = new Class<?>[args.length];
+
+    for (int i = 0; i < args.length; i++) {
+      types[i] = args[i].getClass();
+    }
+
+    return types;
+  }
+
+  /**
    * Find in list of fields specific one by its name.
    *
    * @param fields list of fields. Should be sorted by name!
-   * @param name field name which we want to find.
+   * @param name   field name which we want to find.
    * @return found field, otherwise {@code null}.
    */
   @Nullable
@@ -50,7 +68,7 @@ public final class ReflectionUtils {
    * Find in list of methods specific one by its name.
    *
    * @param methods list of methods. Should be sorted by name!
-   * @param name field name which we want to find.
+   * @param name    field name which we want to find.
    * @return found field, otherwise {@code null}.
    */
   @Nullable
@@ -66,19 +84,76 @@ public final class ReflectionUtils {
   }
 
   /**
-   * Find in list of methods specific one by its name.
+   * Find in list of entries specific one by its name. Found only first entry in list with specified name.
    *
-   * @param methods list of methods. Should be sorted by name!
-   * @param name field name which we want to find.
+   * @param entries list of entries. Should be sorted by name!
+   * @param name    field name which we want to find.
    * @return found field, otherwise {@code null}.
    */
   @Nullable
-  public static Entry find(@NonNull final List<Entry> methods, @NonNull final String name) {
-    final int index = Collections.binarySearch(methods, name, SearchByExecutableNameComparator.INSTANCE);
+  public static Entry find(@NonNull final List<Entry> entries, @NonNull final String name) {
+    final int index = Collections.binarySearch(entries, name, SearchByExecutableNameComparator.INSTANCE);
 
     // entry found
-    if (index >= 0 && index < methods.size()) {
-      return firstEntry(methods, index);
+    if (index >= 0 && index < entries.size()) {
+      return firstEntry(entries, index);
+    }
+
+    return null;
+  }
+
+  /**
+   * Find methods with 100% match by signature.
+   *
+   * @param entries list of entries, sorted.
+   * @param first   first entry with required name in list, start point for search.
+   * @param params  data types of method parameters.
+   */
+  @Nullable
+  public static Entry match(@NonNull final List<Entry> entries,
+                            @NonNull final Entry first,
+                            @Nullable final Class<?>... params) {
+    return match(entries, entries.indexOf(first), params);
+  }
+
+  /**
+   * Find methods with 100% match by signature.
+   *
+   * @param entries list of entries, sorted.
+   * @param index   index of first entry, start point for search.
+   * @param params  data types of method parameters.
+   */
+  @Nullable
+  public static Entry match(@NonNull final List<Entry> entries, final int index,
+                            @Nullable final Class<?>... params) {
+    // ignore wrong parameters
+    if (index < 0 || index > entries.size()) return null;
+
+    final int count = (null == params) ? 0 : params.length;
+    final Entry first = entries.get(index);
+    final String methodName = first.getName();
+
+    for (int i = index; i < entries.size(); i++) {
+      final Entry candidate = entries.get(i);
+
+      // end of sequence
+      if (!methodName.equals(candidate.getName())) break;
+
+      // skip non-methods
+      if (!(candidate.getRawType() instanceof Method)) continue;
+
+      final Method m = (Method) candidate.getRawType();
+      final Class<?>[] types = m.getParameterTypes();
+
+      // end of sequence, method sorted by quantity of params
+      if (count < types.length) break;
+
+      // no match by parameters quantity
+      if (count != types.length) continue;
+
+      // compatible array of Types, or no input parameters
+      if (count == 0 || compatible(params, types) == 0)
+        return candidate;
     }
 
     return null;
@@ -91,28 +166,35 @@ public final class ReflectionUtils {
    * @return list of found fields.
    */
   @NonNull
-  public synchronized static List<Field> getAllFields(@NonNull final Class<?> type) {
+  public static List<Field> getAllFields(@NonNull final Class<?> type) {
     if (sCacheFields.containsKey(type)) {
       return sCacheFields.get(type);
     }
 
-    final ArrayList<Field> results = new ArrayList<>();
-    sCacheFields.put(type, results);
-
-    Class<?> i = type;
-    while (i != null && i != Object.class) {
-      for (final Field field : i.getDeclaredFields()) {
-        if (!field.isSynthetic()) {
-          results.add(field);
-        }
+    synchronized (sSync) {
+      // second try, after LOCK getting
+      if (sCacheFields.containsKey(type)) {
+        return sCacheFields.get(type);
       }
 
-      i = i.getSuperclass();
+      final ArrayList<Field> results = new ArrayList<>();
+      sCacheFields.put(type, results);
+
+      Class<?> i = type;
+      while (i != null && i != Object.class) {
+        for (final Field field : i.getDeclaredFields()) {
+          if (!field.isSynthetic()) {
+            results.add(field);
+          }
+        }
+
+        i = i.getSuperclass();
+      }
+
+      Collections.sort(results, ByFieldName.INSTANCE);
+
+      return results;
     }
-
-    Collections.sort(results, ByFieldName.INSTANCE);
-
-    return results;
   }
 
   /**
@@ -122,28 +204,35 @@ public final class ReflectionUtils {
    * @return list of found methods.
    */
   @NonNull
-  public synchronized static List<Method> getAllMethods(@NonNull final Class<?> type) {
+  public static List<Method> getAllMethods(@NonNull final Class<?> type) {
     if (sCacheMethods.containsKey(type)) {
       return sCacheMethods.get(type);
     }
 
-    final ArrayList<Method> results = new ArrayList<>();
-    sCacheMethods.put(type, results);
-
-    Class<?> i = type;
-    while (i != null && i != Object.class) {
-      for (final Method method : i.getDeclaredMethods()) {
-        if (!method.isSynthetic()) {
-          results.add(method);
-        }
+    synchronized (sSync) {
+      // double check, it maybe already modified by other thread
+      if (sCacheMethods.containsKey(type)) {
+        return sCacheMethods.get(type);
       }
 
-      i = i.getSuperclass();
+      final ArrayList<Method> results = new ArrayList<>();
+      sCacheMethods.put(type, results);
+
+      Class<?> i = type;
+      while (i != null && i != Object.class) {
+        for (final Method method : i.getDeclaredMethods()) {
+          if (!method.isSynthetic()) {
+            results.add(method);
+          }
+        }
+
+        i = i.getSuperclass();
+      }
+
+      Collections.sort(results, ByMethodName.INSTANCE);
+
+      return results;
     }
-
-    Collections.sort(results, ByMethodName.INSTANCE);
-
-    return results;
   }
 
   /** Get list of all executables inside the class that can be used for binding. */
@@ -165,6 +254,43 @@ public final class ReflectionUtils {
     Collections.sort(results, ByExecutableName.INSTANCE);
 
     return results;
+  }
+
+  /** Compare two arrays of data types for compatibility to each other. */
+  private static int compatible(@NonNull final Class<?>[] left, @NonNull final Class<?>[] right) {
+    final int leftCount = left.length;
+    final int rightCount = right.length;
+    final int result = compare(leftCount, rightCount);
+
+    if (result == 0) {
+      for (int i = 0; i < leftCount; i++) {
+        final Class<?> lType = boxing(left[i]);
+        final Class<?> rType = boxing(right[i]);
+
+        // check upcast/downcast compatibility
+        if (!rType.isAssignableFrom(lType)) return -1;
+      }
+    }
+
+    return result;
+  }
+
+  /** Change primitive types class to there 'boxed' compatible type. */
+  private static Class<?> boxing(@NonNull final Class<?> type) {
+    if (type.isPrimitive()) {
+      if (boolean.class.equals(type)) return Boolean.class;
+      if (char.class.equals(type)) return Character.class;
+      if (byte.class.equals(type)) return Byte.class;
+      if (short.class.equals(type)) return Short.class;
+      if (int.class.equals(type)) return Integer.class;
+      if (long.class.equals(type)) return Long.class;
+      if (float.class.equals(type)) return Float.class;
+      if (double.class.equals(type)) return Double.class;
+
+      throw new AssertionError("Not implemented! primitive to 'boxed' convert failed for type:" + type);
+    }
+
+    return type;
   }
 
   /**
@@ -195,7 +321,7 @@ public final class ReflectionUtils {
    * Find first entry with the same name.
    *
    * @param methods list of reflected type entries.
-   * @param index index of found entry.
+   * @param index   index of found entry.
    */
   private static Entry firstEntry(@NonNull final List<Entry> methods, final int index) {
     final Entry start = methods.get(index);
@@ -220,7 +346,7 @@ public final class ReflectionUtils {
    * Find first entry with the same name.
    *
    * @param methods list of reflected type entries.
-   * @param index index of found entry.
+   * @param index   index of found entry.
    */
   private static Method firstMethod(@NonNull final List<Method> methods, final int index) {
     final Method start = methods.get(index);
@@ -290,7 +416,7 @@ public final class ReflectionUtils {
       final String right = rhs.getName();
       final int result = left.compareTo(right);
 
-      // compare by name, and than by quantity of arguments
+      // compatible by name, and than by quantity of arguments
       return (result != 0) ? result :
           ReflectionUtils.compare(lhs.getParameterTypes().length, rhs.getParameterTypes().length);
     }

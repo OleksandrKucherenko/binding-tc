@@ -6,7 +6,7 @@ import android.widget.TextView;
 
 import com.artfulbits.junit.TestHolder;
 
-import org.junit.*;
+import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -75,7 +75,7 @@ public class ReflectionUtilsTests extends TestHolder {
   @Test
   public void test_03_FindOverloadedMethod() {
     final List<Entry> all = ReflectionUtils.getAll(Overloads.class);
-    assertThat(all, hasSize(6));
+    assertThat(all, hasSize(7));
 
     final Entry method = ReflectionUtils.find(all, "setText");
     assertThat(method, notNullValue());
@@ -92,8 +92,38 @@ public class ReflectionUtilsTests extends TestHolder {
     }
 
     final Method m = (Method) method.getRawType();
-    assertThat(m.getParameterTypes(), arrayWithSize(1));
+    assertThat(m.getParameterTypes(), arrayWithSize(0));
 
+    final Entry exactString = ReflectionUtils.match(all, method, String.class);
+
+    assertThat(exactString, notNullValue());
+    assertThat(exactString.getRawType(), instanceOf(Method.class));
+
+    final Class<?>[] parameterTypes = ((Method) exactString.getRawType()).getParameterTypes();
+    assertThat(parameterTypes, arrayWithSize(1));
+    assertTrue(parameterTypes[0].equals(CharSequence.class));
+
+    // first item in ALL list, method is already pointing on it
+    final Entry exactFirst = ReflectionUtils.match(all, method);
+    assertThat(exactFirst, notNullValue());
+
+    final Entry exactInt = ReflectionUtils.match(all, method, int.class);
+    assertThat(exactInt, notNullValue());
+
+    final Entry exactArr = ReflectionUtils.match(all, method, char[].class, int.class, int.class);
+    assertThat(exactArr, notNullValue());
+
+    // last method in a sequence
+    final Entry exactLast = ReflectionUtils.match(all, method, CharSequence.class,
+        TextView.BufferType.class, boolean.class, int.class);
+    assertThat(exactLast, notNullValue());
+
+    trace("confirm findings...");
+    trace("Found: " + exactFirst.getFullName());
+    trace("Found: " + exactString.getFullName());
+    trace("Found: " + exactInt.getFullName());
+    trace("Found: " + exactArr.getFullName());
+    trace("Found: " + exactLast.getFullName());
   }
 
   /* [ NESTED DECLARATIONS ] ======================================================================================= */
@@ -131,6 +161,11 @@ public class ReflectionUtilsTests extends TestHolder {
 
   @SuppressWarnings("unused")
   public static class DummyOverloads {
+
+    /** NO parameters. */
+    public final void setText() {
+    }
+
     public final void setText(int resid) {
     }
   }

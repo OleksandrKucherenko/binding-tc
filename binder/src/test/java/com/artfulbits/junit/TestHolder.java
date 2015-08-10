@@ -5,8 +5,10 @@ import android.support.annotation.NonNull;
 
 import com.artfulbits.benchmark.Meter;
 
-import org.junit.*;
-import org.junit.rules.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -30,8 +32,11 @@ public abstract class TestHolder implements Meter.Output {
 
   /* [ INJECTIONS ] ================================================================================================ */
 
+  /** Executed method name. */
   @Rule
   public TestName mTestName = new TestName();
+  /** Class simple name */
+  private final String mClassName = this.getClass().getSimpleName();
 
   /* [ MEMBERS ] =================================================================================================== */
 
@@ -83,7 +88,7 @@ public abstract class TestHolder implements Meter.Output {
   //region --> Setup/TearDown Log method name
   @Before
   public final void setUp() throws Exception {
-    log(Level.INFO, "->", mTestName.getMethodName());
+    log(Level.INFO, "->", mClassName + "." + mTestName.getMethodName());
 
     // create fake context
     mContext = Mockito.mock(Context.class);
@@ -95,7 +100,7 @@ public abstract class TestHolder implements Meter.Output {
   public final void tearDown() throws Exception {
     onTearDown();
 
-    log(Level.INFO, "<-", mTestName.getMethodName());
+    log(Level.INFO, "<-", mClassName + "." + mTestName.getMethodName());
 
     // all collected output lines dump into Standard Output
     System.out.append(mLog.toString());
@@ -140,7 +145,7 @@ public abstract class TestHolder implements Meter.Output {
   /**
    * Copy all from reader to writer.
    *
-   * @param in instance of reader.
+   * @param in  instance of reader.
    * @param out instance of writer.
    * @throws IOException read/write operation failure.
    */
@@ -156,7 +161,7 @@ public abstract class TestHolder implements Meter.Output {
   /**
    * Copy input stream to output. Method close streams after copy.
    *
-   * @param in instance of input stream.
+   * @param in  instance of input stream.
    * @param out instance of output stream.
    * @throws IOException read/write operation failure.
    */

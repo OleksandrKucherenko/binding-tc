@@ -5,7 +5,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
-import com.artfulbits.ui.binding.toolbox.Models;
 
 import java.util.List;
 import java.util.Locale;
@@ -242,9 +241,13 @@ public class Property<T> {
         final String name = prefix + mName;
         result = ReflectionUtils.find(methods, name);
 
+        // found candidate
         if (null != result) {
-          mConfirmedSet = name;
-          break;
+          // and found exact types match
+          if (null != (result = ReflectionUtils.match(methods, result, setterToTypes()))) {
+            mConfirmedSet = name;
+            break;
+          }
         }
       }
     }
@@ -252,12 +255,16 @@ public class Property<T> {
     return result;
   }
 
-  /** Compute array of reflection types for setter method. */
-  private Class<?>[] setterTypes() {
+  /**
+   * Compute array of reflection types for setter method.
+   *
+   * @return array of data types that correspond setter signature.
+   */
+  private Class<?>[] setterToTypes() {
     final Object[] args = setterArguments(null);
     final Class<?>[] types = new Class<?>[args.length];
 
-    types[0] = Models.<T>typeTrick();
+    types[0] = mType;
 
     for (int i = 1; i < args.length; i++) {
       types[i] = args[i].getClass();

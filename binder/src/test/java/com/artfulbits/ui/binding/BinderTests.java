@@ -342,7 +342,7 @@ public class BinderTests extends TestHolder {
     final Binder<String, Long> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, text("Time")))
+        .view(pojo(viewInstance, text("Time"))) // viewInstance.getTime(), viewInstance.setTime();
         .model(pojo(modelInstance, number("Timestamp")))
         .onView(Listeners.onObservable())
         .onModel(Listeners.onObservable());
