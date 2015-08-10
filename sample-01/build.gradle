@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 // Application: Sample-01
 buildscript {
   repositories {
@@ -374,6 +376,22 @@ if (useJacoco) {
   jacoco {
     toolVersion JaCoCoVersion
   }
+
+  /** Copy JaCoCo results from sample into library result folder */
+  task combineSampleJacocoWithLibrary(type: Copy) {
+    description = 'Create copy of jacoco result files into library'
+    group = 'Unit Testing'
+
+    from adoptToOs("${project.buildDir}/jacoco")
+    into adoptToOs("${project(':binder').buildDir}/jacoco/${project.name}")
+  }
+
+  /** Attach task into generic build lifecycle */
+  afterEvaluate {
+    tasks.matching { it.name.equals("test") }.each { t ->
+      t.finalizedBy combineSampleJacocoWithLibrary
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------------------------------  */
@@ -392,4 +410,22 @@ if (useMultiDex) {
       dx.additionalParameters += '--multi-dex' // enable multidex
     }
   }
+}
+
+/* [ HELPERS ] ====================================================================================================== */
+
+def adoptToOs(String path) {
+  // remove doubled dir separators
+  path = path.replace("//", "/")
+  path = path.replace("\\\\", "\\")
+
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) { // windows
+    path = path.replace("/", "\\")
+  } else if (Os.isFamily(Os.FAMILY_UNIX)) { // linux
+    path = path.replace("\\", "/")
+  } else if (Os.isFamily(Os.FAMILY_MAC)) { // mac os
+    path = path.replace("\\", "/")
+  }
+
+  return path;
 }
