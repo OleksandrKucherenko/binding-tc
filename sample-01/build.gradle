@@ -1,5 +1,3 @@
-import org.apache.tools.ant.taskdefs.condition.Os
-
 // Application: Sample-01
 buildscript {
   repositories {
@@ -419,11 +417,14 @@ def adoptToOs(String path) {
   path = path.replace("//", "/")
   path = path.replace("\\\\", "\\")
 
-  if (Os.isFamily(Os.FAMILY_WINDOWS)) { // windows
+  if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
+    // windows
     path = path.replace("/", "\\")
-  } else if (Os.isFamily(Os.FAMILY_UNIX)) { // linux
+  } else if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_UNIX)) {
+    // linux
     path = path.replace("\\", "/")
-  } else if (Os.isFamily(Os.FAMILY_MAC)) { // mac os
+  } else if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_MAC)) {
+    // mac os
     path = path.replace("\\", "/")
   }
 

@@ -13,7 +13,7 @@ import org.hamcrest.CoreMatchers;
 /**
  * Base class for all binding rules keeping.
  *
- * @param <TLeft> the type of View field
+ * @param <TLeft>  the type of View field
  * @param <TRight> the type of Model field
  */
 public class Binder<TLeft, TRight> {

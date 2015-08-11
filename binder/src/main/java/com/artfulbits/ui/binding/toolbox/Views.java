@@ -17,8 +17,8 @@ import com.artfulbits.ui.binding.Selector;
 import com.artfulbits.ui.binding.reflection.Property;
 
 import static com.artfulbits.ui.binding.toolbox.Models.bool;
+import static com.artfulbits.ui.binding.toolbox.Models.chars;
 import static com.artfulbits.ui.binding.toolbox.Models.integer;
-import static com.artfulbits.ui.binding.toolbox.Models.text;
 
 /** Methods for simplifying access to different types of View storage's. */
 @SuppressWarnings({"unused", "unchecked"})
@@ -97,19 +97,19 @@ public final class Views {
 
   /* [ TYPED VERSIONS ] =========================================================================================== */
 
-  public static Selector<TextView, String> textView(@NonNull final View v, final int id) {
+  public static Selector<TextView, CharSequence> textView(@NonNull final View v, final int id) {
     return textView(Views.<TextView>withId(v, id));
   }
 
-  public static <V extends View> Selector<TextView, String> textView(@NonNull final Selector<?, V> s, final int id) {
+  public static <V extends View> Selector<TextView, CharSequence> textView(@NonNull final Selector<?, V> s, final int id) {
     return textView(Views.<TextView>withId(s, id));
   }
 
-  public static Selector<EditText, String> editText(@NonNull final View v, final int id) {
+  public static Selector<EditText, CharSequence> editText(@NonNull final View v, final int id) {
     return textView(Views.<EditText>withId(v, id));
   }
 
-  public static <V extends View> Selector<EditText, String> editText(@NonNull final Selector<?, V> s, final int id) {
+  public static <V extends View> Selector<EditText, CharSequence> editText(@NonNull final Selector<?, V> s, final int id) {
     return textView(Views.<EditText>withId(s, id));
   }
 
@@ -137,13 +137,13 @@ public final class Views {
    *
    * @param <T>      Type of View
    * @param selector selector that helps in identifying the view instance
-   * @return the selector of "text" property from TextView inheritor
+   * @return the selector of "strings" property from TextView inheritor
    */
-  public static <T extends TextView> Selector<T, String> textView(@NonNull final Selector<?, T> selector) {
+  public static <T extends TextView> Selector<T, CharSequence> textView(@NonNull final Selector<?, T> selector) {
     // final T v; v.getText(); v.setText();
 
-    final Property<String> property = text("Text");
-    return (Selector<T, String>) view(selector, property);
+    final Property<CharSequence> property = chars("Text");
+    return (Selector<T, CharSequence>) view(selector, property);
   }
 
   /**
@@ -162,9 +162,9 @@ public final class Views {
 
   /** 'Checked Radio Button Id' property binding. */
   public static <T extends RadioGroup> Selector<T, Integer> radioGroup(@NonNull final Selector<?, T> selector) {
-    // final T v; v.getCheckedRadioButtonId()
+    // final T v; v.getCheckedRadioButtonId();
 
-    final Property<Integer> property = integer("getCheckedRadioButtonId");
+    final Property<Integer> property = integer("getCheckedRadioButtonId", Property.NO_NAME);
     return (Selector<T, Integer>) view(selector, property);
   }
 

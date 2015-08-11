@@ -1,11 +1,12 @@
 package com.artfulbits.sample;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity {
+import com.artfulbits.ui.binding.toolbox.BindingActivity;
+
+public class MainActivity extends BindingActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -14,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
 
     if (savedInstanceState == null) {
       getSupportFragmentManager().beginTransaction()
-          .add(R.id.container, new PlaceholderFragment())
+          .add(R.id.container, new LoginFragment())
           .commit();
     }
   }

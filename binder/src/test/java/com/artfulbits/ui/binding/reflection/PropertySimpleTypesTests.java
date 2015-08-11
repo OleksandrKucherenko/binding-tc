@@ -6,7 +6,7 @@ import com.artfulbits.junit.TestHolder;
 import com.artfulbits.ui.binding.exceptions.ConfigurationError;
 import com.artfulbits.ui.binding.toolbox.Models;
 
-import org.junit.*;
+import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -20,8 +20,8 @@ public class PropertySimpleTypesTests extends TestHolder {
 
     m.start("Reflection performance");
 
-    final Property<String> fProperty = Models.text("fieldStr");
-    final Property<String> sProperty = Models.text("String");
+    final Property<String> fProperty = Models.strings("fieldStr");
+    final Property<String> sProperty = Models.strings("String");
     final DummyClass instance = new DummyClass();
     instance.fieldStr = "#1";
     instance.setString("#2");
@@ -143,7 +143,7 @@ public class PropertySimpleTypesTests extends TestHolder {
 
   @Test
   public void test_08_Properties_Binding_String() {
-    final Property<String> property = Models.text("fieldStr");
+    final Property<String> property = Models.strings("fieldStr");
 
     final DummyClass instance = new DummyClass();
     instance.fieldStr = "test";
@@ -182,7 +182,7 @@ public class PropertySimpleTypesTests extends TestHolder {
     final Property<Float> propertyFloat = Models.decimal("getget", "setset");
     final Property<Double> propertyDouble = Models.real("getget", "setset");
     final Property<Character> propertyChar = Models.letter("getget", "setset");
-    final Property<String> propertyString = Models.text("getget", "setset");
+    final Property<String> propertyString = Models.strings("getget", "setset");
     final Property<DummyEnum> propertyEnum = Models.from("getget", "setset");
     final Property<Object> propertyObject = Models.from("getget", "setset");
 

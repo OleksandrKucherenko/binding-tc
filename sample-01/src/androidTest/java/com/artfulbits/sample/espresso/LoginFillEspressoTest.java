@@ -13,22 +13,22 @@ import static android.support.test.espresso.matcher.ViewMatchers.withText;
 
 /** Default Android tests. */
 public class LoginFillEspressoTest extends ActivityInstrumentationTestCase2<MainActivity> {
-    public LoginFillEspressoTest() {
-        super("com.artfulbits.sample", MainActivity.class);
-    }
+  public LoginFillEspressoTest() {
+    super("com.artfulbits.sample", MainActivity.class);
+  }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
 
-        getActivity();
-    }
+    getActivity();
+  }
 
-    public void test_00_CreateActivity() {
-        onView(withId(R.id.tv_login))
-                .check(matches(withText(R.string.labelLogin)));
+  public void test_00_CreateActivity() {
+    onView(withId(R.id.tv_login))
+        .check(matches(withText(R.string.labelLogin)));
 
-        onView(withId(R.id.et_login))
-                .perform(typeText("developer"));
-    }
+    onView(withId(R.id.et_login))
+        .perform(typeText("developer"));
+  }
 }

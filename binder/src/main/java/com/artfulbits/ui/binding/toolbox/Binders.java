@@ -18,6 +18,14 @@ public final class Binders {
     return bm.bind();
   }
 
+  public static Binder<CharSequence, CharSequence> chars(final BindingsManager bm) {
+    return bm.bind();
+  }
+
+  public static Binder<CharSequence, String> strings(final BindingsManager bm) {
+    return bm.bind();
+  }
+
   public static Binder<Integer, Integer> integers(final BindingsManager bm) {
     return bm.bind();
   }
@@ -30,7 +38,11 @@ public final class Binders {
     return bm.bind();
   }
 
-  public static Binder<String, Integer> numeric(final BindingsManager bm) {
+  public static Binder<String, Integer> numbers(final BindingsManager bm) {
+    return bm.bind();
+  }
+
+  public static Binder<CharSequence, Integer> numeric(final BindingsManager bm) {
     return bm.bind();
   }
 }

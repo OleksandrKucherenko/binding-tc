@@ -1,17 +1,25 @@
 package com.artfulbits.ui.binding.toolbox;
 
 import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 
 import com.artfulbits.ui.binding.BindingsManager;
 
-/** Basic implementation of the Fragment with binding library enabled support. */
-public abstract class BindingFragment extends android.support.v4.app.Fragment implements BindingsManager.Lifecycle {
+/** High level activity that implements Binding manager support. */
+public class BindingActivity extends AppCompatActivity implements BindingsManager.Lifecycle {
   /** Instance of binding manager. */
   private BindingsManager mBm = BindingsManager.newInstance(this, this);
 
   /** get instance of the Binding manager. */
   public BindingsManager getBindingsManager() {
     return mBm;
+  }
+
+  @Override
+  protected void onRestart() {
+    super.onRestart();
+
+    mBm.doRestart(); // equal to call of onDestroy()
   }
 
   @Override
@@ -41,6 +49,7 @@ public abstract class BindingFragment extends android.support.v4.app.Fragment im
   public void onDestroy() {
     mBm.doDestroy();
 
+    // cleanup the binding manager instance
     super.onDestroy();
   }
 

@@ -132,28 +132,36 @@ public class Property<T> {
 
   /** Resolve 'binding by name' to real instances. Allows to validate configuration. */
   public void resolve(@NonNull final Object instance) throws WrongConfigurationError {
-    if (null == mCachedGet) {
+    final boolean isPattern = (null != mName && !NO_NAME.equals(mName));
+    final boolean isGet = isPattern || (null != mConfirmedGet && !NO_NAME.equals(mConfirmedGet));
+    final boolean isSet = isPattern || (null != mConfirmedSet && !NO_NAME.equals(mConfirmedSet));
+
+    if (isGet && null == mCachedGet) {
       mCachedGet = extractGetter(instance);
     }
 
-    if (null == mCachedSet) {
+    if (isSet && null == mCachedSet) {
       mCachedSet = extractSetter(instance);
     }
 
     // validate results
-    if (null == mCachedGet && null == mCachedSet) {
+    if (isGet && isSet && null == mCachedGet && null == mCachedSet) {
       throw new WrongConfigurationError("Cannot resolve GET and SET to real method(s)/field(s)." +
           " Name: " + mName + ", Getter: " + mConfirmedGet + ", Setter: " + mConfirmedSet);
     }
 
-    if (null == mCachedGet) {
+    if (isGet && null == mCachedGet) {
       throw new WrongConfigurationError("Cannot resolve GET to real method/field." +
           " Name: " + mName + ", Getter: " + mConfirmedGet);
     }
 
-    if (null == mCachedSet) {
+    if (isSet && null == mCachedSet) {
       throw new WrongConfigurationError("Cannot resolve SET to real method/field." +
           " Name: " + mName + ", Setter: " + mConfirmedSet);
+    }
+
+    if (!isPattern && !isGet && !isSet) {
+      throw new WrongConfigurationError("Property defined with NO_NAME for getter and setter.");
     }
   }
 
@@ -169,6 +177,25 @@ public class Property<T> {
   @NonNull
   protected Object[] setterArguments(final T value) {
     return new Object[]{value};
+  }
+
+  /**
+   * Compute array of reflection types for setter method.
+   *
+   * @return array of data types that correspond setter signature.
+   */
+  @NonNull
+  protected Class<?>[] setterToTypes() {
+    final Object[] args = setterArguments(null);
+    final Class<?>[] types = new Class<?>[args.length];
+
+    types[0] = mType;
+
+    for (int i = 1; i < args.length; i++) {
+      types[i] = args[i].getClass();
+    }
+
+    return types;
   }
 
   /** Resolve 'getter' entry. */
@@ -201,6 +228,9 @@ public class Property<T> {
   protected Entry reflectGetter(final Object instance) {
     Entry result = null;
 
+    // if specified special NO_NAME pattern, than ignore the call
+    if (NO_NAME.equals(mConfirmedGet)) return result;
+
     final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
 
     // explicit name defined
@@ -228,6 +258,9 @@ public class Property<T> {
   protected Entry reflectSetter(final Object instance) {
     Entry result = null;
 
+    // if specified special NO_NAME pattern, than ignore the call
+    if (NO_NAME.equals(mConfirmedSet)) return result;
+
     final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
 
     // explicit name defined
@@ -253,23 +286,5 @@ public class Property<T> {
     }
 
     return result;
-  }
-
-  /**
-   * Compute array of reflection types for setter method.
-   *
-   * @return array of data types that correspond setter signature.
-   */
-  private Class<?>[] setterToTypes() {
-    final Object[] args = setterArguments(null);
-    final Class<?>[] types = new Class<?>[args.length];
-
-    types[0] = mType;
-
-    for (int i = 1; i < args.length; i++) {
-      types[i] = args[i].getClass();
-    }
-
-    return types;
   }
 }

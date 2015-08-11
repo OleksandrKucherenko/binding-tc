@@ -129,7 +129,7 @@ public final class Listeners {
     return new ObserverListener(filter);
   }
 
-  /** Detect text changes and raise data exchange on that. */
+  /** Detect strings changes and raise data exchange on that. */
   @NonNull
   public static Listener onTextChanged() {
     return new TextWatcherListener();
@@ -189,7 +189,7 @@ public final class Listeners {
 
 	/* [ NESTED DECLARATIONS ] ======================================================================================= */
 
-  /** Listen to text changes of the TextView control. */
+  /** Listen to strings changes of the TextView control. */
   private static class TextWatcherListener implements Listener, TextWatcher {
     /** Set of notifiers. */
     private final Set<Notifications> mKnown = new HashSet<>();

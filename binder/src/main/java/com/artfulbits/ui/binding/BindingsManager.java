@@ -290,6 +290,11 @@ public class BindingsManager {
     return this;
   }
 
+  /** Execute from: {@link Activity#onRestart()}. Execute complete restart of Binding manager lifecycle. */
+  public void doRestart() {
+    doDestroy();
+  }
+
   /**
    * Execute from: {@link Activity#onStart()} or {@link android.support.v4.app.Fragment#onStart()}, {@link
    * Fragment#onStart()}.

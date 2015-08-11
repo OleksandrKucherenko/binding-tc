@@ -17,4 +17,16 @@ public class WrongConfigurationError extends ConfigurationError {
   public WrongConfigurationError(final String msg, final Throwable inner) {
     super(msg, inner);
   }
+
+  @Override
+  public String getMessage() {
+    final StringBuilder sb = new StringBuilder();
+    final String separator = "\n";
+
+    for (Throwable t : getReasons()) {
+      sb.append(separator).append(t.getMessage());
+    }
+
+    return super.getMessage() + sb.toString();
+  }
 }

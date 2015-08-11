@@ -6,6 +6,14 @@ import com.artfulbits.ui.binding.exceptions.OneWayBindingError;
 
 import org.junit.Test;
 
+import static com.artfulbits.ui.binding.toolbox.Formatter.chained;
+import static com.artfulbits.ui.binding.toolbox.Formatter.fromCharsToInteger;
+import static com.artfulbits.ui.binding.toolbox.Formatter.fromIntegerToBoolean;
+import static com.artfulbits.ui.binding.toolbox.Formatter.fromStringToChars;
+import static com.artfulbits.ui.binding.toolbox.Formatter.onlyPop;
+import static com.artfulbits.ui.binding.toolbox.Formatter.onlyPush;
+import static com.artfulbits.ui.binding.toolbox.Formatter.reverse;
+import static com.artfulbits.ui.binding.toolbox.Formatter.toNumberStr;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -26,8 +34,8 @@ public class FormatterTests extends TestHolder {
 
   @Test
   public void test_01_reverse() {
-    final Formatting<String, Integer> convert = Formatter.toInteger();
-    final Formatting<Integer, String> reverse = Formatter.reverse(convert);
+    final Formatting<String, Integer> convert = chained(fromStringToChars(), fromCharsToInteger());
+    final Formatting<Integer, String> reverse = reverse(convert);
 
     assertThat(reverse.toModel(10), equalTo("10"));
     assertThat(reverse.toView("10"), equalTo(10));
@@ -41,8 +49,8 @@ public class FormatterTests extends TestHolder {
 
   @Test(expected = OneWayBindingError.class)
   public void test_02_onlyPop() {
-    final Formatting<String, Integer> convert = Formatter.toInteger();
-    final Formatting<String, Integer> onlyPop = Formatter.onlyPop(convert);
+    final Formatting<String, Integer> convert = chained(fromStringToChars(), fromCharsToInteger());
+    final Formatting<String, Integer> onlyPop = onlyPop(convert);
 
     // should PASS!
     assertThat(onlyPop.toView(10), equalTo("10"));
@@ -57,8 +65,8 @@ public class FormatterTests extends TestHolder {
 
   @Test(expected = OneWayBindingError.class)
   public void test_03_onlyPop_Partial() {
-    final Formatting<String, Integer> convert = Formatter.toInteger();
-    final Formatting<String, Integer> onlyPop = Formatter.onlyPop(new ToView<String, Integer>() {
+    final Formatting<String, Integer> convert = chained(fromStringToChars(), fromCharsToInteger());
+    final Formatting<String, Integer> onlyPop = onlyPop(new ToView<String, Integer>() {
       @Override
       public String toView(final Integer value) {
         return convert.toView(value);
@@ -78,8 +86,8 @@ public class FormatterTests extends TestHolder {
 
   @Test(expected = OneWayBindingError.class)
   public void test_04_onlyPush() {
-    final Formatting<String, Integer> convert = Formatter.toInteger();
-    final Formatting<String, Integer> onlyPush = Formatter.onlyPush(convert);
+    final Formatting<String, Integer> convert = chained(fromStringToChars(), fromCharsToInteger());
+    final Formatting<String, Integer> onlyPush = onlyPush(convert);
 
     // should Pass
     assertThat(onlyPush.toModel("10"), equalTo(10));
@@ -92,8 +100,8 @@ public class FormatterTests extends TestHolder {
 
   @Test(expected = OneWayBindingError.class)
   public void test_05_onlyPush_Partial() {
-    final Formatting<String, Integer> convert = Formatter.toInteger();
-    final Formatting<String, Integer> onlyPush = Formatter.onlyPush(new ToModel<Integer, String>() {
+    final Formatting<String, Integer> convert = chained(fromStringToChars(), fromCharsToInteger());
+    final Formatting<String, Integer> onlyPush = onlyPush(new ToModel<Integer, String>() {
       @Override
       public Integer toModel(final String value) {
         return convert.toModel(value);
@@ -111,12 +119,12 @@ public class FormatterTests extends TestHolder {
 
   @Test
   public void test_06_toNumbers() {
-    Formatting<String, Byte> bytes = Formatter.toNumber(Byte.class);
-    Formatting<String, Short> shorts = Formatter.toNumber(Short.class);
-    Formatting<String, Integer> integers = Formatter.toNumber(Integer.class);
-    Formatting<String, Long> longs = Formatter.toNumber(Long.class);
-    Formatting<String, Float> floats = Formatter.toNumber(Float.class);
-    Formatting<String, Double> doubles = Formatter.toNumber(Double.class);
+    final Formatting<String, Byte> bytes = toNumberStr(Byte.class);
+    final Formatting<String, Short> shorts = toNumberStr(Short.class);
+    final Formatting<String, Integer> integers = toNumberStr(Integer.class);
+    final Formatting<String, Long> longs = toNumberStr(Long.class);
+    final Formatting<String, Float> floats = toNumberStr(Float.class);
+    final Formatting<String, Double> doubles = toNumberStr(Double.class);
 
     assertThat(bytes.toModel("1"), equalTo((byte) 1));
     assertThat(bytes.toView((byte) 1), equalTo("1"));
@@ -139,7 +147,7 @@ public class FormatterTests extends TestHolder {
 
   @Test
   public void test_07_Boolean() throws Exception {
-    Formatting<Integer, Boolean> converter = Formatter.fromBoolean();
+    final Formatting<Integer, Boolean> converter = fromIntegerToBoolean();
 
     assertThat(converter.toModel(2), equalTo(true));
     assertThat(converter.toView(true), equalTo(1));

@@ -121,17 +121,36 @@ public final class Formatter {
     };
   }
 
+  /** Create chained formatting. */
+  @NonNull
+  public static <T, V, Z> Formatting<T, V> chained(@NonNull final Formatting<T, Z> outer,
+                                                   @NonNull final Formatting<Z, V> inner) {
+    return new Formatting<T, V>() {
+      @Override
+      public V toModel(final T value) {
+        return inner.toModel(outer.toModel(value));
+      }
+
+      @Override
+      public T toView(final V value) {
+        return outer.toView(inner.toView(value));
+      }
+    };
+  }
+
   /** Convert String to Number and vise verse. */
   @NonNull
-  /* package */ static <T extends Number> Formatting<String, T> toNumber(@NonNull final Class<T> type) {
-    return new Formatting<String, T>() {
+  /* package */ static <T extends Number> Formatting<CharSequence, T> toNumber(@NonNull final Class<T> type) {
+    return new Formatting<CharSequence, T>() {
       @Override
-      public String toView(final T value) {
+      public CharSequence toView(final T value) {
         return value.toString();
       }
 
       @Override
-      public T toModel(final String value) {
+      public T toModel(final CharSequence cs) {
+        final String value = cs.toString();
+
         if (Byte.class.equals(type)) {
           return (T) Byte.valueOf(value);
         } else if (Short.class.equals(type)) {
@@ -151,16 +170,22 @@ public final class Formatter {
     };
   }
 
+  /**  */
+  @NonNull
+  /* package */ static <T extends Number> Formatting<String, T> toNumberStr(@NonNull final Class<T> type) {
+    return chained(fromStringToChars(), toNumber(type));
+  }
+
   /* [ CONCRETE IMPLEMENTATIONS ] ================================================================================== */
 
   /** String to Integer. */
   @NonNull
-  public static Formatting<String, Integer> toInteger() {
+  public static Formatting<CharSequence, Integer> fromCharsToInteger() {
     return toNumber(Integer.class);
   }
 
   @NonNull
-  public static Formatting<Integer, Boolean> fromBoolean() {
+  public static Formatting<Integer, Boolean> fromIntegerToBoolean() {
     return new Formatting<Integer, Boolean>() {
       @Override
       public Boolean toModel(final Integer value) {
@@ -174,4 +199,23 @@ public final class Formatter {
     };
   }
 
+  @NonNull
+  public static Formatting<String, CharSequence> fromStringToChars() {
+    return reverse(fromCharsToString());
+  }
+
+  @NonNull
+  public static Formatting<CharSequence, String> fromCharsToString() {
+    return new Formatting<CharSequence, String>() {
+      @Override
+      public String toModel(final CharSequence value) {
+        return value.toString();
+      }
+
+      @Override
+      public CharSequence toView(final String value) {
+        return value;
+      }
+    };
+  }
 }

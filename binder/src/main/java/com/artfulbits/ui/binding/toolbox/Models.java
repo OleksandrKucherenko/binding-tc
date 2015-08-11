@@ -140,13 +140,23 @@ public final class Models {
   }
 
   @NonNull
-  public static Property<String> text(@NonNull final String name) {
+  public static Property<String> strings(@NonNull final String name) {
     return new Property<>(String.class, name);
   }
 
   @NonNull
-  public static Property<String> text(@NonNull final String getName, @NonNull final String setName) {
+  public static Property<String> strings(@NonNull final String getName, @NonNull final String setName) {
     return new Property<>(String.class, getName, setName);
+  }
+
+  @NonNull
+  public static Property<CharSequence> chars(@NonNull final String name) {
+    return new Property<>(CharSequence.class, name);
+  }
+
+  @NonNull
+  public static Property<CharSequence> chars(@NonNull final String getName, @NonNull final String setName) {
+    return new Property<>(CharSequence.class, getName, setName);
   }
 
   @NonNull

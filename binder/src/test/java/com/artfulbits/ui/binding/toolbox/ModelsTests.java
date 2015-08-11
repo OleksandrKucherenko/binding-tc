@@ -3,7 +3,7 @@ package com.artfulbits.ui.binding.toolbox;
 import com.artfulbits.junit.TestHolder;
 import com.artfulbits.ui.binding.reflection.Property;
 
-import org.junit.*;
+import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -21,7 +21,7 @@ public class ModelsTests extends TestHolder {
     final Property<Float> propertyFloat = Models.decimal("getget", "setset");
     final Property<Double> propertyDouble = Models.real("getget", "setset");
     final Property<Character> propertyChar = Models.letter("getget", "setset");
-    final Property<String> propertyString = Models.text("getget", "setset");
+    final Property<String> propertyString = Models.strings("getget", "setset");
     final Property<DummyEnum> propertyEnum = Models.from("getget", "setset");
     final Property<Object> propertyObject = Models.from("getget", "setset");
 
@@ -49,7 +49,7 @@ public class ModelsTests extends TestHolder {
     final Property<Float> propertyFloat1 = Models.decimal("getget");
     final Property<Double> propertyDouble1 = Models.real("getget");
     final Property<Character> propertyChar1 = Models.letter("getget");
-    final Property<String> propertyString1 = Models.text("getget");
+    final Property<String> propertyString1 = Models.strings("getget");
     final Property<DummyEnum> propertyEnum1 = Models.from("getget");
     final Property<Object> propertyObject1 = Models.from("getget");
 
@@ -79,7 +79,7 @@ public class ModelsTests extends TestHolder {
     final Property<Float> propertyFloat = Models.decimal("getget", "setset");
     final Property<Double> propertyDouble = Models.real("getget", "setset");
     final Property<Character> propertyChar = Models.letter("getget", "setset");
-    final Property<String> propertyString = Models.text("getget", "setset");
+    final Property<String> propertyString = Models.strings("getget", "setset");
     final Property<DummyEnum> propertyEnum = Models.from("getget", "setset");
     final Property<Object> propertyObject = Models.from("getget", "setset");
 
@@ -109,7 +109,7 @@ public class ModelsTests extends TestHolder {
     final Property<Float> propertyFloat = Models.decimal("getget");
     final Property<Double> propertyDouble = Models.real("getget");
     final Property<Character> propertyChar = Models.letter("getget");
-    final Property<String> propertyString = Models.text("getget");
+    final Property<String> propertyString = Models.strings("getget");
     final Property<DummyEnum> propertyEnum = Models.from("getget");
     final Property<Object> propertyObject = Models.from("getget");
 
