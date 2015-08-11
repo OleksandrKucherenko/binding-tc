@@ -137,7 +137,7 @@ public final class Views {
    *
    * @param <T>      Type of View
    * @param selector selector that helps in identifying the view instance
-   * @return the selector of "strings" property from TextView inheritor
+   * @return the selector of "text" property from TextView inheritor
    */
   public static <T extends TextView> Selector<T, CharSequence> textView(@NonNull final Selector<?, T> selector) {
     // final T v; v.getText(); v.setText();

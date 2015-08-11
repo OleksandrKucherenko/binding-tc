@@ -423,6 +423,15 @@ public class BinderTests extends TestHolder {
     fail("exception expected!");
   }
 
+  @Test
+  public void test_15_Tags() throws Exception {
+    final Binder<String, String> bss = new Binder<>();
+    bss.setTag(-1, "Test").setTag(-2, "Dump");
+
+    assertThat((String) bss.getTag(-1), equalTo("Test"));
+    assertThat((String) bss.getTag(-2), equalTo("Dump"));
+  }
+
   /* [ NESTED DECLARATIONS ] ======================================================================================= */
 
   public static class PojoNamePin {

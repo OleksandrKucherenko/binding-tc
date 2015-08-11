@@ -2,14 +2,18 @@ package com.artfulbits.sample;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingsManager;
+import com.artfulbits.ui.binding.Failure;
+import com.artfulbits.ui.binding.Success;
 import com.artfulbits.ui.binding.reflection.Property;
 import com.artfulbits.ui.binding.toolbox.Binders;
 import com.artfulbits.ui.binding.toolbox.BindingFragment;
@@ -33,7 +37,6 @@ import static com.artfulbits.ui.binding.toolbox.Views.radioGroup;
 import static com.artfulbits.ui.binding.toolbox.Views.spinner;
 import static com.artfulbits.ui.binding.toolbox.Views.textView;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.core.AllOf.allOf;
 
 /** Login fragment with simplest UI. */
 public class LoginFragment extends BindingFragment {
@@ -70,6 +73,18 @@ public class LoginFragment extends BindingFragment {
       throw new AssertionError("That should never happens. Lifecycle expects existence of View.");
     }
 
+    // one way binding with timer thread
+    Binders.numeric(bm)
+        .view(textView(getView(), R.id.tv_login))
+        .model(pojo(mUser, integer("getActiveTime", Property.NO_NAME)))
+        .onModel(onTimer(1000, 1000)) // update every second
+        .format(onlyPop(new ToView<CharSequence, Integer>() {
+          @Override
+          public CharSequence toView(final Integer value) {
+            return getString(R.string.labelLogin).replace(":", " [" + value + " sec]:");
+          }
+        }));
+
     // #1: worst case scenario: verbose syntax for edit strings
     // #2: limit user input by NUMBERS for PIN style password, 4 digits in length
     Binders.numeric(bm)
@@ -78,25 +93,39 @@ public class LoginFragment extends BindingFragment {
         .model(pojo(mUser, integer("Pin")))
         .onModel(onObservable("Pin"))
         .format(fromCharsToInteger())
-        .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)));
-
-    // one way binding with timer thread
-    Binders.numeric(bm)
-        .view(textView(getView(), R.id.tv_login))
-        .model(pojo(mUser, integer("getActiveTime", Property.NO_NAME)))
-        .onModel(onTimer(1000, 1000)) // update every second
-        .format(onlyPop(new ToView<CharSequence, Integer>() {
+        .validate(allOf(greaterThanOrEqualTo(0), lessThan(10000)))
+        .onFailure(new Failure() {
           @Override
-          public String toView(final Integer value) {
-            return getString(R.string.labelLogin).replace(":", " [" + value + " sec]:");
+          public void onValidationFailure(@Nullable final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            ((TextView) getView().findViewById(R.id.tv_password)).setText(R.string.labelPasswordFail);
           }
-        }));
+        })
+        .onSuccess(new Success() {
+          @Override
+          public void onValidationSuccess(@Nullable final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            ((TextView) getView().findViewById(R.id.tv_password)).setText(R.string.labelPasswordOk);
+          }
+        });
 
     // edit Text - validation password
     Binders.numeric(bm)
         .view(editText(getView(), R.id.et_confirm_password))
+        .onView(anyOf(onTextChanged(), onFocusLost()))
         .model(pojo(mUser, integer("ConfirmPin")))
-        .validate(is(equalTo(mUser.getPin()))); // ???
+        .onModel(anyOf(onObservable("PinsEqual"), onObservable("ConfirmPin")))
+        .validate(is(equalTo(mUser.getPin())))
+        .onSuccess(new Success() {
+          @Override
+          public void onValidationSuccess(@Nullable final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            ((TextView) getView().findViewById(R.id.tv_confirm_password)).setText(R.string.labelPasswordOk);
+          }
+        })
+        .onFailure(new Failure() {
+          @Override
+          public void onValidationFailure(@Nullable final BindingsManager bm, @NonNull final Binder<?, ?> b) {
+            ((TextView) getView().findViewById(R.id.tv_confirm_password)).setText(R.string.labelPasswordFail);
+          }
+        });
 
     // spinner
     Binders.integers(bm)

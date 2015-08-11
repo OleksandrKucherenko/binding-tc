@@ -1,5 +1,6 @@
 package com.artfulbits.ui.binding;
 
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 
 import com.artfulbits.ui.binding.exceptions.ConfigurationError;
@@ -9,6 +10,9 @@ import com.artfulbits.ui.binding.reflection.Property;
 import com.artfulbits.ui.binding.toolbox.Formatter;
 
 import org.hamcrest.CoreMatchers;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Base class for all binding rules keeping.
@@ -51,8 +55,6 @@ public class Binder<TLeft, TRight> {
   private Formatting<TLeft, TRight> mFormatting;
   /** Data validation. */
   private org.hamcrest.Matcher<TRight> mValidation;
-  /** Value used in last evaluated/extracted/exchange operation. View side. */
-  private TLeft mLastLeft;
   /** Value used in last evaluated/extracted/exchange operation. Model side. */
   private TRight mLastRight;
   /** Callback that we raise on validation success. */
@@ -77,6 +79,8 @@ public class Binder<TLeft, TRight> {
       onViewChanged();
     }
   };
+  /** Tags associated with current binder. */
+  private Map<Integer, Object> mTags;
 
   /* ============================================================================================================== */
 
@@ -186,6 +190,31 @@ public class Binder<TLeft, TRight> {
     return this;
   }
 
+  /**
+   * Get tag assigned to the Binder.
+   *
+   * @param id unique identifier of the tag.
+   */
+  public Object getTag(@IdRes final int id) {
+    return mTags.get(id);
+  }
+
+  /**
+   * Set tag with specified ID to binder.
+   *
+   * @param id    unique identifier of the tag
+   * @param value tag value.
+   */
+  public Binder<TLeft, TRight> setTag(@IdRes final int id, @NonNull final Object value) {
+    if (null == mTags) {
+      mTags = new HashMap<>();
+    }
+
+    mTags.put(id, value);
+
+    return this;
+  }
+
   /* ============================================================================================================== */
 
   /** Notify manager that binder detects view side changes. */
@@ -229,18 +258,18 @@ public class Binder<TLeft, TRight> {
   /* ============================================================================================================== */
 
   @NonNull
-  public Property<TLeft> resolveView() {
+  protected Property<TLeft> resolveView() {
     return mView.getProperty();
   }
 
   @NonNull
-  public Property<TRight> resolveModel() {
+  protected Property<TRight> resolveModel() {
     return mModel.getProperty();
   }
 
   /** Resolve formatting to instance that can be executed. */
   @NonNull
-  public Formatting<TLeft, TRight> resolveFormatting() {
+  protected Formatting<TLeft, TRight> resolveFormatting() {
     if (null == mFormatting) {
       mFormatting = Formatter.direct();
     }
@@ -250,7 +279,7 @@ public class Binder<TLeft, TRight> {
 
   /** Resolve validator to instance that can be executed. */
   @NonNull
-  public org.hamcrest.Matcher<TRight> resolveValidation() {
+  protected org.hamcrest.Matcher<TRight> resolveValidation() {
     if (null == mValidation) {
       // by default we validating only data type
       return CoreMatchers.isA(resolveModel().getDataType());
@@ -285,12 +314,6 @@ public class Binder<TLeft, TRight> {
       return;
     }
 
-    // if no changes since last request
-    if (mLastLeft == lValue) return;
-
-    // store Value in cache
-    mLastLeft = lValue;
-
     // formatter, with respect to ONE-WAY binding
     final TRight rValue;
     try {
@@ -312,7 +335,7 @@ public class Binder<TLeft, TRight> {
     // if no changes since last request
     if (mLastRight == rValue) return;
 
-    // store value in cache
+    // store value in cache only for model
     mLastRight = rValue;
 
     // update Model
@@ -348,7 +371,7 @@ public class Binder<TLeft, TRight> {
     // is changed?
     if (mLastRight == rValue) return;
 
-    // update value in cache
+    // update value in cache only for model
     mLastRight = rValue;
 
     // validation passed?
@@ -368,12 +391,6 @@ public class Binder<TLeft, TRight> {
     } catch (final OneWayBindingError ignored) {
       return;
     }
-
-    // is changed?
-    if (mLastLeft == lValue) return;
-
-    // update cache
-    mLastLeft = lValue;
 
     // update View
     mView.set(lValue);
@@ -437,12 +454,12 @@ public class Binder<TLeft, TRight> {
 
   /** Is pop operation validation passed? */
   public boolean isPopOk() {
-    return (mStatus & MASK_PUSH) == 0;
+    return (mStatus & MASK_POP) == 0;
   }
 
   /** Is push operation validation passed? */
   public boolean isPushOk() {
-    return (mStatus & MASK_POP) == 0;
+    return (mStatus & MASK_PUSH) == 0;
   }
 
   /** Get reference on model instance. */

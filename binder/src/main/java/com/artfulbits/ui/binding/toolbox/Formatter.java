@@ -1,6 +1,7 @@
 package com.artfulbits.ui.binding.toolbox;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.artfulbits.ui.binding.Formatting;
 import com.artfulbits.ui.binding.exceptions.OneWayBindingError;
@@ -149,7 +150,11 @@ public final class Formatter {
 
       @Override
       public T toModel(final CharSequence cs) {
-        final String value = cs.toString();
+        String value = cs.toString();
+
+        // No value is equal to ZERO
+        if (TextUtils.isEmpty(value))
+          value = "0";
 
         if (Byte.class.equals(type)) {
           return (T) Byte.valueOf(value);

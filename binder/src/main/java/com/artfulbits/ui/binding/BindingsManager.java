@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
 import android.util.Pair;
@@ -103,24 +104,29 @@ public class BindingsManager {
 
   /* [ STATIC HELPERS ] =========================================================================================== */
 
-  public static BindingsManager newInstance(@NonNull final Activity i, final Lifecycle listener) {
-    return new BindingsManager(i).register(listener);
+  public static BindingsManager newInstance(@NonNull final Activity a,
+                                            @NonNull final Lifecycle listener) {
+    return new BindingsManager(a).register(listener);
   }
 
-  public static BindingsManager newInstance(@NonNull final android.support.v4.app.Fragment i, final Lifecycle listener) {
-    return new BindingsManager(i).register(listener);
+  public static BindingsManager newInstance(@NonNull final android.support.v4.app.Fragment f,
+                                            @NonNull final Lifecycle listener) {
+    return new BindingsManager(f).register(listener);
   }
 
-  public static BindingsManager newInstance(@NonNull final Fragment i, final Lifecycle listener) {
-    return new BindingsManager(i).register(listener);
+  public static BindingsManager newInstance(@NonNull final Fragment f,
+                                            @NonNull final Lifecycle listener) {
+    return new BindingsManager(f).register(listener);
   }
 
-  public static BindingsManager newInstance(@NonNull final View i, final Lifecycle listener) {
-    return new BindingsManager(i).register(listener);
+  public static BindingsManager newInstance(@NonNull final View v,
+                                            @NonNull final Lifecycle listener) {
+    return new BindingsManager(v).register(listener);
   }
 
-  public static BindingsManager newInstance(@NonNull final BaseAdapter i, final Lifecycle listener) {
-    return new BindingsManager(i).register(listener);
+  public static BindingsManager newInstance(@NonNull final BaseAdapter ba,
+                                            @NonNull final Lifecycle listener) {
+    return new BindingsManager(ba).register(listener);
   }
 
   /* [ OVERRIDES ] ================================================================================================ */
@@ -177,7 +183,7 @@ public class BindingsManager {
     return mRules;
   }
 
-  /** Get list of binder's that interact with specified model model. */
+  /** Get list of binder's that interact with specified model instance. */
   public List<Binder<?, ?>> getBindingsByModel(@NonNull final Object model) {
     final List<Binder<?, ?>> result = new LinkedList<>();
 
@@ -190,12 +196,25 @@ public class BindingsManager {
     return result;
   }
 
-  /** Get list of binder's that interact with specified view view. */
+  /** Get list of binder's that interact with specified view instance. */
   public List<Binder<?, ?>> getBindingsByView(@NonNull final Object view) {
     final List<Binder<?, ?>> result = new LinkedList<>();
 
     for (Binder<?, ?> b : mRules) {
       if (view.equals(b.getRuntimeView())) {
+        result.add(b);
+      }
+    }
+
+    return result;
+  }
+
+  /** Get list of binder's that has specified tag ID. */
+  public List<Binder<?, ?>> getBindingsByTag(@IdRes final int id) {
+    final List<Binder<?, ?>> result = new LinkedList<>();
+
+    for (Binder<?, ?> b : mRules) {
+      if (null != b.getTag(id)) {
         result.add(b);
       }
     }
@@ -238,12 +257,14 @@ public class BindingsManager {
 
   /* [ GENERIC BINDERS ] ========================================================================================== */
 
+  /** Create new bind rule instance. */
   public <TLeft, TRight> Binder<TLeft, TRight> bind() {
     final Binder<TLeft, TRight> result = new Binder<>();
 
     return result.attachToManager(this);
   }
 
+  /** Create new bind rule instance with view and model. */
   public <TLeft, TRight> Binder<TLeft, TRight> bind(@NonNull final Selector<?, TLeft> view,
                                                     @NonNull final Selector<?, TRight> model) {
     final Binder<TLeft, TRight> result = new Binder<>();
@@ -252,26 +273,6 @@ public class BindingsManager {
         .view(view)
         .model(model)
         .attachToManager(this);
-  }
-
-  public Binder<String, String> texts() {
-    return bind();
-  }
-
-  public Binder<Integer, Integer> integers() {
-    return bind();
-  }
-
-  public Binder<Double, Double> reals() {
-    return bind();
-  }
-
-  public Binder<Boolean, Boolean> bools() {
-    return bind();
-  }
-
-  public Binder<String, Integer> numeric() {
-    return bind();
   }
 
   /* [ LIFECYCLE ] ================================================================================================ */

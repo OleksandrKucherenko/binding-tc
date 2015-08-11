@@ -189,7 +189,7 @@ public final class Listeners {
 
 	/* [ NESTED DECLARATIONS ] ======================================================================================= */
 
-  /** Listen to strings changes of the TextView control. */
+  /** Listen to texts changes of the TextView control. */
   private static class TextWatcherListener implements Listener, TextWatcher {
     /** Set of notifiers. */
     private final Set<Notifications> mKnown = new HashSet<>();
@@ -274,7 +274,7 @@ public final class Listeners {
     }
   }
 
-  /** Listner to Observable instance. */
+  /** Listen to Observable instance. */
   private static class ObserverListener implements Listener, Observer {
     /** filter that allows any kind of data be treated as a notification to listener. */
     public static final Object ANYTHING = new Object();
