@@ -10,6 +10,8 @@ Active development, started at: 2014-05-15
 
 Changes: [Changes Log](_documentation/changes.md)
 
+Roadmap (v1.0.0 - v2.0.0): [Road Map](_documentation/roadmap.md)
+
 # Goals
 * High performance, 
 * easy syntax, 
