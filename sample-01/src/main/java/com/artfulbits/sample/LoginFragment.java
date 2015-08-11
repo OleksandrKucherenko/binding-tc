@@ -27,9 +27,11 @@ import static com.artfulbits.ui.binding.toolbox.Models.integer;
 import static com.artfulbits.ui.binding.toolbox.Models.pojo;
 import static com.artfulbits.ui.binding.toolbox.Models.strings;
 import static com.artfulbits.ui.binding.toolbox.Views.checkBox;
+import static com.artfulbits.ui.binding.toolbox.Views.editText;
 import static com.artfulbits.ui.binding.toolbox.Views.radioButton;
 import static com.artfulbits.ui.binding.toolbox.Views.radioGroup;
 import static com.artfulbits.ui.binding.toolbox.Views.spinner;
+import static com.artfulbits.ui.binding.toolbox.Views.textView;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.AllOf.allOf;
 
