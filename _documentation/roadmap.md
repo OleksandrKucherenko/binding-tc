@@ -20,7 +20,7 @@
 5. clone selector with runtime instance replacement (apply the same configuration on another instance)
 6. Expression IF/ELSE in logic, quick switches
 
-~~## Formatting~~ **DONE!** Implemented
+## ~~Formatting~~ **DONE!** Implemented
 
 ~~1. Chained formatting, when we have two-, three- stage convert of data, Examples:~~
 
