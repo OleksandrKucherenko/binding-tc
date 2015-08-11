@@ -42,3 +42,4 @@
 Find the way how to prevent obfuscation issue in release builds:
 - custom annotations
 - generated classes that will help binding manager to resolve obfuscated class names (mapping.txt to constants)
+- proguard keep rules generator
