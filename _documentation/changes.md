@@ -8,3 +8,4 @@
 - implemented basic concept of Listeners static toolbox (onFocusLoss, onTextChanged, onObservable, onTimer, onAlarm)
 - implemented basic fragment lifecycle base class (android.support.v4.app.Fragment)
 - freeze/unfreeze logic in manager, pending updates
+- implemented one-way binding
