@@ -334,32 +334,36 @@ public class BindingsManager {
   }
 
   /* package */ void notifyOnCreateBinding() {
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.LIFECYCLE_BINDING));
+    final Message msg = mDispatcher.obtainMessage(Messages.LIFECYCLE_BINDING);
+    mDispatcher.sendMessage(msg);
   }
 
   /* package */ void notifyOnViewChanged(@NonNull final Binder<?, ?> binder) {
-    mDispatcher.removeMessages(Messages.ON_VIEW_CHANGED);
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.ON_VIEW_CHANGED, binder));
+    final Message msg = mDispatcher.obtainMessage(Messages.ON_VIEW_CHANGED, binder);
+    mDispatcher.sendMessage(msg);
   }
 
   /* package */ void notifyOnModelChanged(@NonNull final Binder<?, ?> binder) {
-    mDispatcher.removeMessages(Messages.ON_MODEL_CHANGED);
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.ON_MODEL_CHANGED, binder));
+    final Message msg = mDispatcher.obtainMessage(Messages.ON_MODEL_CHANGED, binder);
+    mDispatcher.sendMessage(msg);
   }
 
   /* package */ void notifyOnValidation(@NonNull final Binder<?, ?> binder) {
-    mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.LIFECYCLE_VALIDATION));
+    final Message msg = mDispatcher.obtainMessage(Messages.LIFECYCLE_VALIDATION);
+    mDispatcher.sendMessage(msg);
   }
 
   /* package */ void notifyOnSuccess(@NonNull final Binder<?, ?> binder) {
     if (null != binder.getOnSuccess()) {
-      mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.SUCCESS, binder));
+      final Message msg = mDispatcher.obtainMessage(Messages.SUCCESS, binder);
+      mDispatcher.sendMessage(msg);
     }
   }
 
   /* package */ void notifyOnFailure(@NonNull final Binder<?, ?> binder) {
     if (null != binder.getOnFailure()) {
-      mDispatcher.sendMessage(mDispatcher.obtainMessage(Messages.FAILURE, binder));
+      final Message msg = mDispatcher.obtainMessage(Messages.FAILURE, binder);
+      mDispatcher.sendMessage(msg);
     }
   }
 
@@ -373,7 +377,18 @@ public class BindingsManager {
    * @return this instance.
    */
   public BindingsManager push() {
-    for (Binder<?, ?> b : mRules) {
+    return push(mRules);
+  }
+
+  /**
+   * Evaluate all bindings from list. Perform on each PUSH. VIEW data delivered to MODEL.<br/> Keep in mind that this is
+   * <b>ASYNC</b> operation. Results of binding you will receive in specially designed callbacks/listeners: {@link
+   * BindingsManager.Lifecycle}, {@link Success} or {@link Failure}.
+   *
+   * @return this instance.
+   */
+  public BindingsManager push(@NonNull final List<Binder<?, ?>> binders) {
+    for (Binder<?, ?> b : binders) {
       push(b);
     }
 
@@ -387,11 +402,7 @@ public class BindingsManager {
    * @return this instance.
    */
   public BindingsManager pushTo(@NonNull final Object modelInstance) {
-    for (final Binder<?, ?> bind : getBindingsByModel(modelInstance)) {
-      push(bind);
-    }
-
-    return this;
+    return push(getBindingsByModel(modelInstance));
   }
 
   /**
@@ -417,20 +428,12 @@ public class BindingsManager {
    * @return this instance.
    */
   public BindingsManager popByModel(@NonNull final Object modelInstance) {
-    for (final Binder<?, ?> bind : getBindingsByModel(modelInstance)) {
-      pop(bind);
-    }
-
-    return this;
+    return pop(getBindingsByModel(modelInstance));
   }
 
   /** Pop data from Model to view instance. */
   public BindingsManager popTo(@NonNull final Object viewInstance) {
-    for (Binder<?, ?> b : getBindingsByView(viewInstance)) {
-      pop(b);
-    }
-
-    return this;
+    return pop(getBindingsByView(viewInstance));
   }
 
   /**
@@ -441,7 +444,18 @@ public class BindingsManager {
    * @return this instance.
    */
   public BindingsManager pop() {
-    for (Binder<?, ?> b : mRules) {
+    return pop(mRules);
+  }
+
+  /**
+   * Evaluate all bindings from list. Perform on each POP. MODEL data delivered to VIEW.<br/> Keep in mind that this is
+   * <b>ASYNC</b> operation. Results of binding you will receive in specially designed callbacks/listeners: {@link
+   * BindingsManager.Lifecycle}, {@link Success} or {@link Failure}.
+   *
+   * @return this instance.
+   */
+  public BindingsManager pop(@NonNull final List<Binder<?, ?>> binders) {
+    for (Binder<?, ?> b : binders) {
       pop(b);
     }
 

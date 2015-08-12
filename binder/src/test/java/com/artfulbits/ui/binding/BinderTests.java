@@ -5,18 +5,15 @@ import android.support.annotation.Nullable;
 
 import com.artfulbits.junit.TestHolder;
 import com.artfulbits.ui.binding.exceptions.ConfigurationError;
-import com.artfulbits.ui.binding.toolbox.Formatter;
 import com.artfulbits.ui.binding.toolbox.Listeners;
 import com.artfulbits.ui.binding.toolbox.Models;
+import com.artfulbits.ui.binding.toolbox.Molds;
 
 import org.junit.Test;
 
 import java.util.Observable;
 
-import static com.artfulbits.ui.binding.toolbox.Models.integer;
-import static com.artfulbits.ui.binding.toolbox.Models.number;
-import static com.artfulbits.ui.binding.toolbox.Models.pojo;
-import static com.artfulbits.ui.binding.toolbox.Models.real;
+import static com.artfulbits.ui.binding.toolbox.Models.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -74,7 +71,7 @@ public class BinderTests extends TestHolder {
     bss
         .view(pojo(viewInstance, Models.strings("Password"))) // PojoLoginPassword.getPassword()
         .model(pojo(modelInstance, integer("Pin"))) // PojoNamePin.getPin()
-        .format(Formatter.chained(Formatter.fromStringToChars(), Formatter.fromCharsToInteger()));
+        .format(Molds.chain(Molds.fromStringToChars(), Molds.fromCharsToInteger()));
 
     modelInstance.setPin(1234);
     bss.pop(); // from MODEL --> VIEW
@@ -116,31 +113,31 @@ public class BinderTests extends TestHolder {
     modelInstance.setLogin("login-set");
     bss.pop(); // from MODEL --> VIEW
     assertThat(modelInstance.getLogin(), equalTo("login-set"));
-    assertThat(bss.isPushOk(), equalTo(true));
+    assertThat(bss.isPopOk(), equalTo(true));
     assertThat(getRawLogger().toString(), containsString("success validation"));
 
     // Step #1: validation ok - PUSH
     viewInstance.setName("name-set");
     bss.push(); // from VIEW --> MODEL
     assertThat(viewInstance.getName(), equalTo("name-set"));
-    assertThat(bss.isPopOk(), equalTo(true));
+    assertThat(bss.isPushOk(), equalTo(true));
 
-    // Step #2: validation failed - POP
-    final boolean wasPushOk = bss.isPushOk();
+    // Step #2: validation failed - POP, state of PUSH should stay from prev call
+    final boolean wasPopOk = bss.isPopOk();
     modelInstance.setLogin("dummy");
     bss.pop();
-    assertThat(bss.isPushOk(), equalTo(false));
-    assertThat(bss.isPushOk(), not(equalTo(wasPushOk)));
-    assertThat(bss.isPopOk(), equalTo(true)); // state from prev call
+    assertThat(bss.isPopOk(), equalTo(false));
+    assertThat(bss.isPopOk(), not(equalTo(wasPopOk)));
+    assertThat(bss.isPushOk(), equalTo(true)); // state from prev call
     assertThat(viewInstance.getName(), not(equalTo("dummy")));
     assertThat(getRawLogger().toString(), containsString("failure validation"));
 
     // Step #2: validation failed - PUSH
-    final boolean wasPopOk = bss.isPopOk();
+    final boolean wasPushOk = bss.isPushOk();
     viewInstance.setName("dummy2");
     bss.push();
-    assertThat(bss.isPopOk(), equalTo(false));
-    assertThat(bss.isPopOk(), not(equalTo(wasPopOk)));
+    assertThat(bss.isPushOk(), equalTo(false));
+    assertThat(bss.isPushOk(), not(equalTo(wasPushOk)));
     assertThat(modelInstance.getLogin(), not(equalTo("dummy2")));
 
     // trace expression for validation

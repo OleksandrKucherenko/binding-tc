@@ -18,4 +18,8 @@
 
   <string name="btnProceed">Proceed</string>
 
+
+  <string name="msgPasswordFail">Passwords mismatch each other</string>
+  <string name="msgPasswordPatternFail">Password does not match pattern</string>
+  <string name="msgPasswordOK">Validation Passed!</string>
 </resources>

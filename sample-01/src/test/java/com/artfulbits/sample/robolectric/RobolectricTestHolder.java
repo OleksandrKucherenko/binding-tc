@@ -87,13 +87,27 @@ public abstract class RobolectricTestHolder {
    */
   public <T extends Activity> void fullLifecycle(@NonNull final ActivityController<T> controller,
                                                  @Nullable final Runnable onVisible) {
+    fullLifecycle(controller, null, null, onVisible);
+  }
+
+
+  /**
+   * Perform full lifecycle emulation for activity. When Activity is in visible state
+   * is possible to execute some additional actions.
+   */
+  public <T extends Activity> void fullLifecycle(@NonNull final ActivityController<T> controller,
+                                                 @Nullable final Runnable onRestart,
+                                                 @Nullable final Runnable onResume,
+                                                 @Nullable final Runnable onVisible) {
     final Bundle savedInstanceState = new Bundle();
 
+    trace("state - onCreate");
     controller.create();
 
     // CYCLE #1: emulate activity restart
     int lifeLoops = 1;
     do {
+      trace("state - onStart : " + lifeLoops);
       controller.start();
 
       controller.restoreInstanceState(savedInstanceState);
@@ -103,29 +117,38 @@ public abstract class RobolectricTestHolder {
       // CYCLE #1.1: emulate show/hide
       int loops = 1;
       do {
+        trace("state - onResume : " + loops);
+        if (null != onResume) onResume.run();
+
         controller.resume(); // --> onPostResume()
 
         controller.visible(); // --> onUserInteraction()
 
-        if (null != onVisible) {
-          onVisible.run();
-        }
+        if (null != onVisible) onVisible.run();
 
         controller.userLeaving();
 
         controller.pause();
-      } while ((loops--) >= 0);
+
+        loops--;
+      } while (loops >= 0);
 
       controller.saveInstanceState(savedInstanceState);
 
       controller.stop();
 
       // go-to onRestart() state
-      if (lifeLoops > 0)
+      if (lifeLoops > 0) {
+        if (null != onRestart) onRestart.run();
+
+        trace("state - onRestart");
         controller.restart();
+      }
 
-    } while ((lifeLoops--) >= 0);
+      lifeLoops--;
+    } while (lifeLoops >= 0);
 
+    trace("state - onDestroy");
     controller.destroy();
   }
 

@@ -2,9 +2,9 @@ package com.artfulbits.sample;
 
 import android.os.Build;
 
-import com.artfulbits.sample.robolectric.LoggerActivity;
 import com.artfulbits.sample.robolectric.RobolectricTestHolder;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -24,27 +24,9 @@ import static org.junit.Assert.*;
 @RunWith(RobolectricTestRunner.class)
 public class LoginFillRobolectricTest extends RobolectricTestHolder {
 
-  /**
-   * This is full life-cycle of activity based on diagram:
-   * https://raw.githubusercontent.com/xxv/android-lifecycle/master/complete_android_fragment_lifecycle.png
-   */
   @Test
-  public void test_00_LoggerActivity_FullLifecycle() {
-    final ActivityController<LoggerActivity> controller = Robolectric.buildActivity(LoggerActivity.class);
-    final LoggerActivity activity = controller.get();
-
-    assertThat(activity, notNullValue());
-
-    try {
-      fullLifecycle(controller, null);
-    } finally {
-      // dump states switches
-      getRawLogger().append(activity.getRawLogger().toString());
-    }
-  }
-
-  @Test
-  public void test_01_MainActivity_FullLifecycle() {
+  @Ignore
+  public void test_00_MainActivity_FullLifecycle() {
     final ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class);
     final MainActivity activity = controller.get();
 

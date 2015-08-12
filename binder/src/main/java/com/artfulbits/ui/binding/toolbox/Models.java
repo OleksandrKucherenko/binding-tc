@@ -179,6 +179,7 @@ public final class Models {
     return new Property<>(Short.class, getName, setName);
   }
 
+
   /** Hack interface for making possible anonymous classes creation. */
   private interface Trick {
   }

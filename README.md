@@ -42,7 +42,7 @@ Fragment binding:
 ```java
 import com.artfulbits.ui.binding.*;
 
-import static com.artfulbits.ui.binding.toolbox.Formatter.*;
+import static com.artfulbits.ui.binding.toolbox.Molds.*;
 import static com.artfulbits.ui.binding.toolbox.Listeners.*;
 import static com.artfulbits.ui.binding.toolbox.Models.*;
 import static com.artfulbits.ui.binding.toolbox.Views.*;
@@ -173,3 +173,4 @@ AEB adding a new step into lifecycle ```onCreateBinding()``` it executed after t
 
 
 [1]: https://raw.githubusercontent.com/xxv/android-lifecycle/master/complete_android_fragment_lifecycle.png
+[2]: http://evendanan.net/robolectric/unit-test/2015/04/09/migrating-to-robolectric-v3/

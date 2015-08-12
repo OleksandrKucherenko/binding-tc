@@ -1,4 +1,4 @@
-package com.artfulbits.sample;
+package com.artfulbits.sample.data;
 
 import java.util.Observable;
 import java.util.concurrent.TimeUnit;

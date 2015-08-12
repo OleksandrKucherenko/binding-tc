@@ -2,16 +2,20 @@ package com.artfulbits.ui.binding;
 
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.artfulbits.ui.binding.exceptions.ConfigurationError;
 import com.artfulbits.ui.binding.exceptions.OneWayBindingError;
 import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
 import com.artfulbits.ui.binding.reflection.Property;
-import com.artfulbits.ui.binding.toolbox.Formatter;
+import com.artfulbits.ui.binding.toolbox.Molds;
+import com.artfulbits.ui.binding.toolbox.Ridges;
 
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -26,18 +30,21 @@ public class Binder<TLeft, TRight> {
   /** Empty instance. Can be  used instead of NULL. */
   public static final Binder<Void, Void> EMPTY = new Binder<>();
 
-  /** POP operation validation passed. */
-  private static final int STATUS_FAIL_GET_PUSH = 1;
-  /** POP operation validation failed. */
-  private static final int STATUS_FAIL_PUSH = 2;
-  /** PUSH operation validation passed. */
-  private static final int STATUS_FAIL_GET_POP = 4;
-  /** PUSH operation validation failed. */
-  private static final int STATUS_FAIL_POP = 8;
-  /** Mask for filtering PUSH operation status. */
-  private static final int MASK_POP = STATUS_FAIL_GET_POP | STATUS_FAIL_POP;
-  /** Mask for filtering POP operation status. */
-  private static final int MASK_PUSH = STATUS_FAIL_GET_PUSH | STATUS_FAIL_PUSH;
+  /** PUSH and POP state flags. */
+  private interface Flags {
+    /** POP operation validation passed. */
+    int STATUS_FAIL_GET_PUSH = 1;
+    /** POP operation validation failed. */
+    int STATUS_FAIL_PUSH = 2;
+    /** Mask for filtering POP operation status. */
+    int MASK_PUSH = STATUS_FAIL_GET_PUSH | STATUS_FAIL_PUSH;
+    /** PUSH operation validation passed. */
+    int STATUS_FAIL_GET_POP = 4;
+    /** PUSH operation validation failed. */
+    int STATUS_FAIL_POP = 8;
+    /** Mask for filtering PUSH operation status. */
+    int MASK_POP = STATUS_FAIL_GET_POP | STATUS_FAIL_POP;
+  }
 
   /* ============================================================================================================== */
 
@@ -56,7 +63,7 @@ public class Binder<TLeft, TRight> {
   /** Data validation. */
   private org.hamcrest.Matcher<TRight> mValidation;
   /** Value used in last evaluated/extracted/exchange operation. Model side. */
-  private TRight mLastRight;
+  private Ridge<TRight> mRidge;
   /** Callback that we raise on validation success. */
   private Success mOnSuccess;
   /** Callback that we raise on validation failure. */
@@ -98,13 +105,17 @@ public class Binder<TLeft, TRight> {
 
   @Override
   public String toString() {
-    return "POP : " + mView.toString() + " ==> " + mModel.toString() + " / " +
-        "PUSH: " + mModel.toString() + " <== " + mView.toString();
+    return String.format(Locale.US,
+        " PUSH: %s ==> %s\n  POP: %s <== %s\nRIDGE: %s",
+        mView.toGetterString(), mModel.toSetterString(),
+        mView.toSetterString(), mModel.toGetterString(),
+        mRidge);
   }
 
   /* ============================================================================================================== */
 
   /** Assign View selector to a binder. */
+  @NonNull
   public Binder<TLeft, TRight> view(@NonNull final Selector<?, TLeft> view) {
     mView = view;
 
@@ -116,6 +127,7 @@ public class Binder<TLeft, TRight> {
   }
 
   /** Assign Model selector to a binder. */
+  @NonNull
   public Binder<TLeft, TRight> model(@NonNull final Selector<?, TRight> model) {
     mModel = model;
 
@@ -127,6 +139,7 @@ public class Binder<TLeft, TRight> {
   }
 
   /** Attach to binder a formatting provider. */
+  @NonNull
   public Binder<TLeft, TRight> format(@NonNull final Formatting<TLeft, TRight> formatting) {
     mFormatting = formatting;
 
@@ -134,13 +147,23 @@ public class Binder<TLeft, TRight> {
   }
 
   /** Attach to binder a validation expression. */
+  @NonNull
   public Binder<TLeft, TRight> validate(@NonNull final org.hamcrest.Matcher<TRight> validator) {
     mValidation = validator;
 
     return this;
   }
 
+  /** Set new instance of ridge strategy for binder. */
+  @NonNull
+  protected Binder<TLeft, TRight> ridge(@NonNull final Ridge<TRight> ridge) {
+    mRidge = ridge;
+
+    return this;
+  }
+
   /** Attach listener to View. Listener can force data exchange. */
+  @NonNull
   public Binder<TLeft, TRight> onView(@NonNull final Listener listener) {
     mOnView = listener;
 
@@ -154,6 +177,7 @@ public class Binder<TLeft, TRight> {
   }
 
   /** Attach listener to Model. Listener can force data exchange. */
+  @NonNull
   public Binder<TLeft, TRight> onModel(@NonNull final Listener listener) {
     mOnModel = listener;
 
@@ -172,6 +196,7 @@ public class Binder<TLeft, TRight> {
    * @param ok the instance of listener
    * @return this binder, for chained calls
    */
+  @NonNull
   public Binder<TLeft, TRight> onSuccess(@NonNull final Success ok) {
     mOnSuccess = ok;
 
@@ -184,6 +209,7 @@ public class Binder<TLeft, TRight> {
    * @param failure the instance of listener
    * @return this binder, for chained calls
    */
+  @NonNull
   public Binder<TLeft, TRight> onFailure(@NonNull final Failure failure) {
     mOnFailure = failure;
 
@@ -195,7 +221,10 @@ public class Binder<TLeft, TRight> {
    *
    * @param id unique identifier of the tag.
    */
+  @Nullable
   public Object getTag(@IdRes final int id) {
+    if (null == mTags) return null;
+
     return mTags.get(id);
   }
 
@@ -205,6 +234,7 @@ public class Binder<TLeft, TRight> {
    * @param id    unique identifier of the tag
    * @param value tag value.
    */
+  @NonNull
   public Binder<TLeft, TRight> setTag(@IdRes final int id, @NonNull final Object value) {
     if (null == mTags) {
       mTags = new HashMap<>();
@@ -271,7 +301,7 @@ public class Binder<TLeft, TRight> {
   @NonNull
   protected Formatting<TLeft, TRight> resolveFormatting() {
     if (null == mFormatting) {
-      mFormatting = Formatter.direct();
+      mFormatting = Molds.direct();
     }
 
     return mFormatting;
@@ -280,18 +310,28 @@ public class Binder<TLeft, TRight> {
   /** Resolve validator to instance that can be executed. */
   @NonNull
   protected org.hamcrest.Matcher<TRight> resolveValidation() {
+    // by default we do not validating, excepted anything
     if (null == mValidation) {
-      // by default we validating only data type
-      return CoreMatchers.isA(resolveModel().getDataType());
+      return (Matcher<TRight>) CoreMatchers.is(CoreMatchers.anything());
     }
 
     return mValidation;
   }
 
+  /** Create instance of ridge for binders. */
+  @NonNull
+  protected Ridge<TRight> resolveRidge() {
+    if (null == mRidge) {
+      mRidge = Ridges.simplest();
+    }
+
+    return mRidge;
+  }
+
   /**
    * Do data exchange in direction: View --> Model.
    * <p/>
-   * Data flow: View --> IsChanged --> Formatter --> Validator --> Is Changed --> Model;<br/> Logic is: 'on button push
+   * Data flow: View --> IsChanged --> Formatter --> Validator --> Ridge --> Model;<br/> Logic is: 'on button push
    * do model update, from higher level to lower'.
    */
   public void push() {
@@ -309,7 +349,7 @@ public class Binder<TLeft, TRight> {
 
     // getter is not resolved,
     if (null == resolveView().getGetterName()) {
-      mStatus = (mStatus & MASK_POP) | STATUS_FAIL_PUSH | STATUS_FAIL_GET_PUSH;
+      mStatus = (mStatus & Flags.MASK_POP) | Flags.STATUS_FAIL_PUSH | Flags.STATUS_FAIL_GET_PUSH;
       onValidationFailure();
       return;
     }
@@ -324,28 +364,27 @@ public class Binder<TLeft, TRight> {
 
     // validation
     if (resolveValidation().matches(rValue)) {
-      mStatus &= MASK_POP; // save PUSH status, reset POP status
+      mStatus &= Flags.MASK_POP; // save PUSH status, reset POP status
       onValidationSuccess();
     } else {
-      mStatus = (mStatus & MASK_POP) | STATUS_FAIL_PUSH;
+      mStatus = (mStatus & Flags.MASK_POP) | Flags.STATUS_FAIL_PUSH;
       onValidationFailure();
       return;  // no other steps needed in pop
     }
 
     // if no changes since last request
-    if (mLastRight == rValue) return;
+    if (resolveRidge().isChanged(rValue)) {
+      final TRight toSet = resolveRidge().clone(rValue);
 
-    // store value in cache only for model
-    mLastRight = rValue;
-
-    // update Model
-    mModel.set(rValue);
+      // update Model
+      mModel.set(toSet);
+    }
   }
 
   /**
    * Do data exchange in direction: Model --> View.
    * <p/>
-   * Data flow: Model --> Is Changed --> Validator --> Formatter --> Is Changed --> View.<br/> Logic is: 'on data change
+   * Data flow: Model --> Ridge --> Validator --> Formatter --> Is Changed --> View.<br/> Logic is: 'on data change
    * do pop of updates from lower level to upper'.
    */
   public void pop() {
@@ -363,23 +402,23 @@ public class Binder<TLeft, TRight> {
 
     // getter is not resolved,
     if (null == resolveModel().getGetterName()) {
-      mStatus = (mStatus & MASK_POP) | STATUS_FAIL_PUSH | STATUS_FAIL_GET_POP;
+      mStatus = (mStatus & Flags.MASK_POP) | Flags.STATUS_FAIL_PUSH | Flags.STATUS_FAIL_GET_POP;
       onValidationFailure();
       return;
     }
 
-    // is changed?
-    if (mLastRight == rValue) return;
+    // is no changed?
+    if (!resolveRidge().isChanged(rValue)) return;
 
     // update value in cache only for model
-    mLastRight = rValue;
+    final TRight rClone = resolveRidge().clone(rValue);
 
     // validation passed?
-    if (resolveValidation().matches(rValue)) {
-      mStatus &= MASK_PUSH; // save POP status, reset PUSH status
+    if (resolveValidation().matches(rClone)) {
+      mStatus &= Flags.MASK_PUSH; // save POP status, reset PUSH status
       onValidationSuccess();
     } else {
-      mStatus = (mStatus & MASK_PUSH) | STATUS_FAIL_POP;
+      mStatus = (mStatus & Flags.MASK_PUSH) | Flags.STATUS_FAIL_POP;
       onValidationFailure();
       return; // no other steps needed in push
     }
@@ -387,7 +426,7 @@ public class Binder<TLeft, TRight> {
     // do formatting with respect to ONE-WAY binding
     final TLeft lValue;
     try {
-      lValue = resolveFormatting().toView(rValue);
+      lValue = resolveFormatting().toView(rClone);
     } catch (final OneWayBindingError ignored) {
       return;
     }
@@ -454,12 +493,12 @@ public class Binder<TLeft, TRight> {
 
   /** Is pop operation validation passed? */
   public boolean isPopOk() {
-    return (mStatus & MASK_POP) == 0;
+    return (mStatus & Flags.MASK_POP) == 0;
   }
 
   /** Is push operation validation passed? */
   public boolean isPushOk() {
-    return (mStatus & MASK_PUSH) == 0;
+    return (mStatus & Flags.MASK_PUSH) == 0;
   }
 
   /** Get reference on model instance. */
@@ -492,5 +531,16 @@ public class Binder<TLeft, TRight> {
   /** Get view instance reflection type information. */
   protected final Class<?> getViewType() {
     return mView.getInstanceType();
+  }
+
+  /* ============================================================================================================== */
+
+  /** Implement this interface if you want to implement advanced ridge strategy. */
+  public interface Ridge<T> {
+    /** True - value updated, otherwise nothing to process. */
+    boolean isChanged(final T value);
+
+    /** Update value in cache. */
+    T clone(final T value);
   }
 }

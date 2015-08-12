@@ -6,13 +6,17 @@ import android.text.TextUtils;
 import com.artfulbits.ui.binding.Formatting;
 import com.artfulbits.ui.binding.exceptions.OneWayBindingError;
 
-/** Methods for construction of typical data type converter's. */
+/**
+ * Methods for construction of typical data type converter's.
+ * <p/>
+ * Why MOLD? I like short names. Synonyms are: mold, makeup, cast, formatting, formatter, converter.
+ */
 @SuppressWarnings({"unused", "unchecked"})
-public final class Formatter {
+public final class Molds {
   /* [ CONSTRUCTORS ] ============================================================================================== */
 
   /** hidden constructor. */
-  private Formatter() {
+  private Molds() {
     throw new AssertionError();
   }
 
@@ -122,10 +126,31 @@ public final class Formatter {
     };
   }
 
+  /**
+   * Create composition from two instances.
+   *
+   * @param m instance that knows how to convert to MODEL.
+   * @param v instance that knows how to convert to VIEW.
+   */
+  @NonNull
+  public static <T, V> Formatting<T, V> join(@NonNull final ToView<T, V> v, @NonNull final ToModel<V, T> m) {
+    return new Formatting<T, V>() {
+      @Override
+      public V toModel(final T value) {
+        return m.toModel(value);
+      }
+
+      @Override
+      public T toView(final V value) {
+        return v.toView(value);
+      }
+    };
+  }
+
   /** Create chained formatting. */
   @NonNull
-  public static <T, V, Z> Formatting<T, V> chained(@NonNull final Formatting<T, Z> outer,
-                                                   @NonNull final Formatting<Z, V> inner) {
+  public static <T, V, Z> Formatting<T, V> chain(@NonNull final Formatting<T, Z> outer,
+                                                 @NonNull final Formatting<Z, V> inner) {
     return new Formatting<T, V>() {
       @Override
       public V toModel(final T value) {
@@ -139,9 +164,11 @@ public final class Formatter {
     };
   }
 
+  /* [ CONCRETE IMPLEMENTATIONS ] ================================================================================== */
+
   /** Convert String to Number and vise verse. */
   @NonNull
-  /* package */ static <T extends Number> Formatting<CharSequence, T> toNumber(@NonNull final Class<T> type) {
+  /* package */ static <T extends Number> Formatting<CharSequence, T> fromCharsToNumber(@NonNull final Class<T> type) {
     return new Formatting<CharSequence, T>() {
       @Override
       public CharSequence toView(final T value) {
@@ -177,16 +204,14 @@ public final class Formatter {
 
   /**  */
   @NonNull
-  /* package */ static <T extends Number> Formatting<String, T> toNumberStr(@NonNull final Class<T> type) {
-    return chained(fromStringToChars(), toNumber(type));
+  /* package */ static <T extends Number> Formatting<String, T> fromStringToNumber(@NonNull final Class<T> type) {
+    return chain(fromStringToChars(), fromCharsToNumber(type));
   }
-
-  /* [ CONCRETE IMPLEMENTATIONS ] ================================================================================== */
 
   /** String to Integer. */
   @NonNull
   public static Formatting<CharSequence, Integer> fromCharsToInteger() {
-    return toNumber(Integer.class);
+    return fromCharsToNumber(Integer.class);
   }
 
   @NonNull

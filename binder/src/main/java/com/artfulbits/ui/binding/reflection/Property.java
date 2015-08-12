@@ -2,7 +2,6 @@ package com.artfulbits.ui.binding.reflection;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
 
@@ -61,11 +60,33 @@ public class Property<T> {
    */
   @Override
   public String toString() {
-    final String search = (TextUtils.isEmpty(mName)) ? "<none>" : "{" + mName + "}";
-    final String getter = (null == mCachedGet) ? search : mCachedGet.toString();
-    final String setter = (null == mCachedSet) ? search : mCachedSet.toString();
+    final boolean isPattern = (null != mName && !NO_NAME.equals(mName));
+    final boolean isGet = (null != mConfirmedGet && !NO_NAME.equals(mConfirmedGet));
+    final boolean isSet = (null != mConfirmedSet && !NO_NAME.equals(mConfirmedSet));
+
+    final String search = isPattern ? "{" + mName + "}" : "<none>";
+    final String getter = isGet ? mCachedGet.toString() : search;
+    final String setter = isSet ? mCachedSet.toString() : search;
 
     return String.format(Locale.US, "%s | %s", getter, setter);
+  }
+
+  @NonNull
+  public String toGetterString() {
+    final boolean isPattern = (null != mName && !NO_NAME.equals(mName));
+    final boolean isGet = (null != mConfirmedGet && !NO_NAME.equals(mConfirmedGet));
+    final String search = isPattern ? "{" + mName + "}" : "<none>";
+
+    return isGet ? mCachedGet.toString() : search;
+  }
+
+  @NonNull
+  public String toSetterString() {
+    final boolean isPattern = (null != mName && !NO_NAME.equals(mName));
+    final boolean isSet = (null != mConfirmedSet && !NO_NAME.equals(mConfirmedSet));
+    final String search = isPattern ? "{" + mName + "}" : "<none>";
+
+    return isSet ? mCachedSet.toString() : search;
   }
 
 	/* [ GETTER / SETTER METHODS ] =================================================================================== */

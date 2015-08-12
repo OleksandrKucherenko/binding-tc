@@ -44,10 +44,31 @@ public class Selector<I, V> implements Notifications {
   @Override
   public String toString() {
     final String subSelector = (mInstance instanceof Selector) ?
-        "(" + mInstance.toString() + ")" :
+        "(" + ((Selector) mInstance).toGetterString() + ")" :
         "{" + getInstanceType().getSimpleName() + "}";
 
+    // selector is designed mostly for GET only approach
     return String.format(Locale.US, "%s.%s", subSelector, mProperty.toString());
+  }
+
+  @NonNull
+  public String toGetterString() {
+    final String subSelector = (mInstance instanceof Selector) ?
+        "(" + ((Selector) mInstance).toGetterString() + ")" :
+        "{" + getInstanceType().getSimpleName() + "}";
+
+    // selector is designed mostly for GET only approach
+    return String.format(Locale.US, "%s.%s", subSelector, mProperty.toGetterString());
+  }
+
+  @NonNull
+  public String toSetterString() {
+    final String subSelector = (mInstance instanceof Selector) ?
+        "(" + ((Selector) mInstance).toGetterString() + ")" :
+        "{" + getInstanceType().getSimpleName() + "}";
+
+    // selector is designed mostly for GET only approach
+    return String.format(Locale.US, "%s.%s", subSelector, mProperty.toSetterString());
   }
 
   /* ============================================================================================================== */

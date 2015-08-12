@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.artfulbits.sample.data.User;
 import com.artfulbits.ui.binding.Binder;
 import com.artfulbits.ui.binding.BindingsManager;
 import com.artfulbits.ui.binding.Failure;
@@ -19,23 +20,12 @@ import com.artfulbits.ui.binding.toolbox.Binders;
 import com.artfulbits.ui.binding.toolbox.BindingFragment;
 import com.artfulbits.ui.binding.toolbox.ToView;
 
-import static com.artfulbits.ui.binding.toolbox.Formatter.fromCharsToInteger;
-import static com.artfulbits.ui.binding.toolbox.Formatter.onlyPop;
 import static com.artfulbits.ui.binding.toolbox.Listeners.anyOf;
-import static com.artfulbits.ui.binding.toolbox.Listeners.onFocusLost;
-import static com.artfulbits.ui.binding.toolbox.Listeners.onObservable;
-import static com.artfulbits.ui.binding.toolbox.Listeners.onTextChanged;
-import static com.artfulbits.ui.binding.toolbox.Listeners.onTimer;
-import static com.artfulbits.ui.binding.toolbox.Models.bool;
-import static com.artfulbits.ui.binding.toolbox.Models.integer;
-import static com.artfulbits.ui.binding.toolbox.Models.pojo;
-import static com.artfulbits.ui.binding.toolbox.Models.strings;
-import static com.artfulbits.ui.binding.toolbox.Views.checkBox;
-import static com.artfulbits.ui.binding.toolbox.Views.editText;
-import static com.artfulbits.ui.binding.toolbox.Views.radioButton;
-import static com.artfulbits.ui.binding.toolbox.Views.radioGroup;
-import static com.artfulbits.ui.binding.toolbox.Views.spinner;
-import static com.artfulbits.ui.binding.toolbox.Views.textView;
+import static com.artfulbits.ui.binding.toolbox.Listeners.*;
+import static com.artfulbits.ui.binding.toolbox.Models.*;
+import static com.artfulbits.ui.binding.toolbox.Molds.fromCharsToInteger;
+import static com.artfulbits.ui.binding.toolbox.Molds.onlyPop;
+import static com.artfulbits.ui.binding.toolbox.Views.*;
 import static org.hamcrest.Matchers.*;
 
 /** Login fragment with simplest UI. */
