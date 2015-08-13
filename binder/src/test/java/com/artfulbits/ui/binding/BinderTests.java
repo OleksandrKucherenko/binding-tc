@@ -141,7 +141,7 @@ public class BinderTests extends TestHolder {
     assertThat(modelInstance.getLogin(), not(equalTo("dummy2")));
 
     // trace expression for validation
-    trace(bss.toString());
+    trace("\n" + bss.toString());
   }
 
   @Test

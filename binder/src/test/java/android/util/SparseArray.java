@@ -23,7 +23,7 @@ package android.util;
  * reference: http://grepcode.com/file/repo1.maven.org/maven2/com.android.tools/common/24.0.0/com/android/utils/SparseArray.java?av=f
  */
 @SuppressWarnings("PMD")
-public class SparseArray<E> {
+public class SparseArray<E> implements Cloneable {
   private static final Object DELETED = new Object();
   private boolean mGarbage = false;
 
@@ -44,6 +44,20 @@ public class SparseArray<E> {
     mKeys = new int[initialCapacity];
     mValues = new Object[initialCapacity];
     mSize = 0;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public SparseArray<E> clone() {
+    SparseArray<E> clone = null;
+    try {
+      clone = (SparseArray<E>) super.clone();
+      clone.mKeys = mKeys.clone();
+      clone.mValues = mValues.clone();
+    } catch (CloneNotSupportedException cnse) {
+            /* ignore */
+    }
+    return clone;
   }
 
   /**

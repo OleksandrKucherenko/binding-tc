@@ -27,13 +27,13 @@ public class Property<T> {
   /** Property name pattern. */
   private final String mName;
   /** reference on reflected class entry used for GET operation. */
-  private Entry mCachedGet;
+  private Entry mResolvedGet;
   /** reference on reflected class entry used for SET operation. */
-  private Entry mCachedSet;
+  private Entry mResolvedSet;
   /** Name of found 'get' entry. */
-  private String mConfirmedGet;
+  private String mStrictGet;
   /** Name of found 'set' entry. */
-  private String mConfirmedSet;
+  private String mStrictSet;
 
 	/* [ CONSTRUCTORS ] ============================================================================================== */
 
@@ -48,8 +48,8 @@ public class Property<T> {
     mType = type;
     mName = null;
 
-    mConfirmedGet = getName;
-    mConfirmedSet = setName;
+    mStrictGet = getName;
+    mStrictSet = setName;
   }
 
   /**
@@ -61,12 +61,12 @@ public class Property<T> {
   @Override
   public String toString() {
     final boolean isPattern = (null != mName && !NO_NAME.equals(mName));
-    final boolean isGet = (null != mConfirmedGet && !NO_NAME.equals(mConfirmedGet));
-    final boolean isSet = (null != mConfirmedSet && !NO_NAME.equals(mConfirmedSet));
+    final boolean isStrictGet = (null != mStrictGet && !NO_NAME.equals(mStrictGet));
+    final boolean isStrictSet = (null != mStrictSet && !NO_NAME.equals(mStrictSet));
 
     final String search = isPattern ? "{" + mName + "}" : "<none>";
-    final String getter = isGet ? mCachedGet.toString() : search;
-    final String setter = isSet ? mCachedSet.toString() : search;
+    final String getter = isStrictGet ? (null == mResolvedGet ? "{" + mStrictGet + "}" : mResolvedGet.toString()) : search;
+    final String setter = isStrictSet ? (null == mResolvedSet ? "{" + mStrictSet + "}" : mResolvedSet.toString()) : search;
 
     return String.format(Locale.US, "%s | %s", getter, setter);
   }
@@ -74,19 +74,19 @@ public class Property<T> {
   @NonNull
   public String toGetterString() {
     final boolean isPattern = (null != mName && !NO_NAME.equals(mName));
-    final boolean isGet = (null != mConfirmedGet && !NO_NAME.equals(mConfirmedGet));
+    final boolean isGet = (null != mStrictGet && !NO_NAME.equals(mStrictGet));
     final String search = isPattern ? "{" + mName + "}" : "<none>";
 
-    return isGet ? mCachedGet.toString() : search;
+    return isGet ? (null == mResolvedGet) ? "{" + mStrictGet + "}" : mResolvedGet.toString() : search;
   }
 
   @NonNull
   public String toSetterString() {
     final boolean isPattern = (null != mName && !NO_NAME.equals(mName));
-    final boolean isSet = (null != mConfirmedSet && !NO_NAME.equals(mConfirmedSet));
+    final boolean isSet = (null != mStrictSet && !NO_NAME.equals(mStrictSet));
     final String search = isPattern ? "{" + mName + "}" : "<none>";
 
-    return isSet ? mCachedSet.toString() : search;
+    return isSet ? (null == mResolvedSet) ? "{" + mStrictSet + "}" : mResolvedSet.toString() : search;
   }
 
 	/* [ GETTER / SETTER METHODS ] =================================================================================== */
@@ -97,12 +97,12 @@ public class Property<T> {
 
   /** Get resolved 'get' entry name. Null - if not resolved yet. */
   public String getGetterName() {
-    return mConfirmedGet;
+    return mStrictGet;
   }
 
   /** Get resolved 'set' entry name. Null - if not resolved yet. */
   public String getSetterName() {
-    return mConfirmedSet;
+    return mStrictSet;
   }
 
   /** Get property value. */
@@ -113,16 +113,16 @@ public class Property<T> {
   @SuppressWarnings("unchecked")
   public T get(@NonNull final Object instance, final Object... args) {
     try {
-      if (null == mCachedGet) {
-        mCachedGet = extractGetter(instance);
+      if (null == mResolvedGet) {
+        mResolvedGet = extractGetter(instance);
       }
 
-      if (null == mCachedGet) {
+      if (null == mResolvedGet) {
         throw new WrongConfigurationError("Cannot resolve GET to real method/field." +
-            " Name: " + mName + ", Getter: " + mConfirmedGet);
+            " Name: " + mName + ", Getter: " + mStrictGet);
       }
 
-      return (T) mCachedGet.invoke(instance, args);
+      return (T) mResolvedGet.invoke(instance, args);
     } catch (final Throwable ignored) {
       // TODO: log exception
     }
@@ -133,16 +133,16 @@ public class Property<T> {
   /** Set property value. */
   public boolean set(@NonNull final Object instance, final T value) {
     try {
-      if (null == mCachedSet) {
-        mCachedSet = extractSetter(instance);
+      if (null == mResolvedSet) {
+        mResolvedSet = extractSetter(instance);
       }
 
-      if (null == mCachedSet) {
+      if (null == mResolvedSet) {
         throw new WrongConfigurationError("Cannot resolve SET to real method/field." +
-            " Name: " + mName + ", Setter: " + mConfirmedSet);
+            " Name: " + mName + ", Setter: " + mStrictSet);
       }
 
-      mCachedSet.invoke(instance, setterArguments(value));
+      mResolvedSet.invoke(instance, setterArguments(value));
     } catch (final Throwable ignored) {
       // TODO: log exception
       return false;
@@ -154,31 +154,31 @@ public class Property<T> {
   /** Resolve 'binding by name' to real instances. Allows to validate configuration. */
   public void resolve(@NonNull final Object instance) throws WrongConfigurationError {
     final boolean isPattern = (null != mName && !NO_NAME.equals(mName));
-    final boolean isGet = isPattern || (null != mConfirmedGet && !NO_NAME.equals(mConfirmedGet));
-    final boolean isSet = isPattern || (null != mConfirmedSet && !NO_NAME.equals(mConfirmedSet));
+    final boolean isGet = isPattern || (null != mStrictGet && !NO_NAME.equals(mStrictGet));
+    final boolean isSet = isPattern || (null != mStrictSet && !NO_NAME.equals(mStrictSet));
 
-    if (isGet && null == mCachedGet) {
-      mCachedGet = extractGetter(instance);
+    if (isGet && null == mResolvedGet) {
+      mResolvedGet = extractGetter(instance);
     }
 
-    if (isSet && null == mCachedSet) {
-      mCachedSet = extractSetter(instance);
+    if (isSet && null == mResolvedSet) {
+      mResolvedSet = extractSetter(instance);
     }
 
     // validate results
-    if (isGet && isSet && null == mCachedGet && null == mCachedSet) {
+    if (isGet && isSet && null == mResolvedGet && null == mResolvedSet) {
       throw new WrongConfigurationError("Cannot resolve GET and SET to real method(s)/field(s)." +
-          " Name: " + mName + ", Getter: " + mConfirmedGet + ", Setter: " + mConfirmedSet);
+          " Name: " + mName + ", Getter: " + mStrictGet + ", Setter: " + mStrictSet);
     }
 
-    if (isGet && null == mCachedGet) {
+    if (isGet && null == mResolvedGet) {
       throw new WrongConfigurationError("Cannot resolve GET to real method/field." +
-          " Name: " + mName + ", Getter: " + mConfirmedGet);
+          " Name: " + mName + ", Getter: " + mStrictGet);
     }
 
-    if (isSet && null == mCachedSet) {
+    if (isSet && null == mResolvedSet) {
       throw new WrongConfigurationError("Cannot resolve SET to real method/field." +
-          " Name: " + mName + ", Setter: " + mConfirmedSet);
+          " Name: " + mName + ", Setter: " + mStrictSet);
     }
 
     if (!isPattern && !isGet && !isSet) {
@@ -250,13 +250,13 @@ public class Property<T> {
     Entry result = null;
 
     // if specified special NO_NAME pattern, than ignore the call
-    if (NO_NAME.equals(mConfirmedGet)) return result;
+    if (NO_NAME.equals(mStrictGet)) return result;
 
     final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
 
     // explicit name defined
-    if (null != mConfirmedGet) {
-      result = ReflectionUtils.find(methods, mConfirmedGet);
+    if (null != mStrictGet) {
+      result = ReflectionUtils.find(methods, mStrictGet);
     }
 
     // search required
@@ -266,7 +266,7 @@ public class Property<T> {
         result = ReflectionUtils.find(methods, name);
 
         if (null != result) {
-          mConfirmedGet = name;
+          mStrictGet = name;
           break;
         }
       }
@@ -280,13 +280,13 @@ public class Property<T> {
     Entry result = null;
 
     // if specified special NO_NAME pattern, than ignore the call
-    if (NO_NAME.equals(mConfirmedSet)) return result;
+    if (NO_NAME.equals(mStrictSet)) return result;
 
     final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
 
     // explicit name defined
-    if (null != mConfirmedSet) {
-      result = ReflectionUtils.find(methods, mConfirmedSet);
+    if (null != mStrictSet) {
+      result = ReflectionUtils.find(methods, mStrictSet);
     }
 
     // search required
@@ -299,7 +299,7 @@ public class Property<T> {
         if (null != result) {
           // and found exact types match
           if (null != (result = ReflectionUtils.match(methods, result, setterToTypes()))) {
-            mConfirmedSet = name;
+            mStrictSet = name;
             break;
           }
         }

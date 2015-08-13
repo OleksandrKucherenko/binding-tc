@@ -1,6 +1,5 @@
 package com.artfulbits.ui.binding.toolbox;
 
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -29,6 +28,7 @@ import java.util.Locale;
  */
 @SuppressWarnings("unchecked")
 public final class Ridges {
+  /* [ STATIC METHODS ] ============================================================================================ */
 
   /** Simplest strategy. */
   @NonNull
@@ -42,19 +42,15 @@ public final class Ridges {
           return !mValue.equals(value);
 
         return null == value || !value.equals(mValue);
-
       }
 
       @Override
       public T clone(final T value) {
         // custom logic for CharSequence/Spanned
         if (value instanceof CharSequence) {
-          return mValue = (T) Ridges.clone((CharSequence) value);
+          return mValue = (T) Ridges.copy((CharSequence) value);
         } else if (value instanceof Cloneable) {
-          final Selector<T, ?> caller = new Selector<>(value, Models.from("clone", Property.NO_NAME));
-
-          // call clone() method
-          return mValue = (T) caller.get();
+          return mValue = (T) Ridges.cloneable((Cloneable) value);
         } else if (value instanceof Serializable) {
           return mValue = (T) deepCopy((Serializable) value);
         }
@@ -64,13 +60,14 @@ public final class Ridges {
 
       @Override
       public String toString() {
-        return String.format(Locale.US, "simplest@%s = %s", Integer.toHexString(hashCode()), mValue);
+        return String.format(Locale.US, "simplest@%s, last processed: %s",
+            Integer.toHexString(hashCode()), mValue);
       }
     };
   }
 
   /** Clone CharSequence instance. */
-  public static CharSequence clone(@NonNull final CharSequence value) {
+  public static CharSequence copy(@NonNull final CharSequence value) {
     // custom logic for CharSequence/Spanned
     if (value instanceof SpannedString) {
       return new SpannedString(value);
@@ -83,12 +80,23 @@ public final class Ridges {
     return value;
   }
 
-  public static <T extends Serializable> T bundleCopy(final T value) {
-    Bundle b = new Bundle();
-    b.putSerializable("obj", value);
-    return (T) b.getSerializable("obj");
+  /**
+   * Create a clone from provided instance.
+   *
+   * @param value instance to clone.
+   * @return new instance.
+   */
+  public static <T extends Cloneable> T cloneable(@NonNull final T value) {
+    final Selector<T, ?> caller = new Selector<>(value, Models.from("clone", Property.NO_NAME));
+    return (T) caller.get();
   }
 
+  /**
+   * Deep copy based on Serializable interface support.
+   *
+   * @param value instance for deep copy.
+   * @return new instance.
+   */
   public static <T extends Serializable> T deepCopy(final T value) {
     ObjectOutputStream oos = null;
     ObjectInputStream ois = null;
@@ -102,9 +110,7 @@ public final class Ridges {
       final ByteArrayInputStream bin = new ByteArrayInputStream(bos.toByteArray());
       ois = new ObjectInputStream(bin);
       return (T) ois.readObject();
-
     } catch (final Throwable ignored) {
-
     } finally {
       if (null != oos) {
         try {
