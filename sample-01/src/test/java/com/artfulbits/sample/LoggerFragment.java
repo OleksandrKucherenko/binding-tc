@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import java.util.logging.Level;
 
 /** Special Fragment for logging fragment states. */
-public class LoggerFragment extends Fragment {
+public class LoggerFragment extends Fragment implements ILogger {
   /* [ CONSTANTS ] ================================================================================================= */
 
   /** Nesting control marker. Increase nesting. */
@@ -27,16 +27,53 @@ public class LoggerFragment extends Fragment {
   /** get class simple name. */
   private final String SELF = this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode());
   /** Standard Output Logger. Helps to save some useful results of tests as a part of execution. */
-  private final StringBuilder mLog = new StringBuilder(64 * 1024);
+  private StringBuilder mLog;
   /** Level of method calls nesting. */
   private int mNestedCalls;
+  /** Reference on borrowed logger. */
+  private ILogger mLogger;
 
 	/* [ GETTER / SETTER METHODS ] =================================================================================== */
 
   /** Get internal logs storage. */
   @NonNull
   public StringBuilder getRawLogger() {
+    if (null != mLogger)
+      return mLogger.getRawLogger();
+
+    if (null == mLog)
+      mLog = new StringBuilder(64 * 1024);
+
     return mLog;
+  }
+
+  public void setRawLogger(@Nullable final StringBuilder log) {
+    mLog = log;
+  }
+
+  /** Log message into activity state logger. */
+  public void log(final Level level, final String tag, final String msg) {
+    if (null != mLogger) {
+      mLogger.log(level, tag, msg);
+      return;
+    }
+
+    if (msg.startsWith(OU)) mNestedCalls--;
+
+    getRawLogger()
+        .append(level.toString().charAt(0)).append(" : ")
+        .append(tag).append(" : ")
+        .append(new String(new char[mNestedCalls * 2]).replace('\0', ' '))
+        .append(msg).append("\r\n");
+
+    if (msg.startsWith(IN)) mNestedCalls++;
+  }
+
+  @NonNull
+  public LoggerFragment assignLogger(@Nullable final ILogger logger) {
+    mLogger = logger;
+
+    return this;
   }
 
 	/* [ LIFECYCLE ] ================================================================================================= */
@@ -159,15 +196,4 @@ public class LoggerFragment extends Fragment {
 
 	/* [ IMPLEMENTATION & HELPERS ] ================================================================================== */
 
-  /** Log message into activity state logger. */
-  private void log(final Level level, final String tag, final String msg) {
-    if (msg.startsWith(OU)) mNestedCalls--;
-
-    mLog.append(level.toString().charAt(0)).append(" : ")
-        .append(tag).append(" : ")
-        .append(new String(new char[mNestedCalls * 2]).replace('\0', ' '))
-        .append(msg).append("\r\n");
-
-    if (msg.startsWith(IN)) mNestedCalls++;
-  }
 }

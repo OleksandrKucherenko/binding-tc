@@ -291,46 +291,68 @@ public class BindingsManager {
     return this;
   }
 
-  /** Execute from: {@link Activity#onRestart()}. Execute complete restart of Binding manager lifecycle. */
-  public void doRestart() {
-    doDestroy();
+  /**
+   * Execute from: {@link Activity#onRestart()}. Execute complete restart of Binding manager lifecycle.
+   *
+   * @param caller reference on method caller, allows to identify fragments and activities.
+   */
+  public void doRestart(final Object caller) {
+    // TODO: this is activity state... what should we do?
   }
 
   /**
    * Execute from: {@link Activity#onStart()} or {@link android.support.v4.app.Fragment#onStart()}, {@link
    * Fragment#onStart()}.
+   *
+   * @param caller reference on method caller, allows to identify fragments and activities.
    */
-  public void doStart() {
+  public void doStart(final Object caller) {
     notifyOnCreateBinding();
   }
 
   /**
    * Execute from: {@link Activity#onResume()} or {@link android.support.v4.app.Fragment#onResume()}, {@link
    * Fragment#onResume()}.
+   *
+   * @param caller reference on method caller, allows to identify fragments and activities.
    */
-  public void doResume() {
+  public void doResume(final Object caller) {
     pop();
   }
 
   /**
    * Execute from: {@link Activity#onPause()} or {@link android.support.v4.app.Fragment#onPause()}, {@link
    * Fragment#onPause()}.
+   *
+   * @param caller reference on method caller, allows to identify fragments and activities.
    */
-  public void doPause() {
+  public void doPause(final Object caller) {
     push();
   }
 
   /**
-   * Execute from: {@link Activity#onDestroy()} or {@link android.support.v4.app.Fragment#onDestroy()}, {@link
-   * Fragment#onDestroy()}.
+   * Execute from: {@link Activity#onStop()} or {@link android.support.v4.app.Fragment#onStop()}, {@link
+   * Fragment#onStop()}.
+   *
+   * @param caller reference on method caller, allows to identify fragments and activities.
    */
-  public void doDestroy() {
+  public void doStop(final Object caller) {
     for (int i = mRules.size() - 1; i >= 0; i--) {
       final Binder<?, ?> b = mRules.get(i);
 
       // self de-registration from Binding Manager happens
       b.destroy();
     }
+  }
+
+  /**
+   * Execute from: {@link Activity#onDestroy()} or {@link android.support.v4.app.Fragment#onDestroy()}, {@link
+   * Fragment#onDestroy()}.
+   *
+   * @param caller reference on method caller, allows to identify fragments and activities.
+   */
+  public void doDestroy(final Object caller) {
+    // TODO: cleanup memory, drop reflection cache?!
   }
 
   /* package */ void notifyOnCreateBinding() {

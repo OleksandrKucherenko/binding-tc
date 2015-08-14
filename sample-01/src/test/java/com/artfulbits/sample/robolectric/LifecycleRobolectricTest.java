@@ -1,10 +1,8 @@
 package com.artfulbits.sample.robolectric;
 
 import android.os.Build;
-import android.support.v4.app.Fragment;
 
 import com.artfulbits.sample.LoggerActivity;
-import com.artfulbits.sample.LoggerFragment;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,19 +33,10 @@ public class LifecycleRobolectricTest extends RobolectricTestHolder {
 
     assertThat(activity, notNullValue());
 
-    try {
-      fullLifecycle(controller, null);
-    } finally {
-      // dump states switches
-      getRawLogger().append(activity.getRawLogger().toString());
-    }
-  }
+    // say activity to use borrowed logger
+    activity.assignLogger(this);
 
-  @Test
-  public void test_01_LoggerFragment_FullLifecycle() {
-    Fragment fragment = new LoggerFragment();
-//    final FragmentManager fm = FragmentTestUtil.buildFragmentManager(LoggerActivity.class);
-//    FragmentTestUtil.startFragment(fragment);
-
+    // run full lifecycle emulation
+    fullLifecycle(controller, null);
   }
 }

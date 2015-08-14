@@ -1,16 +1,25 @@
 package com.artfulbits.sample;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.AttributeSet;
 import android.view.Menu;
+import android.view.View;
+import android.widget.LinearLayout;
 
 import java.util.logging.Level;
 
-/** Special Activity used for tracking lifecycle changes. */
-public class LoggerActivity extends AppCompatActivity {
+/**
+ * Special Activity used for tracking lifecycle changes.
+ *
+ * @see <a href="http://ideaventure.blogspot.se/2014/01/android-activityfragment-life-cycle.html">Life Cycle</a>
+ */
+public class LoggerActivity extends AppCompatActivity implements ILogger {
   /* [ MEMBERS ] =================================================================================================== */
 
   /** Nesting control marker. Increase nesting. */
@@ -21,9 +30,11 @@ public class LoggerActivity extends AppCompatActivity {
   /** get class simple name. */
   private final String SELF = this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode());
   /** Standard Output Logger. Helps to save some useful results of tests as a part of execution. */
-  private final StringBuilder mLog = new StringBuilder(64 * 1024);
+  private StringBuilder mLog;
   /** Level of method calls nesting. */
   private int mNestedCalls;
+  /** Borrowed logger. */
+  private ILogger mLogger;
 
 	/* [ LIFECYCLE ] ================================================================================================= */
 
@@ -31,7 +42,26 @@ public class LoggerActivity extends AppCompatActivity {
   protected void onCreate(final Bundle savedInstanceState) {
     log(Level.INFO, SELF, IN + "onCreate(Bundle)");
     super.onCreate(savedInstanceState);
+
+    // create a new view for holding
+    final LinearLayout view = new LinearLayout(this);
+    view.setId(1);
+    setContentView(view);
+
+    // logger fragment
+    final LoggerFragment fragment = new LoggerFragment().assignLogger(this);
+    getSupportFragmentManager().beginTransaction().add(1, fragment, null).commit();
+
     log(Level.INFO, SELF, OU + "onCreate(Bundle)");
+  }
+
+  @Nullable
+  @Override
+  public View onCreateView(final String name, @NonNull final Context context, @NonNull final AttributeSet attrs) {
+    log(Level.INFO, SELF, IN + "onCreateView(String, Context, AttributeSet)");
+    final View v = super.onCreateView(name, context, attrs);
+    log(Level.INFO, SELF, OU + "onCreateView(String, Context, AttributeSet)");
+    return v;
   }
 
   @Override
@@ -150,11 +180,29 @@ public class LoggerActivity extends AppCompatActivity {
 
 	/* [ METHODS ] =================================================================================================== */
 
+  /** Get internal logs storage. */
+  @NonNull
+  public StringBuilder getRawLogger() {
+    if (null != mLogger)
+      return mLogger.getRawLogger();
+
+    if (null == mLog)
+      mLog = new StringBuilder(64 * 1024);
+
+    return mLog;
+  }
+
   /** Log message into activity state logger. */
-  private void log(final Level level, final String tag, final String msg) {
+  public void log(final Level level, final String tag, final String msg) {
+    if (null != mLogger) {
+      mLogger.log(level, tag, msg);
+      return;
+    }
+
     if (msg.startsWith(OU)) mNestedCalls--;
 
-    mLog.append(level.toString().charAt(0)).append(" : ")
+    getRawLogger()
+        .append(level.toString().charAt(0)).append(" : ")
         .append(tag).append(" : ")
         .append(new String(new char[mNestedCalls * 2]).replace('\0', ' '))
         .append(msg).append("\r\n");
@@ -162,10 +210,15 @@ public class LoggerActivity extends AppCompatActivity {
     if (msg.startsWith(IN)) mNestedCalls++;
   }
 
-  /** Get internal logs storage. */
+  public void setRawLogger(@Nullable final StringBuilder log) {
+    mLog = log;
+  }
+
   @NonNull
-  public StringBuilder getRawLogger() {
-    return mLog;
+  public LoggerActivity assignLogger(@Nullable final ILogger logger) {
+    mLogger = logger;
+
+    return this;
   }
 
 	/* [ Interface Callback ] ======================================================================================== */

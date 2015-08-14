@@ -15,48 +15,63 @@ public class BindingActivity extends AppCompatActivity implements BindingsManage
     return mBm;
   }
 
+  /** {@inheritDoc} */
   @Override
   protected void onRestart() {
     super.onRestart();
 
-    mBm.doRestart(); // equal to call of onDestroy()
+    mBm.doRestart(this); // equal to call of onDestroy()
   }
 
+  /** {@inheritDoc} */
   @Override
   public void onStart() {
     super.onStart();
 
     // freeze all updates
-    mBm.freeze().doStart(); // call of --> onCreateBinding(...);
+    mBm.freeze().doStart(this); // call of --> onCreateBinding(...);
   }
 
+  /** {@inheritDoc} */
   @Override
   public void onResume() {
     super.onResume();
 
     // fragment is ready for updates. UN-freeze can be called several times
-    mBm.unfreeze().doResume(); // call of --> onValidationResult
+    mBm.unfreeze().doResume(this); // call of --> onValidationResult
   }
 
+  /** {@inheritDoc} */
   @Override
   public void onPause() {
-    super.onPause();
+    mBm.doPause(this);
 
-    mBm.doPause();
+    super.onPause();
   }
 
+  /** {@inheritDoc} */
+  @Override
+  protected void onStop() {
+    mBm.doStop(this);
+
+    super.onStop();
+  }
+
+  /** {@inheritDoc} */
   @Override
   public void onDestroy() {
-    mBm.doDestroy();
+    mBm.doDestroy(this);
 
     // cleanup the binding manager instance
     super.onDestroy();
   }
 
+  /** {@inheritDoc} */
   @Override
   public void onCreateBinding(@NonNull final BindingsManager bm) {
   }
 
+  /** {@inheritDoc} */
   @Override
   public void onValidationResult(@NonNull final BindingsManager bm, boolean success) {
   }

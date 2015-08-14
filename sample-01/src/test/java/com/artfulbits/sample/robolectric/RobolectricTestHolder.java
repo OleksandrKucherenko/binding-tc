@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.artfulbits.sample.ILogger;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,7 +22,9 @@ import java.util.logging.Level;
 /** Generic class for performing robolectric tests. */
 @Config(sdk = Build.VERSION_CODES.LOLLIPOP, manifest = "src/main/AndroidManifest.xml")
 @RunWith(RobolectricTestRunner.class)
-public abstract class RobolectricTestHolder {
+public abstract class RobolectricTestHolder implements ILogger {
+
+  //region Members
   /** Executed method name. */
   @Rule
   public TestName mTestName = new TestName();
@@ -28,13 +32,19 @@ public abstract class RobolectricTestHolder {
   private final String mClassName = this.getClass().getSimpleName();
   /** Standard Output Logger. Helps to save some useful results of tests as a part of execution. */
   private final StringBuilder mLog = new StringBuilder(64 * 1024).append("\r\n");
+  //endregion
 
   //region --> Standard Output
 
   /** Get access to the logs memory storage directly. */
   @NonNull
-  protected StringBuilder getRawLogger() {
+  public StringBuilder getRawLogger() {
     return mLog;
+  }
+
+  @Override
+  public void setRawLogger(@NonNull final StringBuilder logger) {
+    throw new AssertionError("Not allowed!");
   }
 
   /** {@inheritDoc} */
@@ -80,6 +90,8 @@ public abstract class RobolectricTestHolder {
   }
 
   //endregion
+
+  //region --> Activity Lifecycle emulation
 
   /**
    * Perform full lifecycle emulation for activity. When Activity is in visible state
@@ -151,5 +163,5 @@ public abstract class RobolectricTestHolder {
     trace("state - onDestroy");
     controller.destroy();
   }
-
+  //endregion
 }
