@@ -91,16 +91,20 @@ public class Property<T> {
 
 	/* [ GETTER / SETTER METHODS ] =================================================================================== */
 
+  /** Get property data type. */
+  @NonNull
   public final Class<T> getDataType() {
     return mType;
   }
 
   /** Get resolved 'get' entry name. Null - if not resolved yet. */
+  @Nullable
   public String getGetterName() {
     return mStrictGet;
   }
 
   /** Get resolved 'set' entry name. Null - if not resolved yet. */
+  @Nullable
   public String getSetterName() {
     return mStrictSet;
   }
@@ -220,12 +224,14 @@ public class Property<T> {
   }
 
   /** Resolve 'getter' entry. */
-  protected Entry extractGetter(final Object instance) {
+  @Nullable
+  protected Entry extractGetter(@NonNull final Object instance) {
     return reflectGetter(instance);
   }
 
   /** Resolve 'setter' entry. */
-  protected Entry extractSetter(final Object instance) {
+  @Nullable
+  protected Entry extractSetter(@NonNull final Object instance) {
     return reflectSetter(instance);
   }
 
@@ -246,7 +252,8 @@ public class Property<T> {
 	/* [ IMPLEMENTATION & HELPERS ] ================================================================================== */
 
   /** find 'getter' using reflection. */
-  protected Entry reflectGetter(final Object instance) {
+  @Nullable
+  protected final Entry reflectGetter(@NonNull final Object instance) {
     Entry result = null;
 
     // if specified special NO_NAME pattern, than ignore the call
@@ -276,7 +283,8 @@ public class Property<T> {
   }
 
   /** find 'setter' using reflection. */
-  protected Entry reflectSetter(final Object instance) {
+  @Nullable
+  protected final Entry reflectSetter(@NonNull final Object instance) {
     Entry result = null;
 
     // if specified special NO_NAME pattern, than ignore the call

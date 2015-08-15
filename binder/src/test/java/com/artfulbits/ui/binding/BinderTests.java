@@ -9,16 +9,20 @@ import com.artfulbits.ui.binding.toolbox.Listeners;
 import com.artfulbits.ui.binding.toolbox.Models;
 import com.artfulbits.ui.binding.toolbox.Molds;
 
-import org.junit.Test;
+import org.junit.*;
 
 import java.util.Observable;
 
-import static com.artfulbits.ui.binding.toolbox.Models.*;
+import static com.artfulbits.ui.binding.toolbox.Models.integer;
+import static com.artfulbits.ui.binding.toolbox.Models.number;
+import static com.artfulbits.ui.binding.toolbox.Models.pojo;
+import static com.artfulbits.ui.binding.toolbox.Models.real;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /** Unit tests for class {@link Binder}. */
+@SuppressWarnings("unused")
 public class BinderTests extends TestHolder {
   /* [ IMPLEMENTATION & HELPERS ] ================================================================================== */
 

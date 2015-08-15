@@ -1,14 +1,19 @@
 package com.artfulbits.ui.binding.toolbox;
 
 import com.artfulbits.junit.TestHolder;
+import com.artfulbits.ui.binding.Selector;
 import com.artfulbits.ui.binding.reflection.Property;
 
-import org.junit.Test;
+import org.junit.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 /** Unit tests for {@link Models} class. */
+@SuppressWarnings("unused")
 public class ModelsTests extends TestHolder {
   @Test
   public void test_00_Properties_TwoParams_Get() {
@@ -127,6 +132,25 @@ public class ModelsTests extends TestHolder {
     propertyString.set(instance, "test");
     propertyEnum.set(instance, DummyEnum.Something);
     propertyObject.set(instance, new Object());
+  }
+
+  @Test
+  public void test_04_Mapping() throws Exception {
+    final Map<String, Object> json = new HashMap<>();
+    json.put("something", true);
+
+    final Selector<?, Boolean> selector = Models.map(json, "something");
+
+    assertThat(selector.get(), equalTo(true));
+  }
+
+  @Test
+  public void test_05_ArrayList() throws Exception {
+    final String[] values = new String[]{"something"};
+
+    final Selector<?, String> selector = Models.index(values, 0);
+
+    assertThat(selector.get(), equalTo("something"));
   }
 
   public enum DummyEnum {

@@ -51,6 +51,7 @@ public class Selector<I, V> implements Notifications {
     return String.format(Locale.US, "%s.%s", subSelector, mProperty.toString());
   }
 
+  /** Human readable GET expression part. */
   @NonNull
   public String toGetterString() {
     final String subSelector = (mInstance instanceof Selector) ?
@@ -61,6 +62,7 @@ public class Selector<I, V> implements Notifications {
     return String.format(Locale.US, "%s.%s", subSelector, mProperty.toGetterString());
   }
 
+  /** Human readable SET expression part. */
   @NonNull
   public String toSetterString() {
     final String subSelector = (mInstance instanceof Selector) ?
@@ -113,7 +115,4 @@ public class Selector<I, V> implements Notifications {
   public final void onChanged() {
     // leave for inheritors
   }
-
-  /* [ INITIALIZATION HELPERS ] =================================================================================== */
-
 }

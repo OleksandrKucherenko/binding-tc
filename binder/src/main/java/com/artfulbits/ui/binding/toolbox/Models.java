@@ -21,31 +21,56 @@ public final class Models {
   /* [ DATA STRUCTURES ] ========================================================================================== */
 
   @NonNull
-  public static <I, T> Selector<I, T> pojo(@NonNull final I instance,
-                                           @NonNull Property<T> property) {
+  public static <I, T> Selector<I, T> pojo(@NonNull final I instance, @NonNull final Property<T> property) {
     return new Selector<>(instance, property);
   }
 
   @NonNull
-  public static <I, T> Selector<I, T> map(@NonNull final Map<String, I> instance,
-                                          @NonNull Property<T> property) {
-    // TODO: property should know how to extract value from MAP, property name is a key
+  public static <I extends Map<String, ?>, T> Selector<I, T> map(@NonNull final I instance, @NonNull final String name) {
+    // DONE: property should know how to extract value from MAP, property name is a key
 
-    return null;
+    // instance.get(name); instance.put(name, value);
+    final Property<T> p = new Property<T>(Models.<T>typeTrick(), "get", "put") {
+      @Override
+      protected Object[] getterArguments() {
+        return new Object[]{name};
+      }
+
+      @NonNull
+      @Override
+      protected Object[] setterArguments(T value) {
+        return new Object[]{name, value};
+      }
+    };
+
+    return new Selector<>(instance, p);
   }
 
   @NonNull
-  public static <I, T> Selector<I, T> index(@NonNull final List<I> instance,
-                                            @NonNull Property<T> property) {
-    // TODO: property should know how to extract value from LIST, property name is index/position
+  public static <I extends List<T>, T> Selector<I, T> index(@NonNull final I instance, final int position) {
+    // DONE: property should know how to extract value from LIST, property name is index/position
 
-    return null;
+    // instance.get(index); instance.set(index, value);
+    final Property<T> p = new Property<T>(Models.<T>typeTrick(), "get", "set") {
+      @Override
+      protected Object[] getterArguments() {
+        return new Object[]{position};
+      }
+
+      @NonNull
+      @Override
+      protected Object[] setterArguments(T value) {
+        return new Object[]{position, value};
+      }
+    };
+
+    return new Selector<>(instance, p);
   }
 
   @NonNull
-  public static <I, T> Selector<I, T> index(@NonNull final I[] instance,
-                                            @NonNull Property<T> property) {
-    return index(Arrays.asList(instance), property);
+  public static <T> Selector<?, T> index(@NonNull final T[] instance, final int position) {
+    final List<T> list = Arrays.asList(instance);
+    return index(list, position);
   }
 
   /* [ GENERICS ] ================================================================================================= */
@@ -78,6 +103,23 @@ public final class Models {
   public static <T> Property<T> from(@NonNull final String getName, @NonNull final String setName) {
     return new Property<>((Class<T>) typeTrick(), getName, setName);
   }
+
+  @NonNull
+  public static <T> Property<T> call(@NonNull final String method) {
+    return new Property<>((Class<T>) typeTrick(), method, Property.NO_NAME);
+  }
+
+  @NonNull
+  public static <T> Property<T> call(@NonNull final String method, final Object... args) {
+    return new Property<T>(Models.<T>typeTrick(), method, Property.NO_NAME) {
+      @Override
+      protected Object[] getterArguments() {
+        return args;
+      }
+    };
+  }
+
+  /* [ TYPED VERSIONS ] =========================================================================================== */
 
   @NonNull
   public static Property<Integer> integer(@NonNull final String name) {
@@ -178,7 +220,6 @@ public final class Models {
   public static Property<Short> shorts(@NonNull final String getName, @NonNull final String setName) {
     return new Property<>(Short.class, getName, setName);
   }
-
 
   /** Hack interface for making possible anonymous classes creation. */
   private interface Trick {
