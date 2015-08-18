@@ -1,4 +1,4 @@
-package com.artfulbits.ui.binding.toolbox;
+package com.artfulbits.ui.binding.ui;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import com.artfulbits.ui.binding.BindingsManager;
 
 /** Basic implementation of the Fragment with binding library enabled support. */
-public abstract class BindingFragment
+public abstract class BindingSupportFragment
     extends android.support.v4.app.Fragment
     implements BindingsManager.Lifecycle {
   /** Instance of binding manager. */
@@ -62,10 +62,12 @@ public abstract class BindingFragment
   /** {@inheritDoc} */
   @Override
   public void onCreateBinding(@NonNull final BindingsManager bm) {
+    // reserved for inheritors
   }
 
   /** {@inheritDoc} */
   @Override
   public void onValidationResult(@Nullable final BindingsManager bm, boolean success) {
+    // reserved for inheritors
   }
 }

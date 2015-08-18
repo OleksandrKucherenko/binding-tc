@@ -20,7 +20,7 @@ public class SelectorTests extends TestHolder {
     di.setOwner("owner");
     di.getSubInner().setName("test");
 
-    final Selector<DummyInner, String> sOwner = new Selector<>(di, Models.strings("Owner"));
+    final Selector<DummyInner, String> sOwner = new Selector<>(di, Models.string("Owner"));
 
     trace("ALL: " + sOwner.toString());
     trace("GET: " + sOwner.toGetterString());
@@ -38,7 +38,7 @@ public class SelectorTests extends TestHolder {
 
     // chain of calls di.getSubInner().getName()
     final Selector<DummyInner, DummySubInner> sSub = new Selector<>(di, Models.<DummySubInner>from("SubInner"));
-    final Selector<?, String> sName = new Selector<>(sSub, Models.strings("Name"));
+    final Selector<?, String> sName = new Selector<>(sSub, Models.string("Name"));
 
     trace("ALL: " + sName.toString());
     trace("GET: " + sName.toGetterString());

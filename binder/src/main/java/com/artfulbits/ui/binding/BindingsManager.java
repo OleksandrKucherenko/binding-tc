@@ -9,10 +9,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
 import android.util.Pair;
 import android.view.View;
-import android.widget.BaseAdapter;
 
 import com.artfulbits.ui.binding.exceptions.WrongConfigurationError;
 import com.artfulbits.ui.binding.toolbox.Views;
+import com.artfulbits.ui.binding.ui.BindingAdapter;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -58,7 +58,7 @@ public class BindingsManager {
   /** Weak references on lifecycle listeners. */
   private final Map<Lifecycle, Void> mListeners = new WeakHashMap<>();
   /** Facade For all types of the Views. */
-  private final Selector<?, View> mFacade;
+  private final Selector<?, ?> mFacade;
   /** Collection of all defined binding rules. */
   private final List<Binder<?, ?>> mRules = new LinkedList<>();
   /** Freeze counter. */
@@ -76,27 +76,27 @@ public class BindingsManager {
   /* [ CONSTRUCTORS ] ============================================================================================= */
 
   /** Create bindings manager for activity instance. */
-  public BindingsManager(@NonNull final Activity activity) {
-    mFacade = Views.root(activity);
+  protected BindingsManager(@NonNull final Activity activity) {
+    mFacade = Views.<View>root(activity);
   }
 
   /** Create bindings manager for native OS fragment. */
-  public BindingsManager(@NonNull final Fragment fragment) {
-    mFacade = Views.root(fragment);
+  protected BindingsManager(@NonNull final Fragment fragment) {
+    mFacade = Views.<View>root(fragment);
   }
 
   /** Create bindings manager for 'support fragment'. */
-  public BindingsManager(@NonNull final android.support.v4.app.Fragment fragment) {
-    mFacade = Views.root(fragment);
+  protected BindingsManager(@NonNull final android.support.v4.app.Fragment fragment) {
+    mFacade = Views.<View>root(fragment);
   }
 
   /** Create bindings manager for view instance. */
-  public BindingsManager(@NonNull final View view) {
-    mFacade = Views.root(view);
+  protected BindingsManager(@NonNull final View view) {
+    mFacade = Views.<View>root(view);
   }
 
   /** Create bindings manager for adapter instance. */
-  public BindingsManager(@NonNull final BaseAdapter adapter) {
+  protected BindingsManager(@NonNull final BindingAdapter adapter) {
     // TODO: implement me
     throw new AssertionError("Implement me!");
 //    mFacade = Views.root(adapter);
@@ -124,7 +124,7 @@ public class BindingsManager {
     return new BindingsManager(v).register(listener);
   }
 
-  public static BindingsManager newInstance(@NonNull final BaseAdapter ba,
+  public static BindingsManager newInstance(@NonNull final BindingAdapter ba,
                                             @NonNull final Lifecycle listener) {
     return new BindingsManager(ba).register(listener);
   }
@@ -253,6 +253,20 @@ public class BindingsManager {
     }
 
     return result;
+  }
+
+  /**
+   * Get selector on root view.
+   * <p>
+   * For different type of instance selector will be resolved to different instances:<br/>
+   * - for Activity --&gt; to Root view of Activity;<br/>
+   * - for Fragment --&gt; to Root view of the Fragment;<br/>
+   * - for Adapter --&gt; to current item under processing;<br/>
+   * - for View --&gt; to view instance itself;<br/>
+   */
+  @NonNull
+  public <TRight> Selector<?, TRight> getFacade() {
+    return (Selector<?, TRight>) mFacade;
   }
 
   /* [ GENERIC BINDERS ] ========================================================================================== */

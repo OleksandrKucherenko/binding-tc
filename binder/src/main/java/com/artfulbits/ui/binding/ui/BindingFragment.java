@@ -1,26 +1,25 @@
-package com.artfulbits.ui.binding.toolbox;
+package com.artfulbits.ui.binding.ui;
 
+import android.annotation.TargetApi;
+import android.app.Fragment;
+import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
 
 import com.artfulbits.ui.binding.BindingsManager;
 
-/** High level activity that implements Binding manager support. */
-public class BindingActivity extends AppCompatActivity implements BindingsManager.Lifecycle {
+/** Basic implementation of the Fragment with binding library enabled support. */
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+@SuppressWarnings("unused")
+public abstract class BindingFragment
+    extends Fragment
+    implements BindingsManager.Lifecycle {
   /** Instance of binding manager. */
   private BindingsManager mBm = BindingsManager.newInstance(this, this);
 
   /** get instance of the Binding manager. */
   public BindingsManager getBindingsManager() {
     return mBm;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  protected void onRestart() {
-    super.onRestart();
-
-    mBm.doRestart(this); // equal to call of onDestroy()
   }
 
   /** {@inheritDoc} */
@@ -51,7 +50,7 @@ public class BindingActivity extends AppCompatActivity implements BindingsManage
 
   /** {@inheritDoc} */
   @Override
-  protected void onStop() {
+  public void onStop() {
     mBm.doStop(this);
 
     super.onStop();
@@ -62,17 +61,18 @@ public class BindingActivity extends AppCompatActivity implements BindingsManage
   public void onDestroy() {
     mBm.doDestroy(this);
 
-    // cleanup the binding manager instance
     super.onDestroy();
   }
 
   /** {@inheritDoc} */
   @Override
   public void onCreateBinding(@NonNull final BindingsManager bm) {
+    // reserved for inheritors
   }
 
   /** {@inheritDoc} */
   @Override
-  public void onValidationResult(@NonNull final BindingsManager bm, boolean success) {
+  public void onValidationResult(@Nullable final BindingsManager bm, boolean success) {
+    // reserved for inheritors
   }
 }

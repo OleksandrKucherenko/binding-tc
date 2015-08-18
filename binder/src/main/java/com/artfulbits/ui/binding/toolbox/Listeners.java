@@ -129,7 +129,7 @@ public final class Listeners {
     return new ObserverListener(filter);
   }
 
-  /** Detect strings changes and raise data exchange on that. */
+  /** Detect string changes and raise data exchange on that. */
   @NonNull
   public static Listener onTextChanged() {
     return new TextWatcherListener();

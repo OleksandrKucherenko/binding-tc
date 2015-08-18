@@ -27,7 +27,7 @@ public final class Models {
 
   @NonNull
   public static <I extends Map<String, ?>, T> Selector<I, T> map(@NonNull final I instance, @NonNull final String name) {
-    // DONE: property should know how to extract value from MAP, property name is a key
+    /* DONE: property should know how to extract value from MAP, property name is a key */
 
     // instance.get(name); instance.put(name, value);
     final Property<T> p = new Property<T>(Models.<T>typeTrick(), "get", "put") {
@@ -48,7 +48,7 @@ public final class Models {
 
   @NonNull
   public static <I extends List<T>, T> Selector<I, T> index(@NonNull final I instance, final int position) {
-    // DONE: property should know how to extract value from LIST, property name is index/position
+    /* DONE: property should know how to extract value from LIST, property name is index/position */
 
     // instance.get(index); instance.set(index, value);
     final Property<T> p = new Property<T>(Models.<T>typeTrick(), "get", "set") {
@@ -69,13 +69,16 @@ public final class Models {
 
   @NonNull
   public static <T> Selector<?, T> index(@NonNull final T[] instance, final int position) {
-    final List<T> list = Arrays.asList(instance);
-    return index(list, position);
+    return index(Arrays.asList(instance), position);
   }
 
   /* [ GENERICS ] ================================================================================================= */
 
-  /** Extract generic type information in tricky way. */
+  /**
+   * Extract generic type information in tricky way.
+   *
+   * @param <T> automatically extracted data type during the call.
+   */
   @NonNull
   public static <T> Class<T> typeTrick() {
     final Object t = new Trick() {
@@ -94,21 +97,41 @@ public final class Models {
     throw new AssertionError("Type trick does not work. Via reflection is impossible to identify generic type.");
   }
 
+  /**
+   * Create property with defined by PATTERN GETTER and SETTER.
+   *
+   * @param name pattern/prefix of the name.
+   * @param <T>  automatically extracted data type during the call.
+   */
   @NonNull
   public static <T> Property<T> from(@NonNull final String name) {
     return new Property<>((Class<T>) typeTrick(), name);
   }
 
+  /**
+   * Create property with strict GETTER and SETTER.
+   *
+   * @param getName getter method/field name.
+   * @param setName setter method/field name.
+   * @param <T>     automatically extracted data type during the call.
+   */
   @NonNull
   public static <T> Property<T> from(@NonNull final String getName, @NonNull final String setName) {
     return new Property<>((Class<T>) typeTrick(), getName, setName);
   }
 
+  /** Create a property that reflects method call without parameters. */
   @NonNull
   public static <T> Property<T> call(@NonNull final String method) {
     return new Property<>((Class<T>) typeTrick(), method, Property.NO_NAME);
   }
 
+  /**
+   * Create a property that reflects method call with arguments.
+   *
+   * @param method method name
+   * @param args   additional arguments
+   */
   @NonNull
   public static <T> Property<T> call(@NonNull final String method, final Object... args) {
     return new Property<T>(Models.<T>typeTrick(), method, Property.NO_NAME) {
@@ -182,12 +205,12 @@ public final class Models {
   }
 
   @NonNull
-  public static Property<String> strings(@NonNull final String name) {
+  public static Property<String> string(@NonNull final String name) {
     return new Property<>(String.class, name);
   }
 
   @NonNull
-  public static Property<String> strings(@NonNull final String getName, @NonNull final String setName) {
+  public static Property<String> string(@NonNull final String getName, @NonNull final String setName) {
     return new Property<>(String.class, getName, setName);
   }
 

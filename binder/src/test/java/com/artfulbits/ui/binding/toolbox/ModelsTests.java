@@ -1,14 +1,25 @@
 package com.artfulbits.ui.binding.toolbox;
 
+import android.content.Context;
+import android.support.annotation.NonNull;
+import android.view.View;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
+
 import com.artfulbits.junit.TestHolder;
+import com.artfulbits.ui.binding.BindingsManager;
 import com.artfulbits.ui.binding.Selector;
 import com.artfulbits.ui.binding.reflection.Property;
+import com.artfulbits.ui.binding.ui.BindingAdapter;
 
-import org.junit.*;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.artfulbits.ui.binding.toolbox.Models.*;
+import static com.artfulbits.ui.binding.toolbox.Views.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -26,7 +37,7 @@ public class ModelsTests extends TestHolder {
     final Property<Float> propertyFloat = Models.decimal("getget", "setset");
     final Property<Double> propertyDouble = Models.real("getget", "setset");
     final Property<Character> propertyChar = Models.letter("getget", "setset");
-    final Property<String> propertyString = Models.strings("getget", "setset");
+    final Property<String> propertyString = string("getget", "setset");
     final Property<DummyEnum> propertyEnum = Models.from("getget", "setset");
     final Property<Object> propertyObject = Models.from("getget", "setset");
 
@@ -54,7 +65,7 @@ public class ModelsTests extends TestHolder {
     final Property<Float> propertyFloat1 = Models.decimal("getget");
     final Property<Double> propertyDouble1 = Models.real("getget");
     final Property<Character> propertyChar1 = Models.letter("getget");
-    final Property<String> propertyString1 = Models.strings("getget");
+    final Property<String> propertyString1 = string("getget");
     final Property<DummyEnum> propertyEnum1 = Models.from("getget");
     final Property<Object> propertyObject1 = Models.from("getget");
 
@@ -84,7 +95,7 @@ public class ModelsTests extends TestHolder {
     final Property<Float> propertyFloat = Models.decimal("getget", "setset");
     final Property<Double> propertyDouble = Models.real("getget", "setset");
     final Property<Character> propertyChar = Models.letter("getget", "setset");
-    final Property<String> propertyString = Models.strings("getget", "setset");
+    final Property<String> propertyString = string("getget", "setset");
     final Property<DummyEnum> propertyEnum = Models.from("getget", "setset");
     final Property<Object> propertyObject = Models.from("getget", "setset");
 
@@ -114,7 +125,7 @@ public class ModelsTests extends TestHolder {
     final Property<Float> propertyFloat = Models.decimal("getget");
     final Property<Double> propertyDouble = Models.real("getget");
     final Property<Character> propertyChar = Models.letter("getget");
-    final Property<String> propertyString = Models.strings("getget");
+    final Property<String> propertyString = string("getget");
     final Property<DummyEnum> propertyEnum = Models.from("getget");
     final Property<Object> propertyObject = Models.from("getget");
 
@@ -135,7 +146,7 @@ public class ModelsTests extends TestHolder {
   }
 
   @Test
-  public void test_04_Mapping() throws Exception {
+  public void test_04_Mapping() {
     final Map<String, Object> json = new HashMap<>();
     json.put("something", true);
 
@@ -145,13 +156,63 @@ public class ModelsTests extends TestHolder {
   }
 
   @Test
-  public void test_05_ArrayList() throws Exception {
+  public void test_05_ArrayList() {
     final String[] values = new String[]{"something"};
 
     final Selector<?, String> selector = Models.index(values, 0);
 
     assertThat(selector.get(), equalTo("something"));
   }
+
+  @Test
+  @Ignore
+  public void test_06_BaseAdapter_InlinedBinding() {
+    // create a array of dummy instances
+    final DummyClass[] array = new DummyClass[]{
+        //region Instances
+        new DummyClass("Item #01"),
+        new DummyClass("Item #02"),
+        new DummyClass("Item #03"),
+        new DummyClass("Item #04"),
+        new DummyClass("Item #05"),
+        new DummyClass("Item #06"),
+        new DummyClass("Item #07"),
+        new DummyClass("Item #08"),
+        new DummyClass("Item #09"),
+        new DummyClass("Item #10"),
+        new DummyClass("Item #11"),
+        new DummyClass("Item #12"),
+        new DummyClass("Item #13"),
+        new DummyClass("Item #14"),
+        new DummyClass("Item #15"),
+        new DummyClass("Item #16"),
+        new DummyClass("Item #17"),
+        new DummyClass("Item #18"),
+        new DummyClass("Item #19"),
+        new DummyClass("Item #20")
+        //endregion
+    };
+
+    final Context context = getContext();
+    final int resourceId = android.R.layout.simple_list_item_1;
+    final Adapter adapter = new ArrayAdapter<>(context, resourceId, array);
+    final BindingAdapter bindable = Adapters.bindable(adapter, new BindingAdapter.Lifecycle() {
+      @Override
+      public void onCreateBinding(@NonNull final BindingsManager bm,
+                                  @NonNull final Selector<?, View> getView,
+                                  @NonNull final Selector<?, Object> getModel) {
+        Binders.strings(bm)
+            .view(textView(getView, android.R.id.text1))
+            .model(pojo(getModel, string("fieldStr")));
+      }
+    });
+
+    assertThat(bindable.getCount(), equalTo(array.length));
+    assertThat(bindable.getItem(0), instanceOf(DummyClass.class));
+
+  }
+
+  /* [ NESTED DECLARATIONS ] ================================================================================== */
 
   public enum DummyEnum {
     Nothing,
@@ -179,5 +240,12 @@ public class ModelsTests extends TestHolder {
     private String mString;
     private DummyEnum mEnum;
     private Object mObject;
+
+    public DummyClass() {
+    }
+
+    public DummyClass(final String msg) {
+      this.fieldStr = msg;
+    }
   }
 }

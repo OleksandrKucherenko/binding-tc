@@ -17,8 +17,8 @@ import com.artfulbits.ui.binding.Failure;
 import com.artfulbits.ui.binding.Success;
 import com.artfulbits.ui.binding.reflection.Property;
 import com.artfulbits.ui.binding.toolbox.Binders;
-import com.artfulbits.ui.binding.toolbox.BindingFragment;
 import com.artfulbits.ui.binding.toolbox.ToView;
+import com.artfulbits.ui.binding.ui.BindingSupportFragment;
 
 import static com.artfulbits.ui.binding.toolbox.Listeners.anyOf;
 import static com.artfulbits.ui.binding.toolbox.Listeners.*;
@@ -29,7 +29,7 @@ import static com.artfulbits.ui.binding.toolbox.Views.*;
 import static org.hamcrest.Matchers.*;
 
 /** Login fragment with simplest UI. */
-public class LoginFragment extends BindingFragment {
+public class LoginFragment extends BindingSupportFragment {
   /** model instance. */
   private final User mUser = new User();
   /** reference on Proceed button. */
@@ -43,7 +43,7 @@ public class LoginFragment extends BindingFragment {
     // create binding to Login
     final Binder<?, ?> bindLogin = Binders.strings(getBindingsManager())
         .view(textView(view, R.id.et_login))
-        .model(pojo(mUser, strings("Login")));
+        .model(pojo(mUser, string("Login")));
 
     // update view by model values
     getBindingsManager().pop(bindLogin);
@@ -75,7 +75,7 @@ public class LoginFragment extends BindingFragment {
           }
         }));
 
-    // #1: worst case scenario: verbose syntax for edit strings
+    // #1: worst case scenario: verbose syntax for edit string
     // #2: limit user input by NUMBERS for PIN style password, 4 digits in length
     Binders.numeric(bm)
         .view(editText(getView(), R.id.et_password))

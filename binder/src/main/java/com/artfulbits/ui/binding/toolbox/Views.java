@@ -17,11 +17,9 @@ import android.widget.TextView;
 import com.artfulbits.ui.binding.Selector;
 import com.artfulbits.ui.binding.reflection.Property;
 
-import static com.artfulbits.ui.binding.toolbox.Models.bool;
-import static com.artfulbits.ui.binding.toolbox.Models.chars;
-import static com.artfulbits.ui.binding.toolbox.Models.integer;
+import static com.artfulbits.ui.binding.toolbox.Models.*;
 
-/** Methods for simplifying access to different types of View storage's. */
+/** Methods for simplifying access to different types of UI controls/View's. */
 @SuppressWarnings({"unused", "unchecked"})
 public final class Views {
   /* [ VIEW SELECTOR ] ============================================================================================ */
@@ -134,7 +132,7 @@ public final class Views {
    * Text view selector, can be used for: TextView, EditText, AutoComplete, Button or any other inheritor of the
    * TextView.
    *
-   * @param <T> Type of View
+   * @param <T>      Type of View
    * @param selector selector that helps in identifying the view instance
    * @return the selector of "text" property from TextView inheritor
    */
@@ -149,7 +147,7 @@ public final class Views {
   /**
    * Checked property selector, can be used for CheckBox, RadioButton, Switch and ToggleButton.
    *
-   * @param <T> the type parameter
+   * @param <T>      the type parameter
    * @param selector the selector
    * @return the selector
    */

@@ -9,9 +9,9 @@ import android.view.ViewGroup;
 import com.artfulbits.sample.data.Pin;
 import com.artfulbits.ui.binding.BindingsManager;
 import com.artfulbits.ui.binding.toolbox.Binders;
-import com.artfulbits.ui.binding.toolbox.BindingFragment;
 import com.artfulbits.ui.binding.toolbox.Listeners;
 import com.artfulbits.ui.binding.toolbox.ToView;
+import com.artfulbits.ui.binding.ui.BindingSupportFragment;
 
 import org.hamcrest.Matchers;
 
@@ -25,7 +25,7 @@ import static com.artfulbits.ui.binding.toolbox.Views.*;
 import static org.hamcrest.Matchers.*;
 
 /** Fragment for entering PIN, demo of connected to each other properties. */
-public class PinFragment extends BindingFragment {
+public class PinFragment extends BindingSupportFragment {
   /** model instance. */
   private final Pin mPin = new Pin();
 
@@ -61,14 +61,14 @@ public class PinFragment extends BindingFragment {
     Binders.strings(bm) // <CharSequence - to - String>
         .view(editText(getView(), R.id.et_password))
         .onView(Listeners.anyOf(onTextChanged(), onFocusLost()))
-        .model(pojo(mPin, strings("Password")))
+        .model(pojo(mPin, string("Password")))
         .format(onlyPush(fromCharsToString()))
         .validate(Matchers.anyOf(blankString(), matchesPattern("[0-9]{4,6}")));
 
     Binders.strings(bm) // <CharSequence - to - String>
         .view(editText(getView(), R.id.et_confirm_password))
         .onView(anyOf(onTextChanged(), onFocusLost()))
-        .model(pojo(mPin, strings("ConfirmPassword")))
+        .model(pojo(mPin, string("ConfirmPassword")))
 //        .validate(matchesPattern("[0-9]{4,6}")) // important!!!
         .setTag(R.id.tag_test, "test");
 

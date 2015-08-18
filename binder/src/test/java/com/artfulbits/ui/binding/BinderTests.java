@@ -9,14 +9,11 @@ import com.artfulbits.ui.binding.toolbox.Listeners;
 import com.artfulbits.ui.binding.toolbox.Models;
 import com.artfulbits.ui.binding.toolbox.Molds;
 
-import org.junit.*;
+import org.junit.Test;
 
 import java.util.Observable;
 
-import static com.artfulbits.ui.binding.toolbox.Models.integer;
-import static com.artfulbits.ui.binding.toolbox.Models.number;
-import static com.artfulbits.ui.binding.toolbox.Models.pojo;
-import static com.artfulbits.ui.binding.toolbox.Models.real;
+import static com.artfulbits.ui.binding.toolbox.Models.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -33,8 +30,8 @@ public class BinderTests extends TestHolder {
     final Binder<String, String> bss = new Binder<>();
 
     bss
-        .view(pojo(view, Models.strings("Login"))) // PojoLoginPassword.getLogin()
-        .model(pojo(model, Models.strings("Name"))); // PojoNamePin.getName()
+        .view(pojo(view, Models.string("Login"))) // PojoLoginPassword.getLogin()
+        .model(pojo(model, Models.string("Name"))); // PojoNamePin.getName()
 
     model.setName("name-set");
     bss.pop(); // from ONE --> TWO
@@ -73,7 +70,7 @@ public class BinderTests extends TestHolder {
     final Binder<String, Integer> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, Models.strings("Password"))) // PojoLoginPassword.getPassword()
+        .view(pojo(viewInstance, Models.string("Password"))) // PojoLoginPassword.getPassword()
         .model(pojo(modelInstance, integer("Pin"))) // PojoNamePin.getPin()
         .format(Molds.chain(Molds.fromStringToChars(), Molds.fromCharsToInteger()));
 
@@ -97,8 +94,8 @@ public class BinderTests extends TestHolder {
     final Binder<String, String> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, Models.strings("Name")))
-        .model(pojo(modelInstance, Models.strings("Login")))
+        .view(pojo(viewInstance, Models.string("Name")))
+        .model(pojo(modelInstance, Models.string("Login")))
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
@@ -155,8 +152,8 @@ public class BinderTests extends TestHolder {
     final Binder<String, String> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, Models.strings("Name")))
-        .model(pojo(modelInstance, Models.strings("Login")))
+        .view(pojo(viewInstance, Models.string("Name")))
+        .model(pojo(modelInstance, Models.string("Login")))
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
@@ -182,8 +179,8 @@ public class BinderTests extends TestHolder {
     final Binder<String, String> bss = new Binder<>();
 
     bss
-//        .view(pojo(viewInstance, strings("Name")))
-        .model(pojo(modelInstance, Models.strings("Login")))
+//        .view(pojo(viewInstance, string("Name")))
+        .model(pojo(modelInstance, Models.string("Login")))
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
@@ -210,8 +207,8 @@ public class BinderTests extends TestHolder {
     final Binder<String, String> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, Models.strings("Name")))
-//        .model(pojo(modelInstance, strings("Login")))
+        .view(pojo(viewInstance, Models.string("Name")))
+//        .model(pojo(modelInstance, string("Login")))
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
@@ -238,8 +235,8 @@ public class BinderTests extends TestHolder {
     final Binder<String, String> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, Models.strings("Something")))
-        .model(pojo(modelInstance, Models.strings("Login")))
+        .view(pojo(viewInstance, Models.string("Something")))
+        .model(pojo(modelInstance, Models.string("Login")))
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
@@ -267,8 +264,8 @@ public class BinderTests extends TestHolder {
     final Binder<String, String> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, Models.strings("Name")))
-        .model(pojo(modelInstance, Models.strings("Something")))
+        .view(pojo(viewInstance, Models.string("Name")))
+        .model(pojo(modelInstance, Models.string("Something")))
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
@@ -296,8 +293,8 @@ public class BinderTests extends TestHolder {
     final Binder<String, String> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, Models.strings("Something")))
-        .model(pojo(modelInstance, Models.strings("Something")))
+        .view(pojo(viewInstance, Models.string("Something")))
+        .model(pojo(modelInstance, Models.string("Something")))
         .validate(allOf(notNullValue(), containsString("-set")))
         .onSuccess(new Success() {
           @Override
@@ -343,7 +340,7 @@ public class BinderTests extends TestHolder {
     final Binder<String, Long> bss = new Binder<>();
 
     bss
-        .view(pojo(viewInstance, Models.strings("Time"))) // viewInstance.getTime(), viewInstance.setTime();
+        .view(pojo(viewInstance, Models.string("Time"))) // viewInstance.getTime(), viewInstance.setTime();
         .model(pojo(modelInstance, number("Timestamp")))
         .onView(Listeners.onObservable())
         .onModel(Listeners.onObservable());
