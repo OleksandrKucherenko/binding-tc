@@ -10,22 +10,33 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.artfulbits.binding.Binder;
+import com.artfulbits.binding.BindingsManager;
+import com.artfulbits.binding.Failure;
+import com.artfulbits.binding.Success;
+import com.artfulbits.binding.reflection.Property;
+import com.artfulbits.binding.toolbox.Binders;
+import com.artfulbits.binding.toolbox.ToView;
+import com.artfulbits.binding.ui.BindingSupportFragment;
 import com.artfulbits.sample.data.User;
-import com.artfulbits.ui.binding.Binder;
-import com.artfulbits.ui.binding.BindingsManager;
-import com.artfulbits.ui.binding.Failure;
-import com.artfulbits.ui.binding.Success;
-import com.artfulbits.ui.binding.reflection.Property;
-import com.artfulbits.ui.binding.toolbox.Binders;
-import com.artfulbits.ui.binding.toolbox.ToView;
-import com.artfulbits.ui.binding.ui.BindingSupportFragment;
 
-import static com.artfulbits.ui.binding.toolbox.Listeners.anyOf;
-import static com.artfulbits.ui.binding.toolbox.Listeners.*;
-import static com.artfulbits.ui.binding.toolbox.Models.*;
-import static com.artfulbits.ui.binding.toolbox.Molds.fromCharsToInteger;
-import static com.artfulbits.ui.binding.toolbox.Molds.onlyPop;
-import static com.artfulbits.ui.binding.toolbox.Views.*;
+import static com.artfulbits.binding.toolbox.Listeners.anyOf;
+import static com.artfulbits.binding.toolbox.Listeners.onFocusLost;
+import static com.artfulbits.binding.toolbox.Listeners.onObservable;
+import static com.artfulbits.binding.toolbox.Listeners.onTextChanged;
+import static com.artfulbits.binding.toolbox.Listeners.onTimer;
+import static com.artfulbits.binding.toolbox.Models.bool;
+import static com.artfulbits.binding.toolbox.Models.integer;
+import static com.artfulbits.binding.toolbox.Models.pojo;
+import static com.artfulbits.binding.toolbox.Models.text;
+import static com.artfulbits.binding.toolbox.Molds.fromCharsToInteger;
+import static com.artfulbits.binding.toolbox.Molds.onlyPop;
+import static com.artfulbits.binding.toolbox.Views.checkBox;
+import static com.artfulbits.binding.toolbox.Views.editText;
+import static com.artfulbits.binding.toolbox.Views.radioButton;
+import static com.artfulbits.binding.toolbox.Views.radioGroup;
+import static com.artfulbits.binding.toolbox.Views.spinner;
+import static com.artfulbits.binding.toolbox.Views.textView;
 import static org.hamcrest.Matchers.*;
 
 /** Login fragment with simplest UI. */
@@ -43,7 +54,7 @@ public class LoginFragment extends BindingSupportFragment {
     // create binding to Login
     final Binder<?, ?> bindLogin = Binders.strings(getBindingsManager())
         .view(textView(view, R.id.et_login))
-        .model(pojo(mUser, string("Login")));
+        .model(pojo(mUser, text("Login")));
 
     // update view by model values
     getBindingsManager().pop(bindLogin);

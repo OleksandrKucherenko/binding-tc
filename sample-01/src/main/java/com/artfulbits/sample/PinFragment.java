@@ -6,22 +6,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.artfulbits.binding.BindingsManager;
+import com.artfulbits.binding.toolbox.Binders;
+import com.artfulbits.binding.toolbox.Listeners;
+import com.artfulbits.binding.toolbox.ToView;
+import com.artfulbits.binding.ui.BindingSupportFragment;
 import com.artfulbits.sample.data.Pin;
-import com.artfulbits.ui.binding.BindingsManager;
-import com.artfulbits.ui.binding.toolbox.Binders;
-import com.artfulbits.ui.binding.toolbox.Listeners;
-import com.artfulbits.ui.binding.toolbox.ToView;
-import com.artfulbits.ui.binding.ui.BindingSupportFragment;
 
 import org.hamcrest.Matchers;
 
-import static com.artfulbits.ui.binding.toolbox.Listeners.anyOf;
-import static com.artfulbits.ui.binding.toolbox.Listeners.*;
-import static com.artfulbits.ui.binding.toolbox.Models.*;
-import static com.artfulbits.ui.binding.toolbox.Molds.fromCharsToString;
-import static com.artfulbits.ui.binding.toolbox.Molds.onlyPop;
-import static com.artfulbits.ui.binding.toolbox.Molds.onlyPush;
-import static com.artfulbits.ui.binding.toolbox.Views.*;
+import static com.artfulbits.binding.toolbox.Listeners.anyOf;
+import static com.artfulbits.binding.toolbox.Listeners.onFocusLost;
+import static com.artfulbits.binding.toolbox.Listeners.onObservable;
+import static com.artfulbits.binding.toolbox.Listeners.onTextChanged;
+import static com.artfulbits.binding.toolbox.Models.integer;
+import static com.artfulbits.binding.toolbox.Models.pojo;
+import static com.artfulbits.binding.toolbox.Models.text;
+import static com.artfulbits.binding.toolbox.Molds.fromCharsToString;
+import static com.artfulbits.binding.toolbox.Molds.onlyPop;
+import static com.artfulbits.binding.toolbox.Molds.onlyPush;
+import static com.artfulbits.binding.toolbox.Views.editText;
+import static com.artfulbits.binding.toolbox.Views.textView;
 import static org.hamcrest.Matchers.*;
 
 /** Fragment for entering PIN, demo of connected to each other properties. */
@@ -61,14 +66,14 @@ public class PinFragment extends BindingSupportFragment {
     Binders.strings(bm) // <CharSequence - to - String>
         .view(editText(getView(), R.id.et_password))
         .onView(Listeners.anyOf(onTextChanged(), onFocusLost()))
-        .model(pojo(mPin, string("Password")))
+        .model(pojo(mPin, text("Password")))
         .format(onlyPush(fromCharsToString()))
         .validate(Matchers.anyOf(blankString(), matchesPattern("[0-9]{4,6}")));
 
     Binders.strings(bm) // <CharSequence - to - String>
         .view(editText(getView(), R.id.et_confirm_password))
         .onView(anyOf(onTextChanged(), onFocusLost()))
-        .model(pojo(mPin, string("ConfirmPassword")))
+        .model(pojo(mPin, text("ConfirmPassword")))
 //        .validate(matchesPattern("[0-9]{4,6}")) // important!!!
         .setTag(R.id.tag_test, "test");
 

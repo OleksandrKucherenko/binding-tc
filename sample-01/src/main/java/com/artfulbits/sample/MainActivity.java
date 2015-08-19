@@ -8,7 +8,7 @@ import android.support.v4.app.Fragment;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.artfulbits.ui.binding.ui.BindingActivity;
+import com.artfulbits.binding.ui.BindingActivity;
 
 /** Main activity, host fragments. */
 public class MainActivity extends BindingActivity {

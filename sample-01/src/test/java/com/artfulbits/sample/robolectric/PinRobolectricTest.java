@@ -6,10 +6,10 @@ import android.os.Build;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.artfulbits.binding.Binder;
+import com.artfulbits.binding.BindingsManager;
 import com.artfulbits.sample.data.Pin;
 import com.artfulbits.sample.robolectric.RobolectricTestHolder;
-import com.artfulbits.ui.binding.Binder;
-import com.artfulbits.ui.binding.BindingsManager;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
