@@ -9,8 +9,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.UiThread;
 import android.util.Pair;
 import android.view.View;
+import android.widget.Adapter;
 
 import com.artfulbits.binding.exceptions.WrongConfigurationError;
+import com.artfulbits.binding.toolbox.Adapters;
 import com.artfulbits.binding.toolbox.Views;
 import com.artfulbits.binding.ui.BindingAdapter;
 
@@ -97,9 +99,7 @@ public class BindingsManager {
 
   /** Create bindings manager for adapter instance. */
   protected BindingsManager(@NonNull final BindingAdapter adapter) {
-    // TODO: implement me
-    throw new AssertionError("Implement me!");
-//    mFacade = Views.root(adapter);
+    mFacade = Adapters.<Adapter>root(adapter);
   }
 
   /* [ STATIC HELPERS ] =========================================================================================== */
@@ -257,7 +257,7 @@ public class BindingsManager {
 
   /**
    * Get selector on root view.
-   * <p>
+   * <p/>
    * For different type of instance selector will be resolved to different instances:<br/>
    * - for Activity --&gt; to Root view of Activity;<br/>
    * - for Fragment --&gt; to Root view of the Fragment;<br/>

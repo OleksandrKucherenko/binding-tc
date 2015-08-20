@@ -17,6 +17,12 @@ import java.lang.ref.WeakReference;
 /** Wrapper over instance of Adapter. Provides access to Binding Manager instance and lifecycle. */
 @SuppressWarnings("unused")
 public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
+
+  /* [ CONSTANTS ] ================================================================================================= */
+
+  /** Main thread ID. */
+  private static final int MAIN_THREAD_ID = 1;
+
   /* [ MEMBERS ] =================================================================================================== */
 
   /** Wrapped adapter. */
@@ -25,12 +31,8 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
   private final BindingsManager mBindingsManager;
   /** Reference on lifecycle callback. */
   private final Lifecycle mLifecycle;
-  /** Position of currently processing item. */
-  private int mPosition = -1;
-  /** Reference on currently processing item view. */
-  private WeakReference<View> mBindingView;
-  /** Reference on currently processing item instance. */
-  private WeakReference<Object> mBindingItem;
+  /** keep adapter context per thread. Thread ID - to - Context instance. */
+  private final ThreadContext mContext = new ThreadContext();
 
 	/* [ CONSTRUCTORS ] ============================================================================================== */
 
@@ -50,48 +52,64 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
 
 	/* [ GETTER / SETTER METHODS ] =================================================================================== */
 
-  public int getBindingPosition() {
-    return mPosition;
-  }
-
-  public BindingAdapter setBindingPosition(final int position) {
-    mPosition = position;
-
-    return this;
+  /**
+   * Resolve adapter context with respect to multi-threading. In case if
+   * not existing context for current thread method will return reference
+   * on MAIN thread context.
+   */
+  @NonNull
+  private ThreadContext getThreadContext() {
+    return mContext;
   }
 
   public BindingsManager getBindingsManager() {
     return mBindingsManager;
   }
 
+  /** Get reference on inner wrapped adapter. */
+  public Adapter getInnerAdapter() {
+    return mAdapter;
+  }
+
+  public int getBindingPosition() {
+    return getThreadContext().mPosition;
+  }
+
+  private BindingAdapter setBindingPosition(final int position) {
+    getThreadContext().mPosition = position;
+
+    return this;
+  }
+
   @Nullable
   public Object getBindingItem() {
-    if (null == mBindingItem) return null;
+    if (null == getThreadContext().mBindingItem) return null;
 
-    return mBindingItem.get();
+    return getThreadContext().mBindingItem.get();
   }
 
   private BindingAdapter setBindingItem(final Object item) {
-    mBindingItem = new WeakReference<>(item);
+    getThreadContext().mBindingItem = new WeakReference<>(item);
 
     return this;
   }
 
   @Nullable
   public View getBindingView() {
-    if (null == mBindingView) return null;
+    if (null == getThreadContext().mBindingView) return null;
 
-    return mBindingView.get();
+    return getThreadContext().mBindingView.get();
   }
 
   private BindingAdapter setBindingView(final View view) {
-    mBindingView = new WeakReference<>(view);
+    getThreadContext().mBindingView = new WeakReference<>(view);
 
     return this;
   }
 
 	/* [ METHODS ] =================================================================================================== */
 
+  /** {@inheritDoc} */
   @CallSuper
   public void onCreateBinding(@NonNull final BindingsManager bm,
                               @NonNull final Selector<?, View> getView,
@@ -101,11 +119,13 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
     }
   }
 
+  /** {@inheritDoc} */
   @Override
   public void registerDataSetObserver(final DataSetObserver observer) {
     mAdapter.registerDataSetObserver(observer);
   }
 
+  /** {@inheritDoc} */
   @Override
   public void unregisterDataSetObserver(final DataSetObserver observer) {
     mAdapter.unregisterDataSetObserver(observer);
@@ -113,21 +133,25 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
 
 	/* [ Interface Adapter ] ========================================================================================= */
 
+  /** {@inheritDoc} */
   @Override
   public int getCount() {
     return mAdapter.getCount();
   }
 
+  /** {@inheritDoc} */
   @Override
   public Object getItem(final int position) {
     return mAdapter.getItem(position);
   }
 
+  /** {@inheritDoc} */
   @Override
   public long getItemId(final int position) {
     return mAdapter.getItemId(position);
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean hasStableIds() {
     return mAdapter.hasStableIds();
@@ -153,16 +177,19 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
     return v;
   }
 
+  /** {@inheritDoc} */
   @Override
   public int getItemViewType(final int position) {
     return mAdapter.getItemViewType(position);
   }
 
+  /** {@inheritDoc} */
   @Override
   public int getViewTypeCount() {
     return mAdapter.getViewTypeCount();
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean isEmpty() {
     return mAdapter.isEmpty();
@@ -182,6 +209,7 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
     onCreateBinding(bm, getView, getItem);
   }
 
+  /** {@inheritDoc} */
   @Override
   public void onValidationResult(final BindingsManager bm, final boolean success) {
     // reserved for inheritors
@@ -189,8 +217,28 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
 
   /** Adjusted lifecycle for Adapters. */
   public interface Lifecycle {
+    /**
+     * Extended version of data binding for adapters. by parameters provided selectors for
+     * getting instances of adapter context: View and Item.
+     *
+     * @param bm       instance of bindings manager.
+     * @param getModel selector for getting instance of Model/Item.
+     * @param getView  selector for getting instance of View created for specific Item.
+     */
     void onCreateBinding(@NonNull final BindingsManager bm,
                          @NonNull final Selector<?, View> getView,
                          @NonNull final Selector<?, Object> getModel);
+  }
+
+  /** Context of adapter per thread. */
+  private static class ThreadContext {
+    /** creator of the context. */
+    public final int ThreadId = (int) Thread.currentThread().getId();
+    /** Position of currently processing item. */
+    public int mPosition = -1;
+    /** Reference on currently processing item view. */
+    public WeakReference<View> mBindingView;
+    /** Reference on currently processing item instance. */
+    public WeakReference<Object> mBindingItem;
   }
 }

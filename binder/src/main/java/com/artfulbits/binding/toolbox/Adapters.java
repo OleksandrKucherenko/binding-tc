@@ -16,6 +16,7 @@ public final class Adapters {
     throw new AssertionError("Not for inheritance or call.");
   }
 
+
   /**
    * Create instance of bindings ready adapter with attached lifecycle.
    * Good for inlined binding creation.
@@ -27,6 +28,18 @@ public final class Adapters {
   public static BindingAdapter bindable(@NonNull final Adapter adapter,
                                         @Nullable final BindingAdapter.Lifecycle lifecycle) {
     return new BindingAdapter(adapter, lifecycle);
+  }
+
+  /**
+   * Create Facade selector that allows to access the "root" of the binding. In this
+   * specific case we are accessing inner adapter instance that we wrap by 'binding'.
+   *
+   * @param adapter instance of wrapped adapter
+   */
+  @NonNull
+  public static <V> Selector<?, V> root(@NonNull final BindingAdapter adapter) {
+    //final Adapter inner = adapter.getInnerAdapter();
+    return new Selector<>(adapter, Models.<V>call("getInnerAdapter"));
   }
 
   /** Get selector of current view for processing. */
