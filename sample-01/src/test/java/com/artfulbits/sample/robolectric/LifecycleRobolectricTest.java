@@ -2,6 +2,7 @@ package com.artfulbits.sample.robolectric;
 
 import android.os.Build;
 
+import com.artfulbits.binding.BuildConfig;
 import com.artfulbits.sample.LoggerActivity;
 
 import org.junit.Test;
@@ -18,7 +19,7 @@ import static org.junit.Assert.*;
 @Config(sdk = Build.VERSION_CODES.LOLLIPOP,
     manifest = "src/main/AndroidManifest.xml",
     libraries = {
-        "../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1"
+        BuildConfig.ROBOLECTRIC_APPCOMPAT
     })
 @RunWith(RobolectricTestRunner.class)
 public class LifecycleRobolectricTest extends RobolectricTestHolder {

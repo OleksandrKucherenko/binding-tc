@@ -131,7 +131,7 @@ android {
     versionName "1.0"
 
     if (useTesting) {
-      // default is: testApplicationId 'com.artfulbits.uniprefs.tests'
+      // default is: testApplicationId 'com.artfulbits.binding.tests'
       def runner = "android.test.InstrumentationTestRunner"
 
       if (useEspresso) {
@@ -159,6 +159,9 @@ android {
       debuggable true
       jniDebuggable true
       shrinkResources false /* incompatible with useJack !!! */
+
+      /** Helpers that generate constants for TDD/BDD tests. Path resolved against './src/main' */
+      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/${androidSupportLib}\""
     }
     release {
       testCoverageEnabled false
@@ -168,6 +171,9 @@ android {
       minifyEnabled false
       shrinkResources false /* incompatible with useJack !!! */
       proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+      /** Helpers that generate constants for TDD/BDD tests. Path resolved against './src/main' */
+      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/${androidSupportLib}\""
     }
   }
 

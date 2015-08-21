@@ -18,19 +18,6 @@ public final class Adapters {
 
 
   /**
-   * Create instance of bindings ready adapter with attached lifecycle.
-   * Good for inlined binding creation.
-   *
-   * @param adapter   instance of adapter
-   * @param lifecycle instance of the lifecycle listener, can be NULL.
-   */
-  @NonNull
-  public static BindingAdapter bindable(@NonNull final Adapter adapter,
-                                        @Nullable final BindingAdapter.Lifecycle lifecycle) {
-    return new BindingAdapter(adapter, lifecycle);
-  }
-
-  /**
    * Create Facade selector that allows to access the "root" of the binding. In this
    * specific case we are accessing inner adapter instance that we wrap by 'binding'.
    *
@@ -63,4 +50,25 @@ public final class Adapters {
     return new Selector<>(adapter, Models.<V>call("getBindingItem"));
   }
 
+  /**
+   * Create instance of bindings ready adapter with attached lifecycle.
+   *
+   * @param adapter instance of adapter
+   */
+  @NonNull
+  public static BindingAdapter wrap(@NonNull final Adapter adapter) {
+    return new BindingAdapter(adapter);
+  }
+
+  /**
+   * Create instance of bindings ready adapter with attached lifecycle.
+   *
+   * @param adapter   instance of adapter
+   * @param lifecycle instance of the lifecycle listener, can be NULL.
+   */
+  @NonNull
+  public static BindingAdapter wrap(@NonNull final Adapter adapter,
+                                    @Nullable final BindingAdapter.Lifecycle lifecycle) {
+    return new BindingAdapter(adapter, lifecycle);
+  }
 }

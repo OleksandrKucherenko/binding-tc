@@ -14,7 +14,16 @@ import com.artfulbits.binding.toolbox.Adapters;
 
 import java.lang.ref.WeakReference;
 
-/** Wrapper over instance of Adapter. Provides access to Binding Manager instance and lifecycle. */
+/**
+ * Wrapper over instance of Adapter. Provides access to Binding Manager instance and lifecycle.
+ * <p/>
+ * Notes for inheritors:<br/>
+ * 1) mostly all Adapter methods are 'final'. That should force keeping of adapter logic out of the class.
+ * this is a wrapper that provides Binding capabilities;<br/>
+ * 2) {@link #onCreateBinding(BindingsManager, Selector, Selector)} is a method for overriding;<br/>
+ * 3) {@link #onValidationResult(BindingsManager, boolean)} - never called! but you can include it
+ * into own lifecycle by direct call;<br/>
+ */
 @SuppressWarnings("unused")
 public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
 
@@ -32,14 +41,16 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
   /** Reference on lifecycle callback. */
   private final Lifecycle mLifecycle;
   /** keep adapter context per thread. Thread ID - to - Context instance. */
-  private final ThreadContext mContext = new ThreadContext();
+  private final BindingContext mContext = new BindingContext();
 
 	/* [ CONSTRUCTORS ] ============================================================================================== */
 
+  /** Hidden constructor. Expected static messages use and inheritance only. */
   public BindingAdapter(@NonNull final Adapter adapter) {
     this(adapter, null);
   }
 
+  /** Hidden constructor. Expected static messages use and inheritance only. */
   public BindingAdapter(@NonNull final Adapter adapter,
                         @Nullable final Lifecycle lifecycle) {
     mAdapter = adapter;
@@ -50,7 +61,7 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
     getBindingsManager().doStart(this); // --> onCreateBinding(...)
   }
 
-	/* [ GETTER / SETTER METHODS ] =================================================================================== */
+  /* [ GETTER / SETTER METHODS ] =================================================================================== */
 
   /**
    * Resolve adapter context with respect to multi-threading. In case if
@@ -58,50 +69,57 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
    * on MAIN thread context.
    */
   @NonNull
-  private ThreadContext getThreadContext() {
+  protected final BindingContext getThreadContext() {
     return mContext;
   }
 
-  public BindingsManager getBindingsManager() {
+  /** Get reference on Binding manager instance. */
+  public final BindingsManager getBindingsManager() {
     return mBindingsManager;
   }
 
   /** Get reference on inner wrapped adapter. */
-  public Adapter getInnerAdapter() {
+  public final Adapter getInnerAdapter() {
     return mAdapter;
   }
 
-  public int getBindingPosition() {
+  /** Get position of under the processing item. */
+  public final int getBindingPosition() {
     return getThreadContext().mPosition;
   }
 
-  private BindingAdapter setBindingPosition(final int position) {
+  /** Assign position to the processing context. */
+  protected final BindingAdapter setBindingPosition(final int position) {
     getThreadContext().mPosition = position;
 
     return this;
   }
 
+  /** Get reference on under the processing item. */
   @Nullable
-  public Object getBindingItem() {
+  public final Object getBindingItem() {
     if (null == getThreadContext().mBindingItem) return null;
 
     return getThreadContext().mBindingItem.get();
   }
 
-  private BindingAdapter setBindingItem(final Object item) {
+  /** Assign item to the processing context. */
+  protected final BindingAdapter setBindingItem(final Object item) {
     getThreadContext().mBindingItem = new WeakReference<>(item);
 
     return this;
   }
 
+  /** Get reference on under the processing View created/reused for under the processing item. */
   @Nullable
-  public View getBindingView() {
+  public final View getBindingView() {
     if (null == getThreadContext().mBindingView) return null;
 
     return getThreadContext().mBindingView.get();
   }
 
-  private BindingAdapter setBindingView(final View view) {
+  /** Assign view to the processing context. */
+  protected final BindingAdapter setBindingView(final View view) {
     getThreadContext().mBindingView = new WeakReference<>(view);
 
     return this;
@@ -114,6 +132,7 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
   public void onCreateBinding(@NonNull final BindingsManager bm,
                               @NonNull final Selector<?, View> getView,
                               @NonNull final Selector<?, Object> getModel) {
+    // forward call to runtime extender of the lifecycle
     if (null != mLifecycle) {
       mLifecycle.onCreateBinding(bm, getView, getModel);
     }
@@ -121,13 +140,13 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
 
   /** {@inheritDoc} */
   @Override
-  public void registerDataSetObserver(final DataSetObserver observer) {
+  public final void registerDataSetObserver(final DataSetObserver observer) {
     mAdapter.registerDataSetObserver(observer);
   }
 
   /** {@inheritDoc} */
   @Override
-  public void unregisterDataSetObserver(final DataSetObserver observer) {
+  public final void unregisterDataSetObserver(final DataSetObserver observer) {
     mAdapter.unregisterDataSetObserver(observer);
   }
 
@@ -135,32 +154,32 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
 
   /** {@inheritDoc} */
   @Override
-  public int getCount() {
+  public final int getCount() {
     return mAdapter.getCount();
   }
 
   /** {@inheritDoc} */
   @Override
-  public Object getItem(final int position) {
+  public final Object getItem(final int position) {
     return mAdapter.getItem(position);
   }
 
   /** {@inheritDoc} */
   @Override
-  public long getItemId(final int position) {
+  public final long getItemId(final int position) {
     return mAdapter.getItemId(position);
   }
 
   /** {@inheritDoc} */
   @Override
-  public boolean hasStableIds() {
+  public final boolean hasStableIds() {
     return mAdapter.hasStableIds();
   }
 
   /** Implemented binding of Item to View. */
   @Override
   public final View getView(final int position, final View convertView, final ViewGroup parent) {
-    // request wrapped adapter to create a view for us
+    // request wrapped adapter to create/reuse a view for us
     final View v = mAdapter.getView(position, convertView, parent);
 
     // assign binding dependencies, define selectors context
@@ -168,7 +187,7 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
         .setBindingItem(getItem(position))
         .setBindingView(v);
 
-    // TODO: apply data exchange MODEL --> VIEW (POP), time to do the magic
+    // apply data exchange MODEL --> VIEW (POP), time to do the magic
     getBindingsManager().pop();
 
     // should we run it for all rules???
@@ -179,19 +198,19 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
 
   /** {@inheritDoc} */
   @Override
-  public int getItemViewType(final int position) {
+  public final int getItemViewType(final int position) {
     return mAdapter.getItemViewType(position);
   }
 
   /** {@inheritDoc} */
   @Override
-  public int getViewTypeCount() {
+  public final int getViewTypeCount() {
     return mAdapter.getViewTypeCount();
   }
 
   /** {@inheritDoc} */
   @Override
-  public boolean isEmpty() {
+  public final boolean isEmpty() {
     return mAdapter.isEmpty();
   }
 
@@ -230,10 +249,8 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
                          @NonNull final Selector<?, Object> getModel);
   }
 
-  /** Context of adapter per thread. */
-  private static class ThreadContext {
-    /** creator of the context. */
-    public final int ThreadId = (int) Thread.currentThread().getId();
+  /** Context for adapter. */
+  private static class BindingContext {
     /** Position of currently processing item. */
     public int mPosition = -1;
     /** Reference on currently processing item view. */

@@ -2,6 +2,7 @@ package com.artfulbits.sample;
 
 import android.os.Build;
 
+import com.artfulbits.binding.BuildConfig;
 import com.artfulbits.sample.robolectric.RobolectricTestHolder;
 
 import org.junit.Ignore;
@@ -19,7 +20,7 @@ import static org.junit.Assert.*;
 @Config(sdk = Build.VERSION_CODES.LOLLIPOP,
     manifest = "src/main/AndroidManifest.xml",
     libraries = {
-        "../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1"
+        BuildConfig.ROBOLECTRIC_APPCOMPAT
     })
 @RunWith(RobolectricTestRunner.class)
 public class LoginFillRobolectricTest extends RobolectricTestHolder {

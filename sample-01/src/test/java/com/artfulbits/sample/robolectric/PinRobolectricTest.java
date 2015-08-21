@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import com.artfulbits.binding.Binder;
 import com.artfulbits.binding.BindingsManager;
+import com.artfulbits.binding.BuildConfig;
 import com.artfulbits.sample.data.Pin;
 import com.artfulbits.sample.robolectric.RobolectricTestHolder;
 
@@ -30,7 +31,7 @@ import static org.junit.Assert.*;
 @Config(sdk = Build.VERSION_CODES.LOLLIPOP,
     manifest = "src/main/AndroidManifest.xml",
     libraries = {
-        "../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1"
+        BuildConfig.ROBOLECTRIC_APPCOMPAT
     })
 @RunWith(RobolectricTestRunner.class)
 public class PinRobolectricTest extends RobolectricTestHolder {

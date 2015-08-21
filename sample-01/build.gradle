@@ -244,6 +244,9 @@ android {
 
       /* http://toastdroid.com/2014/03/28/customizing-your-build-with-gradle/ */
       buildConfigField "boolean", "USED_MULTIDEX", (useMultiDex ? "true" : "false")
+
+      /** Helpers that generate constants for TDD/BDD tests. Path resolved against './src/main' */
+      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/${androidSupportLib}\""
     }
     // debug configuration with custom debug key
     debug {
@@ -256,6 +259,9 @@ android {
       testCoverageEnabled useJacoco
 
       buildConfigField "boolean", "USED_MULTIDEX", (useMultiDex ? "true" : "false")
+
+      /** Helpers that generate constants for TDD/BDD tests. Path resolved against './src/main' */
+      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/${androidSupportLib}\""
     }
     // release without obfuscation
     noProguardRelease.initWith(buildTypes.release)

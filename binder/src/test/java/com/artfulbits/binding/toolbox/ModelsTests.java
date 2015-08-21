@@ -1,26 +1,17 @@
 package com.artfulbits.binding.toolbox;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
-import android.view.View;
-import android.widget.Adapter;
-import android.widget.ArrayAdapter;
-
-import com.artfulbits.binding.BindingsManager;
 import com.artfulbits.binding.Selector;
+import com.artfulbits.binding.data.DummyClass;
+import com.artfulbits.binding.data.DummyEnum;
 import com.artfulbits.binding.reflection.Property;
-import com.artfulbits.binding.ui.BindingAdapter;
 import com.artfulbits.junit.TestHolder;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.artfulbits.binding.toolbox.Models.pojo;
 import static com.artfulbits.binding.toolbox.Models.text;
-import static com.artfulbits.binding.toolbox.Views.textView;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -41,6 +32,8 @@ public class ModelsTests extends TestHolder {
     final Property<String> propertyString = text("getget", "setset");
     final Property<DummyEnum> propertyEnum = Models.from("getget", "setset");
     final Property<Object> propertyObject = Models.from("getget", "setset");
+    final Property<int[]> propertyInts = Models.from("getget", "setset");
+    final Property<Long[]> propertyLongs = Models.from("getget", "setset");
 
     final DummyClass instance = new DummyClass();
     assertThat(propertyBoolean.get(instance), equalTo(false));
@@ -54,6 +47,8 @@ public class ModelsTests extends TestHolder {
     assertThat(propertyString.get(instance), nullValue());
     assertThat(propertyEnum.get(instance), nullValue());
     assertThat(propertyObject.get(instance), nullValue());
+    assertThat(propertyInts.get(instance), nullValue());
+    assertThat(propertyLongs.get(instance), nullValue());
   }
 
   @Test
@@ -69,6 +64,8 @@ public class ModelsTests extends TestHolder {
     final Property<String> propertyString1 = text("getget");
     final Property<DummyEnum> propertyEnum1 = Models.from("getget");
     final Property<Object> propertyObject1 = Models.from("getget");
+    final Property<int[]> propertyInts = Models.from("getget");
+    final Property<Long[]> propertyLongs = Models.from("getget");
 
     final DummyClass instance = new DummyClass();
 
@@ -83,6 +80,8 @@ public class ModelsTests extends TestHolder {
     assertThat(propertyString1.get(instance), nullValue());
     assertThat(propertyEnum1.get(instance), nullValue());
     assertThat(propertyObject1.get(instance), nullValue());
+    assertThat(propertyInts.get(instance), nullValue());
+    assertThat(propertyLongs.get(instance), nullValue());
   }
 
   @Test
@@ -99,6 +98,8 @@ public class ModelsTests extends TestHolder {
     final Property<String> propertyString = text("getget", "setset");
     final Property<DummyEnum> propertyEnum = Models.from("getget", "setset");
     final Property<Object> propertyObject = Models.from("getget", "setset");
+    final Property<int[]> propertyInts = Models.from("getget", "setset");
+    final Property<Long[]> propertyLongs = Models.from("getget", "setset");
 
     final DummyClass instance = new DummyClass();
 
@@ -114,6 +115,8 @@ public class ModelsTests extends TestHolder {
     propertyString.set(instance, "test");
     propertyEnum.set(instance, DummyEnum.Something);
     propertyObject.set(instance, new Object());
+    propertyInts.set(instance, new int[]{1, 2, 3, 4, 5});
+    propertyLongs.set(instance, new Long[]{1L, 2L, 3L, 4L, 5L});
   }
 
   @Test
@@ -129,6 +132,8 @@ public class ModelsTests extends TestHolder {
     final Property<String> propertyString = text("getget");
     final Property<DummyEnum> propertyEnum = Models.from("getget");
     final Property<Object> propertyObject = Models.from("getget");
+    final Property<int[]> propertyInts = Models.from("getget");
+    final Property<Long[]> propertyLongs = Models.from("getget");
 
     final DummyClass instance = new DummyClass();
 
@@ -144,6 +149,8 @@ public class ModelsTests extends TestHolder {
     propertyString.set(instance, "test");
     propertyEnum.set(instance, DummyEnum.Something);
     propertyObject.set(instance, new Object());
+    propertyInts.set(instance, new int[]{1, 2, 3, 4, 5});
+    propertyLongs.set(instance, new Long[]{1L, 2L, 3L, 4L, 5L});
   }
 
   @Test
@@ -163,90 +170,5 @@ public class ModelsTests extends TestHolder {
     final Selector<?, String> selector = Models.index(values, 0);
 
     assertThat(selector.get(), equalTo("something"));
-  }
-
-  @Test
-  @Ignore
-  public void test_06_BaseAdapter_InlinedBinding() {
-    // create a array of dummy instances
-    final DummyClass[] array = new DummyClass[]{
-        //region Instances
-        new DummyClass("Item #01"),
-        new DummyClass("Item #02"),
-        new DummyClass("Item #03"),
-        new DummyClass("Item #04"),
-        new DummyClass("Item #05"),
-        new DummyClass("Item #06"),
-        new DummyClass("Item #07"),
-        new DummyClass("Item #08"),
-        new DummyClass("Item #09"),
-        new DummyClass("Item #10"),
-        new DummyClass("Item #11"),
-        new DummyClass("Item #12"),
-        new DummyClass("Item #13"),
-        new DummyClass("Item #14"),
-        new DummyClass("Item #15"),
-        new DummyClass("Item #16"),
-        new DummyClass("Item #17"),
-        new DummyClass("Item #18"),
-        new DummyClass("Item #19"),
-        new DummyClass("Item #20")
-        //endregion
-    };
-
-    final Context context = getContext();
-    final int resourceId = android.R.layout.simple_list_item_1;
-    final Adapter adapter = new ArrayAdapter<>(context, resourceId, array);
-    final BindingAdapter bindable = Adapters.bindable(adapter, new BindingAdapter.Lifecycle() {
-      @Override
-      public void onCreateBinding(@NonNull final BindingsManager bm,
-                                  @NonNull final Selector<?, View> getView,
-                                  @NonNull final Selector<?, Object> getModel) {
-        Binders.strings(bm)
-            .view(textView(getView, android.R.id.text1))
-            .model(pojo(getModel, text("fieldStr")));
-      }
-    });
-
-    assertThat(bindable.getCount(), equalTo(array.length));
-    assertThat(bindable.getItem(0), instanceOf(DummyClass.class));
-
-  }
-
-  /* [ NESTED DECLARATIONS ] ================================================================================== */
-
-  public enum DummyEnum {
-    Nothing,
-    Something;
-  }
-
-  public static class DummyClass {
-    /* package */ boolean fieldBool;
-    /* package */ short fieldSht;
-    /* package */ int fieldInt;
-    /* package */ long fieldLng;
-    /* package */ float fieldFlt;
-    /* package */ double fieldDbl;
-    /* package */ char fieldChr;
-    /* package */ String fieldStr;
-    /* package */ DummyEnum fieldEnum;
-    /* package */ Object fieldObj;
-
-    private boolean mBoolean;
-    private int mInteger;
-    private long mLong;
-    private float mFloat;
-    private double mDouble;
-    private char mChar;
-    private String mString;
-    private DummyEnum mEnum;
-    private Object mObject;
-
-    public DummyClass() {
-    }
-
-    public DummyClass(final String msg) {
-      this.fieldStr = msg;
-    }
   }
 }
