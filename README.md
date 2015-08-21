@@ -4,7 +4,7 @@
 
 Android View properties binding to the Business Objects (POJO). 
 
-# State [![Build Status](https://secure.travis-ci.org/OleksandrKucherenko/binding-tc.png?branch=master)](https://travis-ci.org/OleksandrKucherenko/binding-tc) [![Coverage Status](https://coveralls.io/repos/OleksandrKucherenko/binding-tc/badge.svg?branch=master&service=github)](https://coveralls.io/github/OleksandrKucherenko/binding-tc?branch=master)
+# State [![Build Status](https://secure.travis-ci.org/OleksandrKucherenko/binding-tc.png?branch=master)](https://travis-ci.org/OleksandrKucherenko/binding-tc) [![Coverage Status](https://coveralls.io/repos/OleksandrKucherenko/binding-tc/badge.svg?branch=master&service=github)](https://coveralls.io/github/OleksandrKucherenko/binding-tc?branch=master) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OleksandrKucherenko/binding-tc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 Active development, started at: 2014-05-15
 
