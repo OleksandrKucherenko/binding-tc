@@ -1,16 +1,21 @@
 # binding-tc
 
+*First Name:* ArtfulBits Binding
 *Second Name:* Android Easy Binding (AEB)
 
-Android View properties binding to the Business Objects (POJO). 
+Android View properties binding to the Business Objects (POJO).
 
-# State [![Build Status](https://secure.travis-ci.org/OleksandrKucherenko/binding-tc.png?branch=master)](https://travis-ci.org/OleksandrKucherenko/binding-tc) [![Coverage Status](https://coveralls.io/repos/OleksandrKucherenko/binding-tc/badge.svg?branch=master&service=github)](https://coveralls.io/github/OleksandrKucherenko/binding-tc?branch=master) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OleksandrKucherenko/binding-tc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+_Why *TC* suffix? TC - Take Care!_
+
+# State [![Build Status][3]][4] [![Coverage Status][5]][6] [![Gitter][7]][8]
 
 Active development, started at: 2014-05-15
 
 Changes: [Changes Log](_documentation/changes.md)
 
 Roadmap (v1.0.0 - v2.0.0): [Road Map](_documentation/roadmap.md)
+
+Compare to Android Binding: [Comparison](_documentation/comparison.md)
 
 # Goals
 * High performance, 
@@ -26,67 +31,118 @@ Roadmap (v1.0.0 - v2.0.0): [Road Map](_documentation/roadmap.md)
 ![Data Flow inside the Binding Library](_documentation/images/binding-architecture-flow.png)
 
 # Example of Usage
-Typical Business Object declared in POJO way:
+
+Typical Business Object declared in POJO way (with Observable pattern):
 
 ```java
-  public static class User{
-    private String mLogin;
-    private String mPassword;
-  
-    public String getLogin(){ return mLogin; }
-    public String getPassword(){ return mPassword; }
+public class Pin extends Observable {
+  private String mPassword;
+  private String mConfirmPassword;
+
+  /** Calculated message based on state of instance. */
+  public int getMessage() {
+    if (TextUtils.isEmpty(mPassword) || TextUtils.isEmpty(mConfirmPassword))
+      return R.string.msgPasswordPatternFail;
+
+    if (mPassword.length() < 4 || mPassword.length() > 6)
+      return R.string.msgPasswordPatternFail;
+
+    if (mConfirmPassword.length() < 4 || mConfirmPassword.length() > 6)
+      return R.string.msgPasswordPatternFail;
+
+    return mPassword.equals(mConfirmPassword) ?
+        R.string.msgPasswordOK :
+        R.string.msgPasswordFail;
   }
+
+  public String getConfirmPassword() {
+    return mConfirmPassword;
+  }
+
+  public void setConfirmPassword(final String confirmPassword) {
+    mConfirmPassword = confirmPassword;
+
+    setChanged();
+    notifyObservers("ConfirmPassword");
+  }
+
+  public String getPassword() {
+    return mPassword;
+  }
+
+  public void setPassword(final String password) {
+    mPassword = password;
+
+    setChanged();
+    notifyObservers("Password");
+  }
+}
 ```
+
 Fragment binding:
 
 ```java
-import com.artfulbits.ui.binding.*;
+import com.artfulbits.binding.*;
 
-import static com.artfulbits.ui.binding.toolbox.Molds.*;
-import static com.artfulbits.ui.binding.toolbox.Listeners.*;
-import static com.artfulbits.ui.binding.toolbox.Models.*;
-import static com.artfulbits.ui.binding.toolbox.Views.*;
+import static com.artfulbits.binding.toolbox.Binders.*;
+import static com.artfulbits.binding.toolbox.Listeners.*;
+import static com.artfulbits.binding.toolbox.Models.*;
+import static com.artfulbits.binding.toolbox.Molds.*;
+import static com.artfulbits.binding.toolbox.Views.*;
 import static org.hamcrest.core.IsAnything.anything;
 
 /** Login fragment with simplest UI. */
-public class PlaceholderFragment extends Fragment implements BindingManager.LifecycleCallback {
+public class PinFragment extends BindingFragment {
 
-  private final BindingManager mBm   = new BindingManager(this).register(this);
-  private final User           mUser = new User();
+  private final Pin mPin = new Pin();
 
   public PlaceholderFragment() {
   }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    final View view = inflater.inflate(R.layout.fragment_main, container, false);
-
-    // custom Binding --> can be done at any point of the lifecycle
-    Binder bindLogin = mBm
-      .bind(view(matches(root(view), withId(R.id.et_login)), property("text")))
-      .model(pojo(mUser, property("login")));
-
-    // update view by model values
-    mBm.pop(bindLogin);
-
-    // update model by views values (can be executed more than one rule!)
-    mBm.pushByInstance(mUser);
-
-    return view;
+    return inflater.inflate(R.layout.fragment_pin, container, false);
   }
 
   @Override
   public void onCreateBinding(final BindingManager bm) {
-    // custom LIFECYCLE step --> BindingManager.LifecycleCallback 
-    
-    // most robust syntax with all possible configuration chain calls
-    final Binder bindPassword = bm
-            .bind(view(withId(R.id.et_password), property("text")))
-            .model(pojo(mUser, property("pin")))
-            .formatter(direct())
-            .validator(anything())
-            .listenOnModel(none())
-            .listenOnView(none());
+    /**
+     * EXPLANATION:
+     * - we listen to user input in et_password and et_confirm_password
+     * - during update of the model instance by entered text we expect Observable callbacks
+     * - observable callback force Binding update of UI label - tv_feedback
+     *
+     * USE CASE:
+     * - on wrong password display Error message
+     * - on correct password display OK message,
+     * - Correct pattern: pin contains at least 4 digits and not more than 6
+     */
+
+    // do binding only from UI side, only PUSH
+    Binders.strings(bm) // <CharSequence - to - String>
+        .view(editText(getView(), R.id.et_password))
+        .onView(anyOf(onTextChanged(), onFocusLost()))
+        .model(pojo(mPin, text("Password")))
+        .format(onlyPush(fromCharsToString()))
+        .validate(Matchers.anyOf(blankString(), matchesPattern("[0-9]{4,6}")));
+
+    Binders.strings(bm) // <CharSequence - to - String>
+        .view(editText(getView(), R.id.et_confirm_password))
+        .onView(anyOf(onTextChanged(), onFocusLost()))
+        .model(pojo(mPin, text("ConfirmPassword")))
+        .setTag(R.id.tag_test, "test");
+
+    // POP message from model to View only, do that on model state change
+    Binders.numeric(bm) // <CharSequence - to - Integer>
+        .view(textView(getView(), R.id.tv_feedback))
+        .model(pojo(mPin, integer("Message")))
+        .onModel(onObservable())
+        .format(onlyPop(new ToView<CharSequence, Integer>() {
+          @Override
+          public CharSequence toView(final Integer value) {
+            return getString(value);
+          }
+        }));
   }
 }
 ``` 
@@ -99,62 +155,18 @@ AEB adding a new step into lifecycle ```onCreateBinding()``` it executed after t
  
 # Generic Concept Overview
 
+## Binding Concept
+
 ![High Level Data Flow](_documentation/images/binding-overview-data-flow.png)
 
-# Entities, Responsibilities
+## Abstractions
 
-| Storage |
-|---------------------------------|
-| store value in specific format; |
-| hide storage specifics; |
-
-| Binder |
-|---------------------------------------------------|
-| define connection between model and view. |
-| push and pop value into/from view; |
-| attach/detach listeners; |
-| Trigger value push on change capture by listener. |
-
-| Formatter |
-|----------------------------------------------------------------------------|
-| convert storage data type to view data type; |
-| apply formatting during convert operation; |
-| one-way binding |
-| extract value from view data type and \'reverse\' it to storage data type; |
-
-| Validation |
-|--------------------------------------------------------------------|
-| pre-process data before storing it; |
-| validate data limits; |
-| attach custom listeners that needs binding results; |
-| easy attachable custom logic: master-details, data processing etc. |
-
-| Listeners |
-|-----------------------------------------------------------------------------------------------|
-| attach specific listeners to the view or storage, for runtime event based binding triggering; |
-| ask binding manager for exchange operation |
-| time or 'changed' state listeners |
-
-| Property |
-|----------------------------------------------------------|
-| reflect properties by name. |
-| Recognizing names: has\*, is\*, get\*, set\*, exceeds\*; |
-
-| BindingManager |
-|----------------------------------------|
-| find bindings by view reference; |
-| find bindings by storage reference;  |
-| force binding push; |
-| force validation; |
-| force binding pop; |
-| freeze/unfreeze binding operations; |
-| MAIN/background threads connections; |
-| maintain additional lifecycle states; |
+[Abstractions and Responsibilities](_documentation/abstractions.md)
 
 # License
 
     The MIT License (MIT)
-    Copyright (c) 2014 Oleksandr Kucherenko
+    Copyright (c) 2014-2015 Oleksandr Kucherenko, ArtfulBits Inc.
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
@@ -174,3 +186,9 @@ AEB adding a new step into lifecycle ```onCreateBinding()``` it executed after t
 
 [1]: https://raw.githubusercontent.com/xxv/android-lifecycle/master/complete_android_fragment_lifecycle.png
 [2]: http://evendanan.net/robolectric/unit-test/2015/04/09/migrating-to-robolectric-v3/
+[3]: https://secure.travis-ci.org/OleksandrKucherenko/binding-tc.png?branch=master
+[4]: https://travis-ci.org/OleksandrKucherenko/binding-tc
+[5]: https://coveralls.io/repos/OleksandrKucherenko/binding-tc/badge.svg?branch=master&service=github
+[6]: https://coveralls.io/github/OleksandrKucherenko/binding-tc?branch=master
+[7]: https://badges.gitter.im/Join%20Chat.svg
+[8]: https://gitter.im/OleksandrKucherenko/binding-tc?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge

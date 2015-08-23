@@ -5,9 +5,8 @@ import android.os.Build;
 import com.artfulbits.binding.BuildConfig;
 import com.artfulbits.sample.robolectric.RobolectricTestHolder;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.*;
+import org.junit.runner.*;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -26,7 +25,6 @@ import static org.junit.Assert.*;
 public class LoginFillRobolectricTest extends RobolectricTestHolder {
 
   @Test
-  @Ignore
   public void test_00_MainActivity_FullLifecycle() {
     final ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class);
     final MainActivity activity = controller.get();

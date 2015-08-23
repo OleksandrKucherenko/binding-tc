@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Reserved for unique name assigning. -->
+  <item name="tag_binder_name" type="id"/>
+  <!-- Reserved for master-detail chains building. -->
+  <item name="tag_binder_group" type="id"/>
+  <!-- Reserved for master-detail chains building. -->
+  <item name="tag_binder_master" type="id"/>
+  <!-- Reserved for unique id assigning. -->
+  <item name="tag_binder_id" type="id"/>
+</resources>

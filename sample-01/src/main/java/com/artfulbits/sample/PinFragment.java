@@ -74,7 +74,6 @@ public class PinFragment extends BindingSupportFragment {
         .view(editText(getView(), R.id.et_confirm_password))
         .onView(anyOf(onTextChanged(), onFocusLost()))
         .model(pojo(mPin, text("ConfirmPassword")))
-//        .validate(matchesPattern("[0-9]{4,6}")) // important!!!
         .setTag(R.id.tag_test, "test");
 
     // POP message from model to View only, do that on model state change

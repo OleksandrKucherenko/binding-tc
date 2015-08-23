@@ -57,9 +57,11 @@ The main cases when you will need tracing - is a detection of infinite loops. Li
 way you will not get a 'stack overflow', but will start to run data-exchange login in infinite loop
 and will drain battery quickly. How that happens?!
 
+```
 onViewChanged --> PUSH [ View -- Format -- Validate -- Ridge -- Model ] --> onModelChanged
 
 onModelChanged --> POP [ Model -- Ridge -- Validate -- Format -- View ] --> onViewChanged
+```
 
 This is the full lifecycle loop, in it ```Ridge``` is responsible for breaking the infinite loops.
 ```Ridge``` should detect real data change and if its NOT CHANGED - than break the loop.

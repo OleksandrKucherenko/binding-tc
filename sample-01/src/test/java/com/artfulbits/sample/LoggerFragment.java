@@ -38,11 +38,13 @@ public class LoggerFragment extends Fragment implements ILogger {
   /** Get internal logs storage. */
   @NonNull
   public StringBuilder getRawLogger() {
-    if (null != mLogger)
+    if (null != mLogger) {
       return mLogger.getRawLogger();
+    }
 
-    if (null == mLog)
+    if (null == mLog) {
       mLog = new StringBuilder(64 * 1024);
+    }
 
     return mLog;
   }
@@ -79,6 +81,7 @@ public class LoggerFragment extends Fragment implements ILogger {
 	/* [ LIFECYCLE ] ================================================================================================= */
 
   @Override
+  @SuppressWarnings("deprecation")
   public void onAttach(final Activity activity) {
     log(Level.INFO, SELF, IN + "onAttach(Activity)");
     super.onAttach(activity);
