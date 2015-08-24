@@ -184,7 +184,8 @@ android {
   sourceSets {
     test {
       // include library sources into tests
-      //java.srcDirs android.sourceSets.main.java.srcDirs
+      /* WARNING! following line breaks 'search' in android studio! */
+//      java.srcDirs android.sourceSets.main.java.srcDirs
 
       resources.srcDir file('src/test/resources')
     }

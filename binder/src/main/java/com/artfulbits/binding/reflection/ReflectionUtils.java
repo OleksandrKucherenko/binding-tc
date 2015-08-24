@@ -31,7 +31,8 @@ public final class ReflectionUtils {
   /* [ STATIC METHODS ] ============================================================================================ */
 
   /**
-   * Convert array of parameters into array of there data types.
+   * Convert array of parameters into array of there data types. All primitive types will be
+   * automatically converted to BOXED types during this call.
    *
    * @param args call parameters.
    */
@@ -39,7 +40,7 @@ public final class ReflectionUtils {
     final Class<?>[] types = new Class<?>[args.length];
 
     for (int i = 0; i < args.length; i++) {
-      types[i] = args[i].getClass();
+      types[i] = (null == args[i]) ? null : args[i].getClass();
     }
 
     return types;
@@ -275,8 +276,12 @@ public final class ReflectionUtils {
     return result;
   }
 
-  /** Change primitive types class to there 'boxed' compatible type. */
-  private static Class<?> boxing(@NonNull final Class<?> type) {
+  /**
+   * Change primitive types class to there 'boxed' compatible type.
+   *
+   * @param type check is provided type is primitive that can be converted to BOXED version.
+   */
+  public static Class<?> boxing(@NonNull final Class<?> type) {
     if (type.isPrimitive()) {
       if (boolean.class.equals(type)) return Boolean.class;
       if (char.class.equals(type)) return Character.class;

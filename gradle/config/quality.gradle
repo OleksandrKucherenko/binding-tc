@@ -171,9 +171,27 @@ def createJacocoOpenResultsTask(String f, String b) {
     def testsVariantSrc = "${project.projectDir}/src/test${flavor}${buildType}/java"
     def mainSrc = "${project.projectDir}/src/main/java"
 
-    // TODO: confirm order of the src dirs
-    sourceDirectories = files([testsSrc, testsFlavorSrc, testsBuildSrc, testsVariantSrc, mainSrc])
-    classDirectories = files([testsTree, flavorTree])
+    def sources = [testsSrc, testsFlavorSrc, testsBuildSrc, testsVariantSrc, mainSrc]
+    def classes = [testsTree, flavorTree]
+
+    // attach module sources into sample/demo/app report
+    int counter = 0;
+    while (project.hasProperty('jacocoModuleSrc_' + counter)) {
+      def moduleProperty = project.property('jacocoModuleSrc_' + counter)
+      project.logger.info("  JaCoCo includes [${counter}]: ${moduleProperty} (Variant: ${flavor}/${buildType})")
+
+      def moduleClasses = adoptToOs("${moduleProperty}/build/intermediates/classes/debug")
+      def moduleSrc = adoptToOs("{$moduleProperty}/src/main/java")
+
+      def moduleTree = fileTree(dir: moduleClasses, excludes: fileFilter)
+
+      sources.add(moduleSrc)
+      classes.add(moduleTree)
+      counter++;
+    }
+
+    sourceDirectories = files(sources)
+    classDirectories = files(classes)
     executionData = fileTree(dir: project.projectDir, includes: ['**/*.exec', '**/*.ec'])
 
     reports {

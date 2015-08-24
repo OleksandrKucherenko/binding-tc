@@ -7,8 +7,12 @@ package com.artfulbits.binding.exceptions;
  * compilation time checks.<br/>
  */
 public class WrongConfigurationError extends ConfigurationError {
+  /* [ CONSTANTS ] ================================================================================================= */
+
   /** Serialization identifier. */
   private static final long serialVersionUID = 498019655467980342L;
+
+	/* [ CONSTRUCTORS ] ============================================================================================== */
 
   public WrongConfigurationError(final String msg) {
     super(msg);
@@ -18,12 +22,15 @@ public class WrongConfigurationError extends ConfigurationError {
     super(msg, inner);
   }
 
+	/* [ GETTER / SETTER METHODS ] =================================================================================== */
+
+  /** Create a long message from inner exceptions. */
   @Override
   public String getMessage() {
     final StringBuilder sb = new StringBuilder();
     final String separator = "\n";
 
-    for (Throwable t : getReasons()) {
+    for (final Throwable t : getReasons()) {
       sb.append(separator).append(t.getMessage());
     }
 

@@ -33,7 +33,7 @@ public class ConfigurationError extends Error {
    * @param message the message
    * @param reason  the reason
    */
-  public ConfigurationError(final String message, final Throwable reason) {
+  public ConfigurationError(final String message, @NonNull final Throwable reason) {
     super(message, reason);
 
     mReasons = new Throwable[]{reason};
@@ -45,7 +45,7 @@ public class ConfigurationError extends Error {
    * @param message the message
    * @param reasons the reasons
    */
-  public ConfigurationError(final String message, final Throwable... reasons) {
+  public ConfigurationError(final String message, @NonNull final Throwable... reasons) {
     super(message, reasons[0]);
 
     mReasons = reasons;

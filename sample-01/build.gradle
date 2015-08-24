@@ -33,6 +33,7 @@ if (useJacoco) {
 apply plugin: 'com.android.application'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'com.github.ben-manes.versions'
+apply from: "${rootProject.rootDir}/gradle/config/quality.gradle"
 
 /* DEFINE REPOSITORY WITH LATEST ROBOLECTRIC VERSION */
 repositories {
@@ -44,9 +45,8 @@ repositories {
 }
 
 dependencies {
-  /* ----------------------------- */
-  /* RELEASE and DEBUG COMPILATION */
-  /* ----------------------------- */
+  /* [ DEBUG/RELEASE ] ============================================================================================ */
+  //region Binaries Compilation
   compile fileTree(dir: 'libs', include: ['*.jar'])
   compile "com.android.support:support-v4:${androidSupportLib}"
   compile "com.android.support:appcompat-v7:${androidSupportLib}"
@@ -60,11 +60,12 @@ dependencies {
   compile project(':binder')
 
   compile fileTree(dir: 'libs', include: ['*.jar'])
+  //endregion
 
-  /* -------------------------- */
-  /* UNIT TESTING configuration */
-  /* -------------------------- */
+  /* [ UNIT TESTING ] ============================================================================================= */
   if (useTesting) {
+    /* Android Tests ---------------------------------------------------------------------------------------------- */
+    //region DEVICE/EMULATOR tests
     // custom libs of the sample
     androidTestCompile fileTree(dir: 'libs', include: ['*.jar'])
 
@@ -122,16 +123,19 @@ dependencies {
     } else {
     }
 
-    if (useRobolectric) {
-      // Robolectric
-      testCompile 'junit:junit:4.12'
-      testCompile 'org.hamcrest:hamcrest-core:+'
-      testCompile 'org.hamcrest:hamcrest-library:+'
-      testCompile 'org.hamcrest:hamcrest-integration:+'
+    //endregion
 
+    /* JVM Tests -------------------------------------------------------------------------------------------------- */
+    //region JVM Tests
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.hamcrest:hamcrest-core:+'
+    testCompile 'org.hamcrest:hamcrest-library:+'
+    testCompile 'org.hamcrest:hamcrest-integration:+'
+
+    //region testCompile('org.robolectric:robolectric:+')
+    if (useRobolectric) {
       /* Robolectric (v3.0) */
       testCompile 'org.robolectric:shadows-core:+'
-//      testCompile 'org.robolectric:shadows-support-v4:+'
       testCompile('org.robolectric:robolectric:+') {
         exclude module: 'classworlds'
         exclude module: 'commons-logging'
@@ -154,6 +158,8 @@ dependencies {
         exclude group: 'org.objenesis', module: 'objenesis'
       }
     }
+    //endregion
+    //endregion
   }
 }
 
@@ -193,19 +199,15 @@ android {
 
   /* REDEFINE TESTS FOLDER */
   sourceSets {
-//        test.setRoot('src/test')
+    /* JVM tests */
     test {
       /* exclude robolectric tests */
       if (!useRobolectric) {
         java.exclude '**/robolectric/**'
       }
     }
-
-//        androidTest.setRoot('src/androidTest')
+    /* DEVICE/EMULATOR Tests */
     androidTest {
-      // UNCOMMENT for enabling 'custom manifest for unit tests' feature (part #1 of 2):
-      // manifest.srcFile 'src/test/AndroidManifest.xml'
-
       /* exclude Espresso tests if tools is not attached */
       if (!useEspresso) {
         java.exclude '**/espresso/**'
@@ -368,8 +370,10 @@ android {
         output.outputFile = new File(file.parent, newFilename)
 
         // dump into logs final filename
-        def log = "Application variant.outputs output file name (gradle overrides: ${isOverride}): '${newFilename}'"
-        rootProject.logger.lifecycle(log)
+        def log = "  output: '${newFilename}'"
+        def logInfo = log + " (Variant: ${versionType}, gradle overrides: ${isOverride})"
+        if (!rootProject.logger.isEnabled(LogLevel.INFO)) rootProject.logger.lifecycle(log)
+        rootProject.logger.info(logInfo)
       }
     }
   }
@@ -388,6 +392,9 @@ if (useJacoco) {
   jacoco {
     toolVersion JaCoCoVersion
   }
+
+  /* say generateJaCoCo* report task to include module sources into it */
+  ext.jacocoModuleSrc_0 = project(":binder").projectDir
 
   /** Copy JaCoCo results from sample into library result folder */
   task combineSampleJacocoWithLibrary(type: Copy) {

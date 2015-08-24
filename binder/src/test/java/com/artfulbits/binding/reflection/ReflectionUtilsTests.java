@@ -6,6 +6,7 @@ import android.widget.TextView;
 
 import com.artfulbits.junit.TestHolder;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -124,6 +125,46 @@ public class ReflectionUtilsTests extends TestHolder {
     trace("Found: " + exactInt.getFullName());
     trace("Found: " + exactArr.getFullName());
     trace("Found: " + exactLast.getFullName());
+  }
+
+  @Test
+  @Ignore
+  public void test_04_ReverseSearch() {
+    // TODO: implement search of method/field in string array
+    // SearchByFieldNameComparator, SearchByExecutableNameComparator, SearchByMethodNameComparator
+  }
+
+  @Test
+  public void test_05_BoxingTypes() {
+    assertTrue(ReflectionUtils.boxing(boolean.class).equals(Boolean.class));
+    assertTrue(ReflectionUtils.boxing(char.class).equals(Character.class));
+    assertTrue(ReflectionUtils.boxing(byte.class).equals(Byte.class));
+    assertTrue(ReflectionUtils.boxing(short.class).equals(Short.class));
+    assertTrue(ReflectionUtils.boxing(int.class).equals(Integer.class));
+    assertTrue(ReflectionUtils.boxing(long.class).equals(Long.class));
+    assertTrue(ReflectionUtils.boxing(float.class).equals(Float.class));
+    assertTrue(ReflectionUtils.boxing(double.class).equals(Double.class));
+  }
+
+  @Test
+  public void test_06_ToTypes() {
+    final Class<?>[] types = ReflectionUtils.toTypes("Something", 1, 1L,
+        Long.valueOf(10L), new Double(5.0f), (String) null);
+
+    for (Class<?> c : types) {
+      trace((null == c) ? "<null>" : c.toString());
+    }
+
+    assertThat(types, arrayWithSize(6));
+
+    // during sending the parameters they are automatically BOXED, that is why
+    // should expect only expect non-primitive types
+    assertTrue(types[0].equals(String.class));
+    assertTrue(types[1].equals(Integer.class));
+    assertTrue(types[2].equals(Long.class));
+    assertTrue(types[3].equals(Long.class));
+    assertTrue(types[4].equals(Double.class));
+    assertThat(types[5], nullValue());
   }
 
   /* [ NESTED DECLARATIONS ] ======================================================================================= */
