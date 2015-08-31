@@ -14,9 +14,13 @@
 ## Selector v2
 
 ~~1. Implement selectors from MAPs~~
+
 ~~2. Implement selectors from Array~~
+
 ~~3. Implement selectors from List~~
-~~4. Simplify nested/chained selectors declaration
+
+~~4. Simplify nested/chained selectors declaration~~
+
 5. clone selector with runtime instance replacement (apply the same configuration on another instance)
 6. Expression IF/ELSE in logic, quick switches
 7. Implement selector from SparseArray
