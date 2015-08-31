@@ -1,5 +1,6 @@
 // Library: binding-tc, Android Easy Binding (AEB)
 
+import org.apache.commons.lang.StringEscapeUtils
 import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
@@ -162,8 +163,7 @@ android {
 
       /** Helpers that generate constants for TDD/BDD tests. Path resolved against './src/main' */
       def path = adoptToOs("../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/${androidSupportLib}")
-      path = org.apache.commons.lang.StringEscapeUtils.escapeJava(path)
-      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"${path}\""
+      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"${adoptToJava(path)}\""
     }
     release {
       testCoverageEnabled false
@@ -176,8 +176,7 @@ android {
 
       /** Helpers that generate constants for TDD/BDD tests. Path resolved against './src/main' */
       def path = adoptToOs("../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/${androidSupportLib}")
-      path = org.apache.commons.lang.StringEscapeUtils.escapeJava(path)
-      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"${path}\""
+      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"${adoptToJava(path)}\""
     }
   }
 
@@ -486,6 +485,16 @@ def adoptToOs(String path) {
     path = path.replace("\\", "/")
   } else if (Os.isFamily(Os.FAMILY_MAC)) { // mac os
     path = path.replace("\\", "/")
+  }
+
+  return path;
+}
+
+def adoptToJava(String path) {
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) { // windows only needs escaping
+    path = StringEscapeUtils.escapeJava(path)
+  } else if (Os.isFamily(Os.FAMILY_UNIX)) {
+  } else if (Os.isFamily(Os.FAMILY_MAC)) {
   }
 
   return path;

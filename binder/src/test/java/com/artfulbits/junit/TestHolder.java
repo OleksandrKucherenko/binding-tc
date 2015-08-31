@@ -29,6 +29,8 @@ public abstract class TestHolder implements Meter.Output {
   private final static int BUFFER_SIZE = 4 * 1024;
   /** Default size of read/write operation buffer. Default: 16Kb. */
   private final static int BUFFER_READ_WRITE_SIZE = 4 * BUFFER_SIZE;
+  /** New line separator. */
+  public final static String NEW_LINE = "\r\n";
 
   /* [ INJECTIONS ] ================================================================================================ */
 
@@ -41,7 +43,7 @@ public abstract class TestHolder implements Meter.Output {
   /* [ MEMBERS ] =================================================================================================== */
 
   /** Standard Output Logger. Helps to save some useful results of tests as a part of execution. */
-  private final StringBuilder mLog = new StringBuilder(64 * 1024).append("\r\n");
+  private final StringBuilder mLog = new StringBuilder(64 * 1024).append(NEW_LINE);
   /** Mocked context. */
   private Context mContext;
 
@@ -76,7 +78,7 @@ public abstract class TestHolder implements Meter.Output {
   public void log(final Level level, final String tag, final String msg) {
     mLog.append(level.toString().charAt(0)).append(" : ")
         .append(tag).append(" : ")
-        .append(msg).append("\r\n");
+        .append(msg).append(NEW_LINE);
   }
 
   /** Put message into system output. */

@@ -137,8 +137,12 @@ public final class ReflectionUtils {
     for (int i = index; i < entries.size(); i++) {
       final Entry candidate = entries.get(i);
 
-      // end of sequence
+      // end of sequence, nothing found
       if (!methodName.equals(candidate.getName())) break;
+
+      // found field with match by name and parameters count
+      if (count == 1 && candidate.getRawType() instanceof Field)
+        return candidate;
 
       // skip non-methods
       if (!(candidate.getRawType() instanceof Method)) continue;
@@ -157,6 +161,7 @@ public final class ReflectionUtils {
         return candidate;
     }
 
+    // noting found
     return null;
   }
 
@@ -299,6 +304,24 @@ public final class ReflectionUtils {
   }
 
   /**
+   * Convert BOXED version of class to it unboxed version.
+   *
+   * @param type reflection type to check and convert.
+   */
+  public static Class<?> unboxing(@NonNull final Class<?> type) {
+    if (Boolean.class.equals(type)) return boolean.class;
+    if (Character.class.equals(type)) return char.class;
+    if (Byte.class.equals(type)) return byte.class;
+    if (Short.class.equals(type)) return short.class;
+    if (Integer.class.equals(type)) return int.class;
+    if (Long.class.equals(type)) return long.class;
+    if (Float.class.equals(type)) return float.class;
+    if (Double.class.equals(type)) return double.class;
+
+    return type;
+  }
+
+  /**
    * Compares two {@code int} values.
    *
    * @return 0 if lhs = rhs, less than 0 if lhs &lt; rhs, and greater than 0 if lhs &gt; rhs.
@@ -385,7 +408,31 @@ public final class ReflectionUtils {
     /** Compare names. */
     @Override
     public int compare(final Entry lhs, final Entry rhs) {
-      return lhs.getName().compareTo(rhs.getName());
+      final int result = lhs.getName().compareTo(rhs.getName());
+
+      // they has same name
+      if (0 == result) {
+
+        if (lhs instanceof FieldFacade && rhs instanceof MethodFacade) {
+          final Method right = (Method) rhs.getRawType();
+          final int sub = ReflectionUtils.compare(1, right.getParameterTypes().length);
+
+          return (0 == sub) ? 1 : sub; // field bigger method
+        } else if (lhs instanceof MethodFacade && rhs instanceof FieldFacade) {
+          final Method left = (Method) lhs.getRawType();
+          final int sub = ReflectionUtils.compare(left.getParameterTypes().length, 1);
+
+          return (0 == sub) ? -1 : sub; // method less field
+        } else if (lhs instanceof MethodFacade && rhs instanceof MethodFacade) {
+          final Method left = (Method) lhs.getRawType();
+          final Method right = (Method) rhs.getRawType();
+
+          // methods compare by params quantity
+          return ReflectionUtils.compare(left.getParameterTypes().length, right.getParameterTypes().length);
+        }
+      }
+
+      return result;
     }
   }
 

@@ -29,9 +29,6 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
 
   /* [ CONSTANTS ] ================================================================================================= */
 
-  /** Main thread ID. */
-  private static final int MAIN_THREAD_ID = 1;
-
   /* [ MEMBERS ] =================================================================================================== */
 
   /** Wrapped adapter. */
@@ -216,7 +213,7 @@ public class BindingAdapter implements Adapter, BindingsManager.Lifecycle {
 
   /**
    * {@inheritDoc}
-   * <p>
+   * <p/>
    * Override is LOCKED. Override {@link #onCreateBinding(BindingsManager, Selector, Selector)} for making
    * customization of the class by inheritance.
    */

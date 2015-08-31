@@ -290,23 +290,25 @@ public class Property<T> {
     // if specified special NO_NAME pattern, than ignore the call
     if (NO_NAME.equals(mStrictSet)) return result;
 
-    final List<Entry> methods = ReflectionUtils.getAll(instance.getClass());
+    final List<Entry> entries = ReflectionUtils.getAll(instance.getClass());
 
     // explicit name defined
     if (null != mStrictSet) {
-      result = ReflectionUtils.find(methods, mStrictSet);
+      result = ReflectionUtils.find(entries, mStrictSet);
     }
 
     // search required
     if (null == result && null != mName) {
       for (final String prefix : KNOWN_SETTERS) {
         final String name = prefix + mName;
-        result = ReflectionUtils.find(methods, name);
+        result = ReflectionUtils.find(entries, name);
 
         // found candidate
         if (null != result) {
+          final Entry method = ReflectionUtils.match(entries, result, setterToTypes());
+
           // and found exact types match
-          if (null != (result = ReflectionUtils.match(methods, result, setterToTypes()))) {
+          if (null != (result = method)) {
             mStrictSet = name;
             break;
           }

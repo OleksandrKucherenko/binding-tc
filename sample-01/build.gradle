@@ -1,5 +1,7 @@
 // Application: Sample-01
 
+
+import org.apache.commons.lang.StringEscapeUtils
 import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
@@ -252,8 +254,7 @@ android {
 
       /** Helpers that generate constants for TDD/BDD tests. Path resolved against './src/main' */
       def path = adoptToOs("../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/${androidSupportLib}")
-      path = org.apache.commons.lang.StringEscapeUtils.escapeJava(path)
-      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"${path}\""
+      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"${adoptToJava(path)}\""
     }
     // debug configuration with custom debug key
     debug {
@@ -269,8 +270,7 @@ android {
 
       /** Helpers that generate constants for TDD/BDD tests. Path resolved against './src/main' */
       def path = adoptToOs("../../build/intermediates/exploded-aar/com.android.support/appcompat-v7/${androidSupportLib}")
-      path = org.apache.commons.lang.StringEscapeUtils.escapeJava(path)
-      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"${path}\""
+      buildConfigField "String", "ROBOLECTRIC_APPCOMPAT", "\"${adoptToJava(path)}\""
     }
     // release without obfuscation
     noProguardRelease.initWith(buildTypes.release)
@@ -388,12 +388,12 @@ idea {
 }
 
 if (useJacoco) {
-  /* be specific about JaCoCo version. */
+  /** be specific about JaCoCo version. */
   jacoco {
     toolVersion JaCoCoVersion
   }
 
-  /* say generateJaCoCo* report task to include module sources into it */
+  /** say generateJaCoCo* report task to include module sources into it */
   ext.jacocoModuleSrc_0 = project(":binder").projectDir
 
   /** Copy JaCoCo results from sample into library result folder */
@@ -438,15 +438,22 @@ def adoptToOs(String path) {
   path = path.replace("//", "/")
   path = path.replace("\\\\", "\\")
 
-  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-    // windows
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) { // windows
     path = path.replace("/", "\\")
+  } else if (Os.isFamily(Os.FAMILY_UNIX)) { // linux
+    path = path.replace("\\", "/")
+  } else if (Os.isFamily(Os.FAMILY_MAC)) { // mac os
+    path = path.replace("\\", "/")
+  }
+
+  return path;
+}
+
+def adoptToJava(String path) {
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) { // windows only needs escaping
+    path = StringEscapeUtils.escapeJava(path)
   } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-    // linux
-    path = path.replace("\\", "/")
   } else if (Os.isFamily(Os.FAMILY_MAC)) {
-    // mac os
-    path = path.replace("\\", "/")
   }
 
   return path;
