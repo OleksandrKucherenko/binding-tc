@@ -3,7 +3,7 @@
 |                           | Android Binding | Binding-TC |    Bindroid   | AndroidFormEnhancer |
 |---------------------------|-----------------|------------|:-------------:|---------------------|
 | VERSION                   |     1.0-rc1     |  1.0-beta  | 19 Sept, 2014 |        v1.1.0       |
-|---------------------------|-----------------|------------|:-------------:|---------------------|
+|                           |                 |            |               |                     |
 | Reflection                |        No       |     Yes    |               |                     |
 | Obfuscation Supported     |       Yes       |     No     |               |                     |
 | Declarative               |       Yes       |     No     |               |                     |
@@ -33,10 +33,15 @@
 |                           |                 |            |               |                     |
 |                           |                 |            |               |                     |
 
-(1) - Selector abstraction easily can replace this and provide more flexible way
-(2) - No custom-syntax expression, I realign on Java code and business logic
-(3) - No specific implementation available, Selector can easily cover any type of interface for accessing the data
-(4) - Should be implemented over custom Formatting which converts int-to-resource
+(1) - Selector abstraction easily can replace this and provide more flexible way;
+
+(2) - No custom-syntax expression, I realign on Java code and business logic;
+
+(3) - No specific implementation available, Selector can easily cover any type of interface for accessing the data;
+
+(4) - Should be implemented over custom Formatting which converts int-to-resource;
+
+
 
 [1]: https://developer.android.com/intl/ru/tools/data-binding/guide.html
 [2]: https://github.com/depoll/bindroid
