@@ -6,6 +6,8 @@ jdk:
   - oraclejdk8
 
 env:
+  global:
+    - GRADLE_USER_HOME=$HOME/.gradle
   # Known TV: sys-img-armeabi-v7a-android-tv-23, sys-img-x86-android-tv-23, 
   # Known : sys-img-armeabi-v7a-android-23, sys-img-x86_64-android-23, sys-img-x86-android-23
   matrix:
