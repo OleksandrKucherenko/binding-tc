@@ -24,6 +24,8 @@ cache:
 before_cache:  
   # cleanup a little for better caching reuse
   - rm -rfv $HOME/.gradle/caches/2.4/scripts
+  - rm -rfv $HOME/.gradle/caches/2.7/scripts  
+  - rm -rfv $HOME/.gradle/caches/2.9/scripts
   - rm -rfv $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -rfv $HOME/.gradle/daemon/
 
