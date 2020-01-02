@@ -77,7 +77,7 @@ dependencies {
     androidTestCompile 'com.artfulbits:meter:+@aar'
 
     /* jUnit (v4.12) */
-    androidTestCompile('junit:junit:4.12') { exclude group: 'org.hamcrest' }
+    androidTestCompile('junit:junit:4.13') { exclude group: 'org.hamcrest' }
 
     /* JVM Tests ------------------------------------------------------------------------------------------------ */
     testCompile 'org.hamcrest:hamcrest-integration:+',
